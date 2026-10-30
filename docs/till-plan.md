@@ -318,7 +318,8 @@ Log out.
   the orientation lock on tablets.
 - Every string in English and German. Amounts and times are formatted with
   `Intl` in the active language.
-- Touch targets of at least 48 px.
+- Touch targets of at least 48 px. `@zahln/ui/touch.css` gives every button
+  and field a minimum height, in the till and the student app.
 - Status changes are announced, so TalkBack users hear "Paid".
 
 ## Build order
@@ -336,7 +337,7 @@ The static screens and the session come first.
 | 5   | Till base: TanStack Query with its settings, the client, session hooks, guard, the login screen wired to the session, header with log out, layer lint rules | In the dev server: logging in and out works, a wrong password shows its message, and requests still work after 5 minutes without a login screen                                 |
 | 6   | Charge flow: mensa, menu and order schemas and calls; the `cart` and `charge` slices, with tests                                                            | An order paid through the API as `student` shows "Paid", an unpaid one shows "Expired", and a killed app returns to the open order                                              |
 | 7   | Refund flow: payment and refund schemas and calls; the `refund` slice, with tests                                                                           | Full and partial refunds work, each refusal shows its message, and the form locks when the outcome is unknown                                                                   |
-| 8   | Finish: German strings, portrait layout, TalkBack labels, touch targets, a run on a tablet emulator                                                         | All checks pass                                                                                                                                                                 |
+| 8   | Finish: German strings, portrait layout, TalkBack labels, a run on a tablet emulator                                                                        | All checks pass                                                                                                                                                                 |
 
 ## Libraries added
 

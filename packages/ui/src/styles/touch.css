@@ -1,0 +1,21 @@
+/* For the apps used by touch only: the till and the student app. Import it
+   after globals.css. The dashboard leaves it out, since it is used with a
+   mouse.
+
+   shadcn's controls are 24 to 40 px tall, and Android's guideline for a touch
+   target is 48 dp. A minimum height here, rather than a size class at every
+   call site, means no button or field can be forgotten, and the generated
+   components stay as shadcn wrote them. min-height leaves their height
+   classes alone, and the base layer lets a min-h-* utility still override it
+   where a screen needs to. */
+@layer base {
+  [data-slot="button"],
+  [data-slot="input"] {
+    min-height: 3rem;
+  }
+
+  /* Icon buttons are square, so they need the width as well. */
+  [data-slot="button"][data-size^="icon"] {
+    min-width: 3rem;
+  }
+}
