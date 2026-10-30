@@ -1,9 +1,6 @@
-:root {
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-  color-scheme: light dark;
-}
+@import "@zahln/ui/globals.css";
 
-body {
-  margin: 0;
+:root {
+  /* Light only for now, so form controls and scrollbars stay light too. */
+  color-scheme: light;
 }
