@@ -1,20 +1,35 @@
+import { resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { parseApiEnv } from "@zahln/api/env";
+import { defineConfig, loadEnv } from "vite";
+import pkg from "./package.json" with { type: "json" };
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  build: {
-    // A budget tablet can run an older Android System WebView than the recent
-    // Chrome that Vite's default target assumes.
-    target: "es2020",
-  },
-  server: {
-    // Listen on the LAN so a tablet can load the dev server for live reload.
-    host: true,
-    port: 5174,
-    // Fixed, so CAP_DEV_URL keeps pointing at this app and not at whichever
-    // app happened to start first.
-    strictPort: true,
-  },
+// One .env at the repo root serves all three apps.
+const envDir = resolve(import.meta.dirname, "../..");
+
+export default defineConfig(({ mode }) => {
+  // Throws here, at build time, rather than in the app on a tablet.
+  parseApiEnv(loadEnv(mode, envDir, "VITE_"));
+
+  return {
+    envDir,
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
+    plugins: [react(), tailwindcss()],
+    build: {
+      // A budget tablet can run an older Android System WebView than the recent
+      // Chrome that Vite's default target assumes.
+      target: "es2020",
+    },
+    server: {
+      // Listen on the LAN so a tablet can load the dev server for live reload.
+      host: true,
+      port: 5174,
+      // Fixed, so CAP_DEV_URL keeps pointing at this app and not at whichever
+      // app happened to start first.
+      strictPort: true,
+    },
+  };
 });

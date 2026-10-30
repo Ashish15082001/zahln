@@ -51,6 +51,16 @@ tools fail on an empty folder. Add them with the package's first file:
 - For Android: Android Studio with SDK 36, and JDK 21 (Android Studio's bundled
   JBR works). Set `JAVA_HOME` and `ANDROID_HOME`.
 
+## Configuration
+
+```sh
+cp .env.example .env   # then set VITE_CANDIDATE_ID
+```
+
+One `.env` at the repo root serves all three apps. A build without a candidate
+ID fails, rather than producing an app that gets 403 on every request. CI reads
+the ID from the `VITE_CANDIDATE_ID` repository secret.
+
 ## Running it
 
 ```sh

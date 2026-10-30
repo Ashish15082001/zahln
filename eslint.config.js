@@ -24,5 +24,14 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      // Response types are declared `interface Foo extends z.infer<typeof
+      // FooSchema> {}`: a named interface reads better in hovers and errors
+      // than a type alias. The default setting flags that empty body.
+      "@typescript-eslint/no-empty-object-type": [
+        "error",
+        { allowInterfaces: "with-single-extends" },
+      ],
+    },
   },
 ]);

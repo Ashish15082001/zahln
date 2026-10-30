@@ -4,6 +4,12 @@ on:
   push:
   pull_request:
 
+# Baked into every build. The candidate ID is a repository secret because the
+# repo is public and the ID gives write access to our sandbox data.
+env:
+  VITE_API_BASE_URL: https://dev.zahln.de
+  VITE_CANDIDATE_ID: ${{ secrets.VITE_CANDIDATE_ID }}
+
 jobs:
   checks:
     runs-on: ubuntu-latest

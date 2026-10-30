@@ -1,9 +1,14 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  // Vite bakes VITE_* values into the bundle, so a changed .env must rebuild
+  // rather than replay a cached build that points at the old candidate ID.
+  "globalDependencies": [".env"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      // Turbo hides undeclared env vars from tasks; CI passes these as env vars.
+      "env": ["VITE_*"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]

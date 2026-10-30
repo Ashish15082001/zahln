@@ -5,6 +5,7 @@ import type { Resources } from "./en";
 const de: Resources = {
   common: {
     continue: "Weiter",
+    version: "Version {{version}}",
   },
   student: {
     appName: "Zahln",

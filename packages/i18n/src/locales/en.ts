@@ -3,6 +3,7 @@
 const en = {
   common: {
     continue: "Continue",
+    version: "Version {{version}}",
   },
   student: {
     appName: "Zahln",
