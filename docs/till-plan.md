@@ -233,6 +233,7 @@ device's files could read every prefix.
 
 | Route                  | Shows                                                                                |
 | ---------------------- | ------------------------------------------------------------------------------------ |
+| `/`                    | "Welcome to Zahln", and **Continue** to the login screen                             |
 | `/login`               | Username and password form. `invalid_credentials` shows "Wrong username or password" |
 | `/charge`              | The menu and the cart, with the total for student, staff and guest                   |
 | `/charge/:orderId`     | QR, countdown and live status                                                        |
@@ -324,27 +325,26 @@ Log out.
 
 Each piece is one or two commits, and I stop after each.
 
-| #                                 | Piece | Done when |
-| --------------------------------- | ----- | --------- |
-| The session and login come first. |
+The static screens and the session come first.
 
-| #   | Piece                                                                                                                                      | Done when                                                                                                                                                                       |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `domain`: schemas for the user, the session and the error body                                                                             | Tests pass                                                                                                                                                                      |
-| 2   | `api`: `http`, `clock`, `errors`, `session` and `POST /sessions`                                                                           | Tests: a token expiring mid-request, three `401`s with one login, a wrong password ending the session without looping, a network error that keeps the session, an early renewal |
-| 3   | `storage`: per-cashier encrypted storage                                                                                                   | Tests: A's data can't be read with B's key, a wrong password reads as empty, nothing can be read after `close()`, damaged data reads as empty                                   |
-| 4   | Till base: TanStack Query with its settings, router, the client, session hooks, guard, login screen, header with log out, layer lint rules | In the dev server: logging in and out works, a wrong password shows its message, and requests still work after 5 minutes without a login screen                                 |
-| 5   | Charge flow: mensa, menu and order schemas and calls; the `cart` and `charge` slices, with tests                                           | An order paid through the API as `student` shows "Paid", an unpaid one shows "Expired", and a killed app returns to the open order                                              |
-| 6   | Refund flow: payment and refund schemas and calls; the `refund` slice, with tests                                                          | Full and partial refunds work, each refusal shows its message, and the form locks when the outcome is unknown                                                                   |
-| 7   | Finish: German strings, portrait layout, TalkBack labels, a run on a tablet emulator                                                       | All checks pass                                                                                                                                                                 |
+| #   | Piece                                                                                                                                                       | Done when                                                                                                                                                                       |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Static screens: welcome and login, with the router. No API yet                                                                                              | **Continue** opens the login screen                                                                                                                                             |
+| 2   | `domain`: schemas for the user, the session and the error body                                                                                              | Tests pass                                                                                                                                                                      |
+| 3   | `api`: `http`, `clock`, `errors`, `session` and `POST /sessions`                                                                                            | Tests: a token expiring mid-request, three `401`s with one login, a wrong password ending the session without looping, a network error that keeps the session, an early renewal |
+| 4   | `storage`: per-cashier encrypted storage                                                                                                                    | Tests: A's data can't be read with B's key, a wrong password reads as empty, nothing can be read after `close()`, damaged data reads as empty                                   |
+| 5   | Till base: TanStack Query with its settings, the client, session hooks, guard, the login screen wired to the session, header with log out, layer lint rules | In the dev server: logging in and out works, a wrong password shows its message, and requests still work after 5 minutes without a login screen                                 |
+| 6   | Charge flow: mensa, menu and order schemas and calls; the `cart` and `charge` slices, with tests                                                            | An order paid through the API as `student` shows "Paid", an unpaid one shows "Expired", and a killed app returns to the open order                                              |
+| 7   | Refund flow: payment and refund schemas and calls; the `refund` slice, with tests                                                                           | Full and partial refunds work, each refusal shows its message, and the form locks when the outcome is unknown                                                                   |
+| 8   | Finish: German strings, portrait layout, TalkBack labels, touch targets, a run on a tablet emulator                                                         | All checks pass                                                                                                                                                                 |
 
 ## Libraries added
 
 | Library                           | Why                                   |
 | --------------------------------- | ------------------------------------- |
 | `@tanstack/react-query`           | Server data: caching, polling, paging |
-| `@reduxjs/toolkit`, `react-redux` | The till's own state, from piece 5    |
-| `react-router`                    | Screens                               |
+| `@reduxjs/toolkit`, `react-redux` | The till's own state, from piece 6    |
+| `react-router`                    | Screens, from piece 1                 |
 | `qrcode.react`                    | Draws the QR as SVG                   |
 | `idb-keyval`                      | IndexedDB in about 1 KB               |
 | `fake-indexeddb`                  | IndexedDB for tests only              |
