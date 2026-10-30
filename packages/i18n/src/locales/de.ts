@@ -12,6 +12,17 @@ const de: Resources = {
   },
   till: {
     appName: "Zahln Kasse",
+    welcome: {
+      title: "Willkommen bei Zahln",
+      description: "Bestellungen erfassen und Zahlungen in der Mensa annehmen.",
+    },
+    login: {
+      title: "Anmelden",
+      description: "Melden Sie sich mit Ihrem Kassenkonto an.",
+      username: "Benutzername",
+      password: "Passwort",
+      submit: "Anmelden",
+    },
   },
   dashboard: {
     appName: "Zahln Dashboard",

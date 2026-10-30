@@ -10,6 +10,17 @@ const en = {
   },
   till: {
     appName: "Zahln Till",
+    welcome: {
+      title: "Welcome to Zahln",
+      description: "Ring up orders and take payments at the mensa.",
+    },
+    login: {
+      title: "Log in",
+      description: "Log in with your cashier account.",
+      username: "Username",
+      password: "Password",
+      submit: "Log in",
+    },
   },
   dashboard: {
     appName: "Zahln Dashboard",
