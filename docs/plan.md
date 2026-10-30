@@ -10,7 +10,7 @@ bigger choices goes in [design.md](design.md).
 | Step | Scope                                                   | Status                     |
 | ---- | ------------------------------------------------------- | -------------------------- |
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                       |
-| 1    | `domain` and `api`: the parts the till needs            | Next, waiting for approval |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval |
 | 2    | Till                                                    | Planned                    |
 | 3    | Student app                                             | Planned                    |
 | 4    | Dashboard                                               | Outline only               |
