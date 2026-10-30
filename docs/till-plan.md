@@ -324,20 +324,9 @@ Log out.
 
 ## Build order
 
-Each piece is one or two commits, and I stop after each.
-
-The static screens and the session come first.
-
-| #   | Piece                                                                                                                                                       | Done when                                                                                                                                                                       |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Static screens: welcome and login, with the router. No API yet                                                                                              | **Continue** opens the login screen                                                                                                                                             |
-| 2   | `domain`: schemas for the user, the session and the error body                                                                                              | Tests pass                                                                                                                                                                      |
-| 3   | `api`: `http`, `clock`, `errors`, `session` and `POST /sessions`                                                                                            | Tests: a token expiring mid-request, three `401`s with one login, a wrong password ending the session without looping, a network error that keeps the session, an early renewal |
-| 4   | `storage`: per-cashier encrypted storage                                                                                                                    | Tests: A's data can't be read with B's key, a wrong password reads as empty, nothing can be read after `close()`, damaged data reads as empty                                   |
-| 5   | Till base: TanStack Query with its settings, the client, session hooks, guard, the login screen wired to the session, header with log out, layer lint rules | In the dev server: logging in and out works, a wrong password shows its message, and requests still work after 5 minutes without a login screen                                 |
-| 6   | Charge flow: mensa, menu and order schemas and calls; the `cart` and `charge` slices, with tests                                                            | An order paid through the API as `student` shows "Paid", an unpaid one shows "Expired", and a killed app returns to the open order                                              |
-| 7   | Refund flow: payment and refund schemas and calls; the `refund` slice, with tests                                                                           | Full and partial refunds work, each refusal shows its message, and the form locks when the outcome is unknown                                                                   |
-| 8   | Finish: German strings, portrait layout, TalkBack labels, a run on a tablet emulator                                                                        | All checks pass                                                                                                                                                                 |
+The till is built in 8 pieces, starting with the static screens and the
+session. The pieces, their status and their files are in their own document:
+[till-pieces.md](till-pieces.md).
 
 ## Libraries added
 
