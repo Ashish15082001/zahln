@@ -28,6 +28,7 @@ packages/
   native/      Capacitor wrappers, used by the student app and the till only
 docs/
   plan.md      Build plan, step by step, with status
+  till-plan.md Detailed plan for the till
   design.md    Design document
 ```
 

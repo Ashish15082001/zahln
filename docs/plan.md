@@ -10,11 +10,13 @@ bigger choices goes in [design.md](design.md).
 | Step | Scope                                                   | Status                     |
 | ---- | ------------------------------------------------------- | -------------------------- |
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                       |
-| 1    | `domain` and `api` packages, with tests                 | Next, waiting for approval |
+| 1    | `domain` and `api`: the parts the till needs            | Next, waiting for approval |
 | 2    | Till                                                    | Planned                    |
 | 3    | Student app                                             | Planned                    |
 | 4    | Dashboard                                               | Outline only               |
 | 5    | Ship                                                    | Planned                    |
+
+Steps 1 and 2 are planned in detail in [till-plan.md](till-plan.md).
 
 ## Rules for every step
 
@@ -27,9 +29,11 @@ bigger choices goes in [design.md](design.md).
 - **Late answers never win.** A response with a lower `version` than one
   already seen is dropped. Server time comes from the `Date` header, not the
   device clock.
-- **State and routing.** TanStack Query for reads only: menu, history, reports.
-  The order, payment and refund flows run on `useReducer` over the shared
-  states. react-router for screens. No Redux.
+- **Three layers.** UI (screens), store (Redux Toolkit, for each app's own
+  state, such as a cart or a payment in progress) and data access (TanStack
+  Query hooks on top of `packages/api`). Screens never call the API directly.
+  TanStack Query never retries on its own and never takes an older `version`.
+  react-router for screens.
 - **UI.** shadcn components stay as generated. Our own components follow the
   React house rules.
 - **Languages and access.** Every screen is in English and German. The pay
@@ -62,6 +66,9 @@ Changes from the plan:
 
 ## Step 1: `domain` and `api` packages
 
+Built in two halves: the parts the till needs in this step, and the student
+app's parts (config, pay, the app version header) in step 3.
+
 - **Data checks:** a zod schema per entity, split into `backend.ts` and
   `frontend.ts`: session, config, mensa, order, payment, refund, daily totals
   and the error body. Every response is checked against its schema.
@@ -86,28 +93,12 @@ Changes from the plan:
 
 ## Step 2: Till
 
-- **Login:** as a cashier, for example `cashier-campus-1`. The till and mensa
-  come from the user record, and the menu from `GET /mensas`.
-- **Charge:** the cashier rings up items, then the till sends `POST /orders`.
-  - The idempotency key is created on tap and reused for every retry.
-  - A changed cart is a new order with a new key.
-- **Waiting:** the till shows the QR with a countdown based on server time,
-  and polls `GET /orders/{id}`.
-  - It shows "Paid" only when the order status is `paid`.
-  - If the connection drops, it shows "Checking", never a result.
-- **Refund:** list the till's payments, open one, enter an amount (capped at
-  what's still refundable) and a reason, then `POST /payments/{id}/refunds`.
-  - One key per refund.
-  - The till polls the payment until the refund is `completed` or `failed`.
-  - Each refusal gets its own message:
+Detailed in [till-plan.md](till-plan.md):
 
-| Code                     | The message says                              |
-| ------------------------ | --------------------------------------------- |
-| `refund_exceeds_payment` | The amount is more than can still be refunded |
-| `payment_not_refundable` | The payment isn't confirmed                   |
-| `refund_window_closed`   | The payment is older than 30 days             |
-| `forbidden`              | The payment was made at another till          |
-
+- **Charge:** ring up an order and show its QR. "Paid" and "Expired" are shown
+  only when the server says so.
+- **Refund:** in full or in part, with one message per refusal. The form locks
+  while an attempt's outcome is unknown.
 - **Layout:** landscape, and it also works in portrait, because Android 16
   ignores the orientation lock on tablets.
 
