@@ -37,4 +37,4 @@ Decisions made so far, to expand:
 
 ## What the API is missing, and what I would change
 
-_To be written._
+See [api-gaps.md](api-gaps.md).

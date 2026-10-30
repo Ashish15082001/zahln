@@ -177,11 +177,6 @@ Open for the detailed plan:
 - The alert dialog blurs the page behind it, which is slow on a low-end phone.
   Check it on a device in step 3.
 
-## API gaps, for the design doc
+## API gaps
 
-- **No way to cancel an order.** If a student walks away, the old QR can still
-  be paid for 5 minutes while the cashier rings up the next order. Only the
-  server can really fix this.
-- **No refresh token.** The app has to keep the password to log in again every
-  5 minutes. That's fine for seeded test users but not for production.
-- **No push.** The till and the app can only poll for results.
+Kept in their own document: [api-gaps.md](api-gaps.md).

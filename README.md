@@ -29,6 +29,7 @@ packages/
 docs/
   plan.md      Build plan, step by step, with status
   till-plan.md Detailed plan for the till
+  api-gaps.md  What the API is missing, and what I would change
   design.md    Design document
 ```
 
