@@ -1,11 +1,16 @@
 import { Button } from "@zahln/ui/components/button";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 
-const App: FC = () => (
-  <main className="flex min-h-svh flex-col items-start gap-4 p-6">
-    <h1 className="text-2xl font-medium">Zahln</h1>
-    <Button>OK</Button>
-  </main>
-);
+const App: FC = () => {
+  const { t } = useTranslation(["student", "common"]);
+
+  return (
+    <main className="flex min-h-svh flex-col items-start gap-4 p-6">
+      <h1 className="text-2xl font-medium">{t("appName")}</h1>
+      <Button>{t("common:continue")}</Button>
+    </main>
+  );
+};
 
 export default App;

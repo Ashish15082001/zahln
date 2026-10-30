@@ -15,8 +15,10 @@
     "@zahln/domain": "workspace:*",
     "@zahln/i18n": "workspace:*",
     "@zahln/ui": "workspace:*",
+    "i18next": "^26.5.11",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "react-i18next": "^17.1.9"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
