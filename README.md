@@ -27,6 +27,7 @@ packages/
   ui/          Accessible components shared by all three surfaces
   native/      Capacitor wrappers, used by the student app and the till only
 docs/
+  plan.md      Build plan, step by step, with status
   design.md    Design document
 ```
 
