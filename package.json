@@ -1,0 +1,29 @@
+{
+  "name": "zahln",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "turbo": "^2.11.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}

@@ -1,0 +1,5 @@
+dist
+.turbo
+android
+ios
+pnpm-lock.yaml

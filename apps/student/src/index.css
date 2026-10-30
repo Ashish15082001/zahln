@@ -1,0 +1,13 @@
+:root {
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  /* viewport-fit=cover lets the WebView draw under the system bars; the insets
+     keep content out from under them. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}

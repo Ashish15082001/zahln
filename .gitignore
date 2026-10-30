@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+*.log
+
+.env
+.env.*
+!.env.example
+
+# Android signing material must never reach the repo.
+*.jks
+*.keystore
+keystore.properties
+
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

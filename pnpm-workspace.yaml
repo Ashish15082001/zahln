@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Capacitor's CLI and the generated Gradle files reach native plugins through
+# node_modules paths. A flat node_modules keeps those plain directories rather
+# than pnpm symlinks into the store.
+nodeLinker: hoisted

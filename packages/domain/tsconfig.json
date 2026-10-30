@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Domain is pure logic shared by all three surfaces. Without the DOM lib a
+    // browser API cannot creep in and tie it to one runtime.
+    "lib": ["ES2022"]
+  },
+  "include": ["src"]
+}

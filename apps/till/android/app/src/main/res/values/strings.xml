@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Zahln Kasse</string>
+    <string name="title_activity_main">Zahln Kasse</string>
+    <string name="package_name">de.zahln.till</string>
+    <string name="custom_url_scheme">de.zahln.till</string>
+</resources>

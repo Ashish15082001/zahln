@@ -1,0 +1,10 @@
+# Commit LF everywhere. Gradle's `gradlew` is a shell script, and with CRLF it
+# fails on Linux CI with "/usr/bin/env: 'sh\r'".
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.jar binary
+*.png binary
+*.jpg binary
+*.webp binary

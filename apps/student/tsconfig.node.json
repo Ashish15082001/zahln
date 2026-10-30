@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    // Config files run in Node, so they get Node's types and no DOM, and app
+    // code under src/ gets no `process` to reach for by mistake.
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts", "capacitor.config.ts"]
+}
