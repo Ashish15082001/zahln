@@ -18,4 +18,27 @@
   [data-slot="button"][data-size^="icon"] {
     min-width: 3rem;
   }
+
+  /* The tab list has a fixed height, so it grows with the triggers it holds
+     rather than letting them spill out. The 6 px is its padding. */
+  [data-slot="tabs-trigger"] {
+    min-height: 3rem;
+  }
+
+  [data-slot="tabs-list"] {
+    min-height: calc(3rem + 6px);
+  }
+
+  /* Rows as tall as a tap area, so the checkboxes in neighbouring rows don't
+     overlap. On a table cell, height works as a minimum. */
+  [data-slot="table-cell"] {
+    height: 3rem;
+  }
+}
+
+/* A checkbox stays 16 px to look at, and its ::after takes the taps: 16 px
+   plus 16 px on each side is 48 px. Outside the base layer, because there the
+   checkbox's own after:-inset-* utilities, sized for a mouse, would win. */
+[data-slot="checkbox"]::after {
+  inset: -1rem;
 }
