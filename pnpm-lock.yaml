@@ -426,7 +426,14 @@ importers:
         specifier: ^19.3.1
         version: 19.3.1
 
-  packages/native: {}
+  packages/native:
+    dependencies:
+      '@capacitor-mlkit/barcode-scanning':
+        specifier: ^8.2.1
+        version: 8.2.1(@capacitor/core@8.6.0)
+      '@capacitor/core':
+        specifier: ^8.6.0
+        version: 8.6.0
 
   packages/ui:
     dependencies:
@@ -599,6 +606,11 @@ packages:
   '@babel/types@7.29.11':
     resolution: {integrity: sha512-WCsemW40Cpc6gouC1SrY6PBaZ+oLRlEVY9XBvZBI7il/HyUrb2nJ505wE1MHEFyDZNnrWDEuy4jL50WVHfTTSQ==}
     engines: {node: '>=6.9.0'}
+
+  '@capacitor-mlkit/barcode-scanning@8.2.1':
+    resolution: {integrity: sha512-UdjIOK2dJwJ7c3Y+lRuRqIaP0VfHJeLvPNyE5kHrFU20MY++4uoAVm7JTWSklVVrjN4siIK/xmXL3QsYbthWSQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/android@8.6.0':
     resolution: {integrity: sha512-6IJS0TCfV/F/8+324CCwYd3xL6r+TH0W7zzaxYzPz9IV3YWCNvsZDuCCPHUIBC5iASb9od827ddSJ6rz+9Pu1Q==}
@@ -4139,6 +4151,10 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.11
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@capacitor-mlkit/barcode-scanning@8.2.1(@capacitor/core@8.6.0)':
+    dependencies:
+      '@capacitor/core': 8.6.0
 
   '@capacitor/android@8.6.0(@capacitor/core@8.6.0)':
     dependencies:

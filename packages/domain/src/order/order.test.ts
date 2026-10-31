@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CreateOrderRequestSchema, OrderResponseSchema } from "./backend";
-import { newerOrder, toOrder, type Order } from "./frontend";
+import { newerOrder, toOrder, toOrderIdFromQr, type Order } from "./frontend";
 
 /** An order as the server sends it to the cashier who made it. */
 const orderResponse = {
@@ -102,5 +102,32 @@ describe("newerOrder", () => {
     const open = order(1, "open");
 
     expect(newerOrder(undefined, open)).toBe(open);
+  });
+});
+
+describe("toOrderIdFromQr", () => {
+  it("reads the order id from the till's QR code", () => {
+    // The qrPayload the dev server sends for this order.
+    expect(toOrderIdFromQr("zahln://pay?order=ord_c0fa341c0c64bffc")).toBe(
+      "ord_c0fa341c0c64bffc",
+    );
+  });
+
+  it("ignores spaces around the text and other parameters", () => {
+    expect(toOrderIdFromQr("  zahln://pay?v=2&order=ord_1\n")).toBe("ord_1");
+  });
+
+  it("refuses a QR code that isn't a Zahln order", () => {
+    expect(toOrderIdFromQr("https://zahln.de/pay?order=ord_1")).toBeNull();
+    expect(toOrderIdFromQr("WIFI:S:Mensa;T:WPA;P:secret;;")).toBeNull();
+    expect(toOrderIdFromQr("ord_c0fa341c0c64bffc")).toBeNull();
+    expect(toOrderIdFromQr("")).toBeNull();
+  });
+
+  it("refuses a Zahln code without a usable order id", () => {
+    expect(toOrderIdFromQr("zahln://pay?")).toBeNull();
+    expect(toOrderIdFromQr("zahln://pay?order=")).toBeNull();
+    expect(toOrderIdFromQr("zahln://pay?order=../payments")).toBeNull();
+    expect(toOrderIdFromQr("zahln://pay?order=ord%201")).toBeNull();
   });
 });

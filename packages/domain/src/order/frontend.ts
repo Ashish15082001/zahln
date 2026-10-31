@@ -44,3 +44,36 @@ export const toOrder = (response: OrderResponse): Order => ({
  */
 export const newerOrder = (current: Order | undefined, next: Order): Order =>
   current && current.version > next.version ? current : next;
+
+// ---- the till's QR code
+
+// What the till's QR code holds, e.g. `zahln://pay?order=ord_c0fa341c0c64bffc`,
+// as the dev server sends it in `qrPayload`.
+const QR_PAYLOAD_PREFIX = "zahln://pay?";
+
+const ORDER_PARAMETER = "order=";
+
+// Letters, digits, `_` and `-`, as the server's ids are. Anything else can't
+// be an order, and is refused before it reaches a URL.
+const ORDER_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+/**
+ * The order id in a scanned QR code, or null when the code isn't a Zahln
+ * order: another app's QR, a web link, or a damaged one.
+ *
+ * Split by hand, not with URLSearchParams: domain has no DOM, and an id never
+ * needs decoding, since an encoded one fails ORDER_ID_PATTERN anyway.
+ */
+export const toOrderIdFromQr = (qrText: string): string | null => {
+  const trimmedText = qrText.trim();
+  if (!trimmedText.startsWith(QR_PAYLOAD_PREFIX)) return null;
+
+  const orderId = trimmedText
+    .slice(QR_PAYLOAD_PREFIX.length)
+    .split("&")
+    .find((parameter) => parameter.startsWith(ORDER_PARAMETER))
+    ?.slice(ORDER_PARAMETER.length);
+  return orderId !== undefined && ORDER_ID_PATTERN.test(orderId)
+    ? orderId
+    : null;
+};
