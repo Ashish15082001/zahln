@@ -9,6 +9,30 @@ const de: Resources = {
   },
   student: {
     appName: "Zahln",
+    welcome: {
+      title: "Willkommen bei Zahln",
+      description: "Bezahlen Sie Ihr Mensaessen mit dem Handy.",
+    },
+    login: {
+      title: "Anmelden",
+      description:
+        "Melden Sie sich mit Ihrem Konto für Studierende, Bedienstete oder Gäste an.",
+      username: "Benutzername",
+      password: "Passwort",
+      submit: "Anmelden",
+      submitting: "Anmeldung läuft…",
+      errors: {
+        wrongPassword: "Benutzername oder Passwort ist falsch.",
+        notPayer: "Mit diesem Konto kann die Zahln-App nicht benutzt werden.",
+        unreachable: "Der Server ist nicht erreichbar. Bitte erneut versuchen.",
+        badCandidate: "Dieser Build hat eine falsche Candidate-ID.",
+        unknown: "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+      },
+    },
+    home: {
+      greeting: "Hallo, {{name}}",
+      logOut: "Abmelden",
+    },
   },
   till: {
     appName: "Zahln Kasse",

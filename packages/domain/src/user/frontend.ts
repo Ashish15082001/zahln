@@ -61,6 +61,30 @@ export const CashierSessionSchema = z.object({
 
 export interface CashierSession extends z.infer<typeof CashierSessionSchema> {}
 
+/**
+ * A user the student app accepts: a student, staff member or guest. The spec
+ * calls them payers. The price group decides what an order costs them.
+ */
+export const PayerSchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string(),
+  priceGroup: PriceGroupSchema,
+});
+
+export interface Payer extends z.infer<typeof PayerSchema> {}
+
+/**
+ * A logged-in payer and their token: all the student app keeps about a login.
+ * The raw user isn't kept, since Payer already has what the app needs.
+ */
+export const PayerSessionSchema = z.object({
+  accessToken: z.string().min(1),
+  expiresAtMs: z.int(),
+  payer: PayerSchema,
+});
+
+export interface PayerSession extends z.infer<typeof PayerSessionSchema> {}
+
 // ---- from the wire shape
 
 export const toUser = (response: UserResponse): User => ({
@@ -103,5 +127,35 @@ export const toCashierSession = (session: Session): CashierSession | null => {
     accessToken: session.accessToken,
     expiresAtMs: session.expiresAtMs,
     cashier,
+  };
+};
+
+/** The roles that pay at the mensa, each at its own prices. */
+const payerRoles: Role[] = ["student", "staff", "guest"];
+
+/**
+ * The payer the student app works for, or null when the user can't pay, e.g.
+ * a cashier. A payer without a price group is refused too: no order amount
+ * could be shown to them.
+ */
+export const toPayer = (user: User): Payer | null => {
+  if (!payerRoles.includes(user.role) || !user.priceGroup) return null;
+
+  return {
+    id: user.id,
+    displayName: user.displayName,
+    priceGroup: user.priceGroup,
+  };
+};
+
+/** The login as the student app keeps it, or null when the user can't pay. */
+export const toPayerSession = (session: Session): PayerSession | null => {
+  const payer = toPayer(session.user);
+  if (!payer) return null;
+
+  return {
+    accessToken: session.accessToken,
+    expiresAtMs: session.expiresAtMs,
+    payer,
   };
 };

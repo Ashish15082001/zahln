@@ -7,6 +7,29 @@ const en = {
   },
   student: {
     appName: "Zahln",
+    welcome: {
+      title: "Welcome to Zahln",
+      description: "Pay for your mensa meal with your phone.",
+    },
+    login: {
+      title: "Log in",
+      description: "Log in with your student, staff or guest account.",
+      username: "Username",
+      password: "Password",
+      submit: "Log in",
+      submitting: "Logging in…",
+      errors: {
+        wrongPassword: "Wrong username or password.",
+        notPayer: "This account can't use the Zahln app.",
+        unreachable: "Can't reach the server. Try again.",
+        badCandidate: "This build has a wrong candidate ID.",
+        unknown: "Something went wrong. Try again.",
+      },
+    },
+    home: {
+      greeting: "Hello, {{name}}",
+      logOut: "Log out",
+    },
   },
   till: {
     appName: "Zahln Till",

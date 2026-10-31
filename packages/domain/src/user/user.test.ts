@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { SessionRequestSchema, SessionResponseSchema } from "./backend";
-import { toCashier, toCashierSession, toSession, type User } from "./frontend";
+import {
+  toCashier,
+  toCashierSession,
+  toPayer,
+  toPayerSession,
+  toSession,
+  type User,
+} from "./frontend";
 
 // Real POST /sessions responses from the dev server, token replaced.
 const cashierLogin = {
@@ -173,5 +180,58 @@ describe("toCashierSession", () => {
     const session = toSession(SessionResponseSchema.parse(studentLogin));
 
     expect(toCashierSession(session)).toBeNull();
+  });
+});
+
+const studentUser: User = {
+  id: "usr_student",
+  displayName: "Test Student",
+  role: "student",
+  priceGroup: "student",
+  tillId: null,
+  mensaId: null,
+};
+
+describe("toPayer", () => {
+  it.each(["student", "staff", "guest"] as const)(
+    "accepts a %s with a price group",
+    (role) => {
+      expect(toPayer({ ...studentUser, role, priceGroup: role })).toEqual({
+        id: "usr_student",
+        displayName: "Test Student",
+        priceGroup: role,
+      });
+    },
+  );
+
+  it("refuses a cashier or finance", () => {
+    expect(toPayer(cashierUser)).toBeNull();
+    expect(toPayer({ ...studentUser, role: "finance" })).toBeNull();
+  });
+
+  it("refuses a payer without a price group", () => {
+    expect(toPayer({ ...studentUser, priceGroup: null })).toBeNull();
+  });
+});
+
+describe("toPayerSession", () => {
+  it("keeps the token, its expiry and the payer", () => {
+    const session = toSession(SessionResponseSchema.parse(studentLogin));
+
+    expect(toPayerSession(session)).toEqual({
+      accessToken: "token-student",
+      expiresAtMs: Date.UTC(2026, 9, 30, 19, 14, 58, 102),
+      payer: {
+        id: "usr_student",
+        displayName: "Test Student",
+        priceGroup: "student",
+      },
+    });
+  });
+
+  it("is null for a user who can't pay", () => {
+    const session = toSession(SessionResponseSchema.parse(cashierLogin));
+
+    expect(toPayerSession(session)).toBeNull();
   });
 });
