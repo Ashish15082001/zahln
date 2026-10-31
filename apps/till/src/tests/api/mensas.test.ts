@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { createServerClock } from "../../api/clock";
-import { ApiError } from "../../api/errors";
-import { createHttp } from "../../api/http";
+import { createServerClock } from "@zahln/api/clock";
+import { ApiError } from "@zahln/api/errors";
+import { createHttp } from "@zahln/api/http";
 import { getMensas } from "../../api/mensas";
-import { createFakeServer, jsonReply, type Reply } from "../support/fakeServer";
+import {
+  createFakeServer,
+  jsonReply,
+  type Reply,
+} from "@zahln/api/testing/fakeServer";
 
 /** One mensa, as the real server sends it. */
 const mensa = {

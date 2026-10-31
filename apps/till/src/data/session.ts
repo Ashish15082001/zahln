@@ -1,24 +1,37 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { createServerClock } from "@zahln/api/clock";
+import { ApiError } from "@zahln/api/errors";
+import { createHttp } from "@zahln/api/http";
+import { postSession } from "@zahln/api/sessions";
+import {
+  createSessionStore,
+  localKeyValueStorage,
+} from "@zahln/api/sessionStore";
 import type { SessionRequest } from "@zahln/domain/user/backend";
 import {
+  CashierSessionSchema,
   toCashierSession,
   type Cashier,
   type CashierSession,
 } from "@zahln/domain/user/frontend";
-import { createServerClock } from "../api/clock";
-import { ApiError } from "../api/errors";
-import { createHttp } from "../api/http";
-import { postSession } from "../api/sessions";
 import { config } from "../config";
 import { NotACashierError } from "./loginError";
 import { queryClient } from "./queryClient";
-import { sessionStore } from "./sessionStore";
 
 /** The session as screens see it: who is signed in, never the token. */
 export type TillSession =
   { status: "signedIn"; cashier: Cashier } | { status: "signedOut" };
 
 const sessionQueryKey = ["session"] as const;
+
+/** The till's saved login, so a reopen doesn't mean logging in again. */
+const sessionStore = createSessionStore<CashierSession>({
+  storage: localKeyValueStorage,
+  // Unchanged since the store moved to @zahln/api, so a login saved before
+  // that still opens the till.
+  savedSessionKey: "zahln.till.session.v1",
+  sessionSchema: CashierSessionSchema,
+});
 
 // Who is logged in, with their token: the one record of the login. Read from
 // storage once, before the first render, so a reopen goes straight in without

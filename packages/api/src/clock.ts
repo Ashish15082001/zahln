@@ -1,9 +1,9 @@
 /**
  * The server's time, worked out from the Date header of each response.
  *
- * Token expiry and order deadlines are server times. A tablet whose clock is a
- * few minutes off would otherwise renew too late, or show a countdown that
- * ends before the order does.
+ * Token expiry and order deadlines are server times. A tablet or phone whose
+ * clock is a few minutes off would otherwise renew too late, or show a
+ * countdown that ends before the order does.
  */
 export interface ServerClock {
   /** Server time now, in milliseconds since the epoch. */

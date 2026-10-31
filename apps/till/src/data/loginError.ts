@@ -1,4 +1,4 @@
-import { hasProblemCode, isApiError, isRetryable } from "../api/errors";
+import { hasProblemCode, isApiError, isRetryable } from "@zahln/api/errors";
 
 /** A login that worked, by a user who isn't a cashier with a till. */
 export class NotACashierError extends Error {

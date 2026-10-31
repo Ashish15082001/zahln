@@ -1,6 +1,6 @@
 import { MensaListResponseSchema } from "@zahln/domain/mensa/backend";
 import type { Mensa } from "@zahln/domain/mensa/frontend";
-import type { Http } from "./http";
+import type { Http } from "@zahln/api/http";
 
 /**
  * GET /mensas: every mensa with its tills and menu. The till shows only the

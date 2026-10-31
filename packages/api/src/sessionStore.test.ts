@@ -1,9 +1,9 @@
-import type { CashierSession } from "@zahln/domain/user/frontend";
-import { describe, expect, it } from "vitest";
 import {
-  createSessionStore,
-  type KeyValueStorage,
-} from "../../data/sessionStore";
+  CashierSessionSchema,
+  type CashierSession,
+} from "@zahln/domain/user/frontend";
+import { describe, expect, it } from "vitest";
+import { createSessionStore, type KeyValueStorage } from "./sessionStore";
 
 const DEVICE_NOW = Date.UTC(2026, 9, 31, 12, 0, 0);
 const SAVED_SESSION_KEY = "zahln.till.session.v1";
@@ -43,10 +43,22 @@ const brokenStorage: KeyValueStorage = {
   },
 };
 
+/** The till's store over `storage`, with the device clock at `deviceNowMs`. */
+const createCashierSessionStore = (
+  storage: KeyValueStorage,
+  deviceNowMs: number = DEVICE_NOW,
+) =>
+  createSessionStore<CashierSession>({
+    storage,
+    savedSessionKey: SAVED_SESSION_KEY,
+    sessionSchema: CashierSessionSchema,
+    deviceNow: () => deviceNowMs,
+  });
+
 describe("createSessionStore", () => {
   it("gives back a saved login that isn't over", () => {
     const { storage } = createFakeStorage();
-    const sessionStore = createSessionStore(storage, () => DEVICE_NOW);
+    const sessionStore = createCashierSessionStore(storage);
 
     sessionStore.save(cashierSession);
 
@@ -56,14 +68,14 @@ describe("createSessionStore", () => {
   it("has nothing when no login was saved", () => {
     const { storage } = createFakeStorage();
 
-    expect(createSessionStore(storage, () => DEVICE_NOW).load()).toBeNull();
+    expect(createCashierSessionStore(storage).load()).toBeNull();
   });
 
   it("drops a login that is over, and removes it from storage", () => {
     const { savedTexts, storage } = createFakeStorage();
-    const sessionStore = createSessionStore(
+    const sessionStore = createCashierSessionStore(
       storage,
-      () => cashierSession.expiresAtMs,
+      cashierSession.expiresAtMs,
     );
 
     sessionStore.save(cashierSession);
@@ -80,13 +92,13 @@ describe("createSessionStore", () => {
     const { savedTexts, storage } = createFakeStorage();
     savedTexts.set(SAVED_SESSION_KEY, savedText);
 
-    expect(createSessionStore(storage, () => DEVICE_NOW).load()).toBeNull();
+    expect(createCashierSessionStore(storage).load()).toBeNull();
     expect(savedTexts.has(SAVED_SESSION_KEY)).toBe(false);
   });
 
   it("forgets the login on clear", () => {
     const { storage } = createFakeStorage();
-    const sessionStore = createSessionStore(storage, () => DEVICE_NOW);
+    const sessionStore = createCashierSessionStore(storage);
 
     sessionStore.save(cashierSession);
     sessionStore.clear();
@@ -94,8 +106,15 @@ describe("createSessionStore", () => {
     expect(sessionStore.load()).toBeNull();
   });
 
+  it("keeps each app's login under its own key", () => {
+    const { savedTexts, storage } = createFakeStorage();
+    savedTexts.set("zahln.student.session.v1", JSON.stringify(cashierSession));
+
+    expect(createCashierSessionStore(storage).load()).toBeNull();
+  });
+
   it("never throws when storage can't be used", () => {
-    const sessionStore = createSessionStore(brokenStorage, () => DEVICE_NOW);
+    const sessionStore = createCashierSessionStore(brokenStorage);
 
     expect(() => sessionStore.save(cashierSession)).not.toThrow();
     expect(() => sessionStore.clear()).not.toThrow();

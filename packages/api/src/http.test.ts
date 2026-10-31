@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createServerClock } from "../../api/clock";
-import { ApiError } from "../../api/errors";
-import { createHttp, type Auth, type RequestOptions } from "../../api/http";
+import { createServerClock } from "./clock";
+import { ApiError } from "./errors";
+import { createHttp, type Auth, type RequestOptions } from "./http";
 import {
   createFakeServer,
   jsonReply,
   problemReply,
   type FakeCall,
   type Reply,
-} from "../support/fakeServer";
+} from "./testing/fakeServer";
 
 const SERVER_NOW = Date.UTC(2026, 9, 30, 12, 0, 0);
 

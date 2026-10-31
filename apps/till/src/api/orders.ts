@@ -3,7 +3,7 @@ import {
   type CreateOrderRequest,
 } from "@zahln/domain/order/backend";
 import { toOrder, type Order } from "@zahln/domain/order/frontend";
-import type { Http } from "./http";
+import type { Http } from "@zahln/api/http";
 
 /**
  * POST /orders: rings up the cart at the cashier's till. The key goes with

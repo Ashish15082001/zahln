@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { createServerClock } from "../../api/clock";
-import { ApiError } from "../../api/errors";
-import { createHttp, type Auth } from "../../api/http";
-import { postSession } from "../../api/sessions";
+import { createServerClock } from "./clock";
+import { ApiError } from "./errors";
+import { createHttp, type Auth } from "./http";
+import { postSession } from "./sessions";
 import {
   createFakeServer,
   jsonReply,
   problemReply,
   type Reply,
-} from "../support/fakeServer";
+} from "./testing/fakeServer";
 
 const CREDENTIALS = { username: "cashier-campus-1", password: "test1234" };
 

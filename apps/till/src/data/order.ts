@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { CreateOrderRequest } from "@zahln/domain/order/backend";
 import { newerOrder, type Order } from "@zahln/domain/order/frontend";
-import { isApiError, isOutcomeUnknown } from "../api/errors";
+import { isApiError, isOutcomeUnknown } from "@zahln/api/errors";
 import { getOrder, postOrder } from "../api/orders";
 import { queryClient } from "./queryClient";
 import { http } from "./session";

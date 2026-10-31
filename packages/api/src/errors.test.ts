@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, isOutcomeUnknown, isRetryable } from "../../api/errors";
+import { ApiError, isOutcomeUnknown, isRetryable } from "./errors";
 
 /** An ApiError as if the server had answered with this error. */
 const problem = (status: number, code: string, retryable: boolean): ApiError =>

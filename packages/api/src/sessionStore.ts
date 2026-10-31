@@ -1,7 +1,4 @@
-import {
-  CashierSessionSchema,
-  type CashierSession,
-} from "@zahln/domain/user/frontend";
+import type { z } from "zod";
 
 /** Text kept under a key that outlives the app: localStorage, or a fake. */
 export interface KeyValueStorage {
@@ -10,29 +7,52 @@ export interface KeyValueStorage {
   remove: (key: string) => void;
 }
 
-/** The till's saved login, so a reopen doesn't mean logging in again. */
-export interface SessionStore {
+/** What a saved login needs, whatever else an app keeps in it. */
+interface ExpiringSession {
+  expiresAtMs: number;
+}
+
+/** An app's saved login, so a reopen doesn't mean logging in again. */
+export interface SessionStore<TSession extends ExpiringSession> {
   /** The saved login, or null when there is none, or it is broken or over. */
-  load: () => CashierSession | null;
-  save: (cashierSession: CashierSession) => void;
+  load: () => TSession | null;
+  save: (session: TSession) => void;
   clear: () => void;
 }
 
-// The version is in the key: a later shape gets a new key, and a login saved
-// by an older app is never read as the new shape.
-const savedSessionKey = "zahln.till.session.v1";
+/** Settings for `createSessionStore`. */
+export interface SessionStoreConfig<TSession extends ExpiringSession> {
+  /** Where the login is kept. */
+  storage: KeyValueStorage;
+  /**
+   * The key it is kept under, one per app and with a version in it, e.g.
+   * `zahln.till.session.v1`. A later shape gets a new key, and a login saved
+   * by an older app is never read as the new shape.
+   */
+  savedSessionKey: string;
+  /** What is read back is checked against this, so a broken save is dropped. */
+  sessionSchema: z.ZodType<TSession>;
+  /**
+   * The device clock. There is no server time yet at startup, and a wrong
+   * device clock only costs one refused request. Tests pass a fake one.
+   */
+  deviceNow?: () => number;
+}
 
 /**
  * Makes a store over `storage`. Every failure counts as no saved login: the
  * worst that can happen is one more login, never a crash at startup.
- *
- * `deviceNow` is the device clock. There is no server time yet at startup, and
- * a wrong device clock only costs one refused request.
  */
-export const createSessionStore = (
-  storage: KeyValueStorage,
-  deviceNow: () => number = Date.now,
-): SessionStore => {
+export const createSessionStore = <TSession extends ExpiringSession>(
+  config: SessionStoreConfig<TSession>,
+): SessionStore<TSession> => {
+  const {
+    storage,
+    savedSessionKey,
+    sessionSchema,
+    deviceNow = Date.now,
+  } = config;
+
   const clear = (): void => {
     try {
       storage.remove(savedSessionKey);
@@ -42,11 +62,11 @@ export const createSessionStore = (
   };
 
   /** What is saved, checked against the schema, whether it is over or not. */
-  const readSavedSession = (): CashierSession | null => {
+  const readSavedSession = (): TSession | null => {
     try {
       const savedText = storage.get(savedSessionKey);
       if (savedText === null) return null;
-      const parseResult = CashierSessionSchema.safeParse(JSON.parse(savedText));
+      const parseResult = sessionSchema.safeParse(JSON.parse(savedText));
       return parseResult.success ? parseResult.data : null;
     } catch {
       // Storage the WebView won't open, or text that isn't JSON.
@@ -65,9 +85,9 @@ export const createSessionStore = (
       clear();
       return null;
     },
-    save: (cashierSession) => {
+    save: (session) => {
       try {
-        storage.set(savedSessionKey, JSON.stringify(cashierSession));
+        storage.set(savedSessionKey, JSON.stringify(session));
       } catch {
         // Full or blocked storage: the login still works until the app
         // closes, it just isn't kept.
@@ -77,9 +97,9 @@ export const createSessionStore = (
   };
 };
 
-/** The app's store, kept in the WebView's localStorage. */
-export const sessionStore = createSessionStore({
+/** The WebView's localStorage, where the apps keep their saved login. */
+export const localKeyValueStorage: KeyValueStorage = {
   get: (key) => localStorage.getItem(key),
   set: (key, value) => localStorage.setItem(key, value),
   remove: (key) => localStorage.removeItem(key),
-});
+};

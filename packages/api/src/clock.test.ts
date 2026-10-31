@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createServerClock } from "../../api/clock";
+import { createServerClock } from "./clock";
 
 const SERVER_NOW = Date.UTC(2026, 9, 30, 12, 0, 0);
 
