@@ -22,6 +22,19 @@ const de: Resources = {
       username: "Benutzername",
       password: "Passwort",
       submit: "Anmelden",
+      submitting: "Anmeldung läuft…",
+      errors: {
+        wrongPassword: "Benutzername oder Passwort ist falsch.",
+        notCashier: "Mit diesem Konto kann die Kasse nicht benutzt werden.",
+        unreachable: "Der Server ist nicht erreichbar. Bitte erneut versuchen.",
+        badCandidate: "Dieser Build hat eine falsche Candidate-ID.",
+        unknown: "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+      },
+    },
+    home: {
+      title: "Angemeldet",
+      signedInAs: "Angemeldet als {{name}}",
+      logOut: "Abmelden",
     },
   },
   dashboard: {

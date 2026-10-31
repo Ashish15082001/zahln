@@ -20,6 +20,19 @@ const en = {
       username: "Username",
       password: "Password",
       submit: "Log in",
+      submitting: "Logging in…",
+      errors: {
+        wrongPassword: "Wrong username or password.",
+        notCashier: "This account can't use the till.",
+        unreachable: "Can't reach the server. Try again.",
+        badCandidate: "This build has a wrong candidate ID.",
+        unknown: "Something went wrong. Try again.",
+      },
+    },
+    home: {
+      title: "Signed in",
+      signedInAs: "Logged in as {{name}}",
+      logOut: "Log out",
     },
   },
   dashboard: {

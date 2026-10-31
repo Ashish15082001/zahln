@@ -2,4 +2,5 @@
 export const paths = {
   welcome: "/",
   login: "/login",
+  home: "/home",
 } as const;
