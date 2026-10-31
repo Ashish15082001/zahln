@@ -7,6 +7,7 @@ import {
 import {
   newerPayment,
   toPayment,
+  toPaymentList,
   toPaymentPage,
   type Payment,
 } from "./frontend";
@@ -170,5 +171,41 @@ describe("newerPayment", () => {
     const pending = payment(1, "pending");
 
     expect(newerPayment(undefined, pending)).toBe(pending);
+  });
+});
+
+describe("toPaymentList", () => {
+  it("joins the pages in order", () => {
+    const newest = { ...payment(1, "confirmed"), id: "pay_3" };
+    const middle = { ...payment(1, "confirmed"), id: "pay_2" };
+    const oldest = { ...payment(1, "confirmed"), id: "pay_1" };
+
+    const list = toPaymentList([
+      { payments: [newest, middle], nextCursor: "cursor_2" },
+      { payments: [oldest], nextCursor: null },
+    ]);
+
+    expect(list.map((listed) => listed.id)).toEqual([
+      "pay_3",
+      "pay_2",
+      "pay_1",
+    ]);
+  });
+
+  it("lists a payment on two pages once, where it first came, at its newer version", () => {
+    const pendingOnFirstPage = { ...payment(1, "pending"), id: "pay_2" };
+    const confirmedOnSecondPage = { ...payment(2, "confirmed"), id: "pay_2" };
+    const older = { ...payment(1, "confirmed"), id: "pay_1" };
+
+    const list = toPaymentList([
+      { payments: [pendingOnFirstPage], nextCursor: "cursor_2" },
+      { payments: [confirmedOnSecondPage, older], nextCursor: null },
+    ]);
+
+    expect(list).toEqual([confirmedOnSecondPage, older]);
+  });
+
+  it("is empty with no pages", () => {
+    expect(toPaymentList([])).toEqual([]);
   });
 });

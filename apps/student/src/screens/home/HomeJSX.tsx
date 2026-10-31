@@ -1,6 +1,7 @@
 import { Button } from "@zahln/ui/components/button";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
+import PaymentList from "./paymentList/PaymentList";
 
 export interface HomeJSXProps {
   displayName: string;
@@ -20,6 +21,7 @@ const HomeJSX: FC<HomeJSXProps> = ({ displayName, handleLogOut }) => {
           {t("home.logOut")}
         </Button>
       </div>
+      <PaymentList />
     </main>
   );
 };

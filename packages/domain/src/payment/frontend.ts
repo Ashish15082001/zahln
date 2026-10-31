@@ -82,3 +82,23 @@ export const newerPayment = (
   cachedPayment && cachedPayment.version > receivedPayment.version
     ? cachedPayment
     : receivedPayment;
+
+/**
+ * The loaded pages as one list, newest first. A payment made between two page
+ * loads pushes the rest down, so one can come back on two pages: it is listed
+ * once, where it first appeared, at its newer version.
+ */
+export const toPaymentList = (pages: PaymentPage[]): Payment[] => {
+  const paymentsById = new Map<string, Payment>();
+  for (const page of pages) {
+    for (const payment of page.payments) {
+      paymentsById.set(
+        payment.id,
+        newerPayment(paymentsById.get(payment.id), payment),
+      );
+    }
+  }
+  // A Map keeps the order keys were first set in, so updating one in place
+  // leaves it where it was.
+  return [...paymentsById.values()];
+};

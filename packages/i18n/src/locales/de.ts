@@ -32,6 +32,33 @@ const de: Resources = {
     home: {
       greeting: "Hallo, {{name}}",
       logOut: "Abmelden",
+      payments: {
+        title: "Ihre Zahlungen",
+        loading: "Ihre Zahlungen werden geladen…",
+        refresh: "Aktualisieren",
+        refreshing: "Wird aktualisiert…",
+        refreshFailed:
+          "Aktualisieren fehlgeschlagen. Das sind Ihre Zahlungen von vorher.",
+        errorTitle: "Ihre Zahlungen konnten nicht geladen werden",
+        errorDescription:
+          "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+        retry: "Erneut versuchen",
+        retrying: "Wird erneut versucht…",
+        emptyTitle: "Noch keine Zahlungen",
+        emptyDescription:
+          "Mahlzeiten, die Sie mit Zahln bezahlen, erscheinen hier.",
+        loadMore: "Mehr laden",
+        loadingMore: "Wird geladen…",
+        loadMoreFailed: "Weitere Zahlungen konnten nicht geladen werden.",
+        status: {
+          pending: "Wird geprüft",
+          confirmed: "Bezahlt",
+          declined: "Abgelehnt",
+        },
+        item: "{{quantity}}× {{name}}",
+        refunded: "{{amount}} erstattet",
+        refundPending: "Erstattung von {{amount}} in Bearbeitung",
+      },
     },
   },
   till: {
