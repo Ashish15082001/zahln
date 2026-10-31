@@ -7,7 +7,7 @@ import {
   toMenuRows,
   toOrderRequest,
   toRowSelection,
-} from "./cart";
+} from "../../../../../screens/home/content/mensaTab/cart";
 
 const dish = (id: string): MenuItem => ({
   id,

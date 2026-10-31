@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCents } from "./money";
+import { formatCents } from "../../format/money";
 
 describe("formatCents", () => {
   it("writes euros the way each language does", () => {

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { createServerClock } from "./clock";
-import { createHttp } from "./http";
-import { getOrder, postOrder } from "./orders";
+import { createServerClock } from "../../api/clock";
+import { createHttp } from "../../api/http";
+import { getOrder, postOrder } from "../../api/orders";
 import {
   createFakeServer,
   describeCalls,
   jsonReply,
   problemReply,
   type Reply,
-} from "./test/fakeServer";
+} from "../support/fakeServer";
 
 /** An order as the real server sends it to the cashier who made it. */
 const order = {
