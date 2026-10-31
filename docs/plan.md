@@ -12,7 +12,7 @@ bigger choices goes in [design.md](design.md).
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                       |
 | 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval |
 | 2    | Till                                                    | Planned                    |
-| 3    | Student app                                             | Planned                    |
+| 3    | Student app                                             | In progress: login done    |
 | 4    | Dashboard                                               | Outline only               |
 | 5    | Ship                                                    | Planned                    |
 
@@ -103,6 +103,16 @@ Detailed in [till-plan.md](till-plan.md):
   ignores the orientation lock on tablets.
 
 ## Step 3: Student app
+
+Done so far:
+
+| Commit    | What it does                                                                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `4f24faf` | The till's HTTP client, server clock, errors, login request and saved-login store move to `packages/api`, for both apps                                                               |
+| `d55eb4f` | Welcome, login and home ("Hello, {name}", Log out), built like the till's. Only a payer can log in: `student`, `staff` or `guest`. The login is kept under `zahln.student.session.v1` |
+
+Not yet: picking student, staff or guest before login. The server already
+sends the account's role.
 
 - **Start:** pick student, staff or guest, then log in. The app reads
   `GET /config` at start and again before paying. The config can force an

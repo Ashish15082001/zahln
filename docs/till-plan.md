@@ -29,7 +29,7 @@ Rules between the layers, enforced by lint where possible:
 - The store holds no server data and sends no requests.
 - `packages/api`, `packages/storage` and `packages/domain` don't import React.
 - Only `packages/storage` uses `localStorage` or `indexedDB`. The one exception
-  is `apps/till/src/data/sessionStore.ts`, which saves the login (see
+  is `packages/api/src/sessionStore.ts`, which saves the login (see
   [Staying signed in after a reopen](#staying-signed-in-after-a-reopen)).
 
 ### Query client settings
@@ -61,9 +61,9 @@ flowchart TD
   end
   subgraph Data["Data · apps/till/src/data"]
     Session["session.ts<br/>session query, signedIn or signedOut"]
-    SessionStore["sessionStore.ts<br/>saved login, localStorage"]
   end
   subgraph Api["packages/api"]
+    SessionStore["sessionStore.ts<br/>saved login, localStorage"]
     SessionTs["session.ts<br/>token and password, in memory"]
     Http["http.ts<br/>renews early, 401 → renew"]
     Clock["clock.ts<br/>server time from the Date header"]
@@ -86,16 +86,16 @@ flowchart TD
   Http -- "Authorization: Bearer token" --> Server
 ```
 
-| Part                                 | Job                                                                                                                                          |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/api/src/session.ts`        | Holds the token, its expiry and the password in a closure. `login`, `getToken` (renews early), `renew` (one at a time), `logout`, `onChange` |
-| `packages/api/src/http.ts`           | Headers, a deadline per attempt, retries on network errors. On `401` it calls `renew` and resends once with the same key                     |
-| `packages/api/src/clock.ts`          | Server time from the `Date` header, so a wrong tablet clock can't cause early or late renewals                                               |
-| `packages/api/src/errors.ts`         | problem+json as an `ApiError` with a typed `code`. A lost response has its own case                                                          |
-| `apps/till/src/data/session.ts`      | `useSession`, `useLogin`, `useLogout`. Opens the cashier's saved data after login and closes it at log out                                   |
-| `apps/till/src/data/sessionStore.ts` | `load`, `save` and `clear` of the login in `localStorage`, checked with zod                                                                  |
-| `apps/till/src/app/signedInOnly`     | Wraps the till's screens. No session: go to `/login`                                                                                         |
-| `apps/till/src/app/signedOutOnly`    | Wraps `/` and `/login`. Signed in: go to the till                                                                                            |
+| Part                               | Job                                                                                                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/api/src/session.ts`      | Holds the token, its expiry and the password in a closure. `login`, `getToken` (renews early), `renew` (one at a time), `logout`, `onChange`   |
+| `packages/api/src/http.ts`         | Headers, a deadline per attempt, retries on network errors. On `401` it calls `renew` and resends once with the same key                       |
+| `packages/api/src/clock.ts`        | Server time from the `Date` header, so a wrong tablet clock can't cause early or late renewals                                                 |
+| `packages/api/src/errors.ts`       | problem+json as an `ApiError` with a typed `code`. A lost response has its own case                                                            |
+| `packages/api/src/sessionStore.ts` | `createSessionStore`: `load`, `save` and `clear` of a login in `localStorage`, checked with the app's zod schema. The student app uses it too  |
+| `apps/till/src/data/session.ts`    | `useSession`, `useLogin`, `useLogout`. Makes the till's saved-login store. Opens the cashier's saved data after login and closes it at log out |
+| `apps/till/src/app/signedInOnly`   | Wraps the till's screens. No session: go to `/login`                                                                                           |
+| `apps/till/src/app/signedOutOnly`  | Wraps `/` and `/login`. Signed in: go to the till                                                                                              |
 
 The guards are layout routes, not route loaders. A loader runs only on
 navigation, and the session changes without one: at login, at Log out, and on
@@ -216,7 +216,7 @@ out.
 | Part           | Choice                                                                                                                                                     |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | What is saved  | `CashierSession`: the token, its expiry and the cashier (name, till, mensa). Never the password                                                            |
-| Where          | `localStorage`, key `zahln.till.session.v1`, through `apps/till/src/data/sessionStore.ts`. A later shape gets a new key                                    |
+| Where          | `localStorage`, key `zahln.till.session.v1`, through `createSessionStore` in `packages/api/src/sessionStore.ts`. A later shape gets a new key              |
 | Restored       | Once, when `session.ts` loads, before the first render, so the login screen never flashes                                                                  |
 | Checked        | zod (`CashierSessionSchema`), and the expiry against the device clock. There is no server time yet at startup, and a wrong clock costs one refused request |
 | Dropped        | A login that is over or doesn't match the schema is removed from storage, not just ignored                                                                 |
@@ -244,15 +244,15 @@ Each cashier's data is kept apart and encrypted with a key made from their
 password. A prefix alone keeps users apart in our code, but anyone with the
 device's files could read every prefix.
 
-| Part       | Choice                                                                                                                                           |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Package    | `packages/storage`, shared, because the student app needs it for its payment key                                                                 |
-| Where      | IndexedDB, through `idb-keyval`                                                                                                                  |
-| Namespace  | `zahln:till:{userId}:{key}`, using the server's user id                                                                                          |
-| Encryption | AES-GCM through WebCrypto. The key comes from the password with PBKDF2 and a random salt per user                                                |
-| The key    | Made at login, kept in memory only, can't be exported, forgotten at log out                                                                      |
-| Reading    | zod checks every value. Data that can't be decrypted or doesn't match reads as empty, never a crash                                              |
-| Access     | Only `packages/storage` may use `localStorage` or `indexedDB`, except the saved login in `data/sessionStore.ts`. A lint rule blocks it elsewhere |
+| Part       | Choice                                                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Package    | `packages/storage`, shared, because the student app needs it for its payment key                                                                             |
+| Where      | IndexedDB, through `idb-keyval`                                                                                                                              |
+| Namespace  | `zahln:till:{userId}:{key}`, using the server's user id                                                                                                      |
+| Encryption | AES-GCM through WebCrypto. The key comes from the password with PBKDF2 and a random salt per user                                                            |
+| The key    | Made at login, kept in memory only, can't be exported, forgotten at log out                                                                                  |
+| Reading    | zod checks every value. Data that can't be decrypted or doesn't match reads as empty, never a crash                                                          |
+| Access     | Only `packages/storage` may use `localStorage` or `indexedDB`, except the saved login in `packages/api/src/sessionStore.ts`. A lint rule blocks it elsewhere |
 
 `openUserStorage({ app, userId, password })` returns
 `{ get(key, schema), set(key, value), remove(key), close() }`.
