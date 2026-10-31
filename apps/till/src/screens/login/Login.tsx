@@ -1,21 +1,14 @@
 import { useState, type FC, type FormEvent } from "react";
-import { Navigate } from "react-router";
-import { paths } from "../../app/paths";
 import { loginErrorReason } from "../../data/loginError";
-import { useLogin, useSession } from "../../data/session";
+import { useLogin } from "../../data/session";
 import LoginJSX, { type LoginStatus } from "./LoginJSX";
 
 const Login: FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const session = useSession();
-  const login = useLogin();
-
   // Success needs no navigate() call in the submit handler: the session
-  // changes, this screen re-renders, and the redirect happens here.
-  if (session.status === "signedIn") {
-    return <Navigate replace to={paths.home} />;
-  }
+  // changes, and SignedOutOnly around this screen redirects to Home.
+  const login = useLogin();
 
   let status: LoginStatus = "idle";
   if (login.isPending) status = "submitting";
