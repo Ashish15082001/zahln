@@ -32,15 +32,25 @@ const setState = (next: TillSession): void => {
   queryClient.setQueryData(sessionQueryKey, next);
 };
 
-/** Forgets the token. Screens see signedOut and go to the login screen. */
+/**
+ * Forgets the token and everything fetched with it. Screens see signedOut and
+ * go to the login screen.
+ */
 export const logOut = (): void => {
   session = null;
+  // The rest of the cache belongs to this cashier, so the next one never sees
+  // it. The session query stays: screens are subscribed to that very entry,
+  // and a new one would never reach them.
+  queryClient.removeQueries({
+    predicate: (query) => query.queryKey[0] !== sessionQueryKey[0],
+  });
   setState({ status: "signedOut" });
 };
 
 const signedOut = (): ApiError => new ApiError({ kind: "signedOut" });
 
-const http = createHttp({
+/** Every request goes through this. It adds the token from the session. */
+export const http = createHttp({
   baseUrl: config.baseUrl,
   candidateId: config.candidateId,
   appVersion: config.appVersion,
