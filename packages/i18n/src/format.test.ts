@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { formatCents, formatDateTime } from "./format";
+import {
+  formatCents,
+  formatDateTime,
+  formatDateTimeWithSeconds,
+} from "./format";
 
 describe("formatCents", () => {
   it("writes euros the way each language does", () => {
     // Intl puts a no-break space before the euro sign in German, written as
     // an escape so an editor or a copy-paste cannot turn it into a plain one.
-    expect(formatCents(320, "de")).toBe("3,20 €");
+    expect(formatCents(320, "de")).toBe("3,20\u00a0€");
     expect(formatCents(320, "en")).toBe("€3.20");
   });
 
@@ -29,5 +33,19 @@ describe("formatDateTime", () => {
     const lunch = Date.UTC(2026, 6, 15, 10, 40);
 
     expect(formatDateTime(lunch, "de")).toBe("15.07.2026, 12:40");
+  });
+});
+
+describe("formatDateTimeWithSeconds", () => {
+  it("tells apart two steps a few seconds apart", () => {
+    const created = Date.UTC(2026, 9, 28, 11, 40, 14);
+    const confirmed = Date.UTC(2026, 9, 28, 11, 40, 17);
+
+    expect(formatDateTimeWithSeconds(created, "de")).toBe(
+      "28.10.2026, 12:40:14",
+    );
+    expect(formatDateTimeWithSeconds(confirmed, "en")).toBe(
+      "Oct 28, 2026, 12:40:17 PM",
+    );
   });
 });

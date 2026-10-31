@@ -22,3 +22,17 @@ export const formatDateTime = (ms: number, language: AppLanguage): string =>
     timeStyle: "short",
     timeZone: "Europe/Berlin",
   }).format(ms);
+
+/**
+ * Like formatDateTime, with seconds: a payment's history can move on within
+ * seconds, and without them two steps would show the same time.
+ */
+export const formatDateTimeWithSeconds = (
+  ms: number,
+  language: AppLanguage,
+): string =>
+  new Intl.DateTimeFormat(language, {
+    dateStyle: "medium",
+    timeStyle: "medium",
+    timeZone: "Europe/Berlin",
+  }).format(ms);
