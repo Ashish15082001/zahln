@@ -32,9 +32,30 @@ const de: Resources = {
       },
     },
     home: {
-      title: "Angemeldet",
-      signedInAs: "Angemeldet als {{name}}",
+      greeting: "Hallo, {{name}}",
       logOut: "Abmelden",
+      tabs: {
+        mensa: "Mensa",
+        orders: "Bestellungen",
+      },
+      mensa: {
+        loading: "Speiseplan wird geladen…",
+        error: "Der Speiseplan konnte nicht geladen werden.",
+        retry: "Erneut versuchen",
+        retrying: "Wird erneut versucht…",
+        notFound: "Ihre Mensa steht nicht in der Liste des Servers.",
+        emptyMenu: "Keine Gerichte auf dem Speiseplan.",
+        dish: "Gericht",
+        student: "Studierende",
+        staff: "Bedienstete",
+        guest: "Gäste",
+        selectAll: "Alle Gerichte auswählen",
+        selectDish: "{{dish}} auswählen",
+        createOrder: "Bestellung anlegen",
+      },
+      orders: {
+        comingSoon: "Hier erscheinen die Bestellungen.",
+      },
     },
   },
   dashboard: {

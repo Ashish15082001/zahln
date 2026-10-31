@@ -30,9 +30,30 @@ const en = {
       },
     },
     home: {
-      title: "Signed in",
-      signedInAs: "Logged in as {{name}}",
+      greeting: "Hello, {{name}}",
       logOut: "Log out",
+      tabs: {
+        mensa: "Mensa",
+        orders: "Orders",
+      },
+      mensa: {
+        loading: "Loading the menu…",
+        error: "The menu couldn't be loaded.",
+        retry: "Try again",
+        retrying: "Trying again…",
+        notFound: "Your mensa isn't on the server's list.",
+        emptyMenu: "No dishes on the menu.",
+        dish: "Dish",
+        student: "Student",
+        staff: "Staff",
+        guest: "Guest",
+        selectAll: "Select all dishes",
+        selectDish: "Select {{dish}}",
+        createOrder: "Create order",
+      },
+      orders: {
+        comingSoon: "Orders will show here.",
+      },
     },
   },
   dashboard: {
