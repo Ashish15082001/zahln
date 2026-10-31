@@ -51,6 +51,11 @@ const de: Resources = {
         guest: "Gäste",
         selectAll: "Alle Gerichte auswählen",
         selectDish: "{{dish}} auswählen",
+        quantity: "Menge",
+        // "Ein … mehr" would have to agree with each dish's gender, so the
+        // German names the action instead.
+        oneMore: "Menge von {{dish}} erhöhen",
+        oneFewer: "Menge von {{dish}} verringern",
         createOrder: "Bestellung anlegen",
       },
       orders: {

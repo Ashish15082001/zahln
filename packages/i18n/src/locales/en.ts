@@ -49,6 +49,9 @@ const en = {
         guest: "Guest",
         selectAll: "Select all dishes",
         selectDish: "Select {{dish}}",
+        quantity: "Quantity",
+        oneMore: "One more {{dish}}",
+        oneFewer: "One fewer {{dish}}",
         createOrder: "Create order",
       },
       orders: {

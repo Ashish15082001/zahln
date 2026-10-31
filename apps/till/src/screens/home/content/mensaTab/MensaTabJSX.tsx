@@ -3,7 +3,7 @@ import type {
   OnChangeFn,
   RowSelectionState,
 } from "@tanstack/react-table";
-import type { Mensa, MenuItem } from "@zahln/domain/mensa/frontend";
+import type { Mensa } from "@zahln/domain/mensa/frontend";
 import { Alert, AlertTitle } from "@zahln/ui/components/alert";
 import { Button } from "@zahln/ui/components/button";
 import { Skeleton } from "@zahln/ui/components/skeleton";
@@ -12,7 +12,8 @@ import { useTranslation } from "react-i18next";
 import DataTable, {
   type DataTableFeatures,
 } from "../../../../components/dataTable/DataTable";
-import { getMenuItemId } from "./menuColumns";
+import type { MenuRow } from "./cart";
+import { getMenuRowId } from "./menuColumns";
 
 /** What the tab shows, from first load to the menu. */
 export type MensaTabState =
@@ -20,12 +21,19 @@ export type MensaTabState =
   | { status: "error"; isRetrying: boolean }
   // Signed in to a mensa the server's list doesn't have.
   | { status: "notFound" }
-  // place is the city, plus the cashier's till when the mensa lists it.
-  // selectedCount is how many of the menu's dishes are ticked.
-  | { status: "ready"; mensa: Mensa; place: string; selectedCount: number };
+  // menuRows is the menu with each dish's quantity in the cart. place is the
+  // city, plus the cashier's till when the mensa lists it. selectedCount is
+  // how many of the menu's dishes are ticked.
+  | {
+      status: "ready";
+      mensa: Mensa;
+      menuRows: MenuRow[];
+      place: string;
+      selectedCount: number;
+    };
 
 export interface MensaTabJSXProps {
-  columns: ColumnDef<DataTableFeatures, MenuItem>[];
+  columns: ColumnDef<DataTableFeatures, MenuRow>[];
   rowSelection: RowSelectionState;
   state: MensaTabState;
   handleRetry: () => void;
@@ -89,10 +97,10 @@ const MensaTabJSX: FC<MensaTabJSXProps> = ({
       </div>
       <DataTable
         columns={columns}
-        data={state.mensa.menu}
+        data={state.menuRows}
         emptyText={t("home.mensa.emptyMenu")}
         rowSelection={rowSelection}
-        getRowId={getMenuItemId}
+        getRowId={getMenuRowId}
         handleRowSelectionChange={handleRowSelectionChange}
       />
       {/* Sending the order (POST /orders) comes in the next step. Disabled
