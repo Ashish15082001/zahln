@@ -7,14 +7,14 @@ bigger choices goes in [design.md](design.md).
 
 ## Status
 
-| Step | Scope                                                   | Status                                      |
-| ---- | ------------------------------------------------------- | ------------------------------------------- |
-| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                        |
-| 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval                  |
-| 2    | Till                                                    | Planned                                     |
-| 3    | Student app                                             | In progress: login and payment history done |
-| 4    | Dashboard                                               | Outline only                                |
-| 5    | Ship                                                    | Planned                                     |
+| Step | Scope                                                   | Status                                              |
+| ---- | ------------------------------------------------------- | --------------------------------------------------- |
+| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval                          |
+| 2    | Till                                                    | Planned                                             |
+| 3    | Student app                                             | In progress: login, history and payment detail done |
+| 4    | Dashboard                                               | Outline only                                        |
+| 5    | Ship                                                    | Planned                                             |
 
 Steps 1 and 2 are planned in detail in [till-plan.md](till-plan.md).
 
@@ -106,28 +106,38 @@ Detailed in [till-plan.md](till-plan.md):
 
 Done so far:
 
-| Commit    | What it does                                                                                                                                                                          |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `4f24faf` | The till's HTTP client, server clock, errors, login request and saved-login store move to `packages/api`, for both apps                                                               |
-| `d55eb4f` | Welcome, login and home ("Hello, {name}", Log out), built like the till's. Only a payer can log in: `student`, `staff` or `guest`. The login is kept under `zahln.student.session.v1` |
-| `3d56df8` | `GET /payments` in `packages/api`, with the payment's schemas in `domain`. A lower `version` never replaces a payment already shown                                                   |
-| `10598a3` | `formatCents` moves from the till to `packages/i18n`, next to a new `formatDateTime` that always shows Berlin time                                                                    |
-| `9ac15a4` | shadcn's `Empty` component, for empty states and full-page errors                                                                                                                     |
-| `cd8250a` | Home lists the payer's payments, 20 at a time with Load more: mensa, amount, date, status, items and refunds. Loading, error, empty and refresh-failed states, in English and German  |
+| Commit    | What it does                                                                                                                                                                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `4f24faf` | The till's HTTP client, server clock, errors, login request and saved-login store move to `packages/api`, for both apps                                                                                                                                        |
+| `d55eb4f` | Welcome, login and home ("Hello, {name}", Log out), built like the till's. Only a payer can log in: `student`, `staff` or `guest`. The login is kept under `zahln.student.session.v1`                                                                          |
+| `3d56df8` | `GET /payments` in `packages/api`, with the payment's schemas in `domain`. A lower `version` never replaces a payment already shown                                                                                                                            |
+| `10598a3` | `formatCents` moves from the till to `packages/i18n`, next to a new `formatDateTime` that always shows Berlin time                                                                                                                                             |
+| `9ac15a4` | shadcn's `Empty` component, for empty states and full-page errors                                                                                                                                                                                              |
+| `cd8250a` | Home lists the payer's payments, 20 at a time with Load more: mensa, amount, date, status, items and refunds. Loading, error, empty and refresh-failed states, in English and German                                                                           |
+| `214e76d` | `GET /payments/{paymentId}` in `packages/api`, with schemas for refunds and history events in `domain`                                                                                                                                                         |
+| `4c013df` | `formatDateTimeWithSeconds`, since a payment's history steps are often seconds apart                                                                                                                                                                           |
+| `7a4c4ea` | Each list row opens the payment's detail: amount, mensa and till, items, total, refunds and the history, oldest first. Not found, error, loading and refresh-failed states. Focus moves to the heading on open, and Back returns to the same place in the list |
 
 Changes from the plan:
 
 - **History doesn't poll.** It is fetched when Home opens, when the app comes
   back to the front, and with Refresh. A seeded payment has been pending for
-  days, so polling for it would never stop.
+  days, so polling for it would never stop. The detail works the same way.
 - **Each status has a solid badge with an icon and a word.** Green, amber and
   red with white text, because red text on its own 10% tint is below 4.5:1.
+- **The detail drops a read older than the list's copy, and asks again.** Up
+  to 3 more times, 1 second apart, then it shows an error. It is the one
+  retry TanStack Query makes on its own: a read is safe to repeat. A newer
+  detail also updates the list, so going back never shows an older status.
+- **An unknown history event shows as "Other change"** instead of failing the
+  whole payment, like an unknown attention reason.
+- **"Not found" also covers another payer's payment.** The server answers
+  both with `404 not_found`, so the app can't tell them apart.
 
 Not yet:
 
 - Picking student, staff or guest before login. The server already sends the
   account's role.
-- The payment detail view with refunds and history (`GET /payments/{id}`).
 
 The plan for the whole step:
 
