@@ -48,6 +48,23 @@ const en = {
         refunded: "{{amount}} refunded",
         refundPending: "Refund of {{amount}} on its way",
       },
+      scan: {
+        button: "Scan QR",
+        installing: "Getting the scanner ready…",
+        notAnOrderTitle: "Not a Zahln code",
+        notAnOrderDescription:
+          "This QR code isn't for paying at the mensa. Scan the code on the till's screen.",
+        unavailableTitle: "Can't open the scanner",
+        unavailableDescription: "The scanner doesn't work on this device.",
+        scanAgain: "Scan again",
+        close: "Close",
+      },
+    },
+    // Until the order screen is built: where a scanned order opens.
+    order: {
+      title: "Order",
+      comingSoon: "Order {{orderId}} opens here soon.",
+      back: "Back",
     },
     // Shared by the list and the detail screen, so a status reads the same on
     // both.

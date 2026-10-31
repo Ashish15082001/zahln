@@ -54,6 +54,23 @@ const de: Resources = {
         refunded: "{{amount}} erstattet",
         refundPending: "Erstattung von {{amount}} in Bearbeitung",
       },
+      scan: {
+        button: "QR scannen",
+        installing: "Scanner wird vorbereitet…",
+        notAnOrderTitle: "Kein Zahln-Code",
+        notAnOrderDescription:
+          "Mit diesem QR-Code kann nicht in der Mensa bezahlt werden. Scannen Sie den Code auf dem Bildschirm der Kasse.",
+        unavailableTitle: "Scanner kann nicht geöffnet werden",
+        unavailableDescription:
+          "Der Scanner funktioniert auf diesem Gerät nicht.",
+        scanAgain: "Erneut scannen",
+        close: "Schließen",
+      },
+    },
+    order: {
+      title: "Bestellung",
+      comingSoon: "Bestellung {{orderId}} wird hier bald angezeigt.",
+      back: "Zurück",
     },
     paymentStatus: {
       pending: "Wird geprüft",

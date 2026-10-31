@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import Home from "../screens/home/Home";
 import Login from "../screens/login/Login";
+import Order from "../screens/order/Order";
 import PaymentDetail from "../screens/paymentDetail/PaymentDetail";
 import Welcome from "../screens/welcome/Welcome";
 import { paths } from "./paths";
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
     children: [
       { path: paths.home, element: <Home /> },
       { path: paths.payment, element: <PaymentDetail /> },
+      { path: paths.order, element: <Order /> },
     ],
   },
   // Capacitor and Vite serve index.html for any path, so an unknown one would

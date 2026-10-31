@@ -7,6 +7,7 @@ export const paths = {
   login: "/login",
   home: "/home",
   payment: "/payments/:paymentId",
+  order: "/orders/:orderId",
 } as const;
 
 /**
@@ -15,3 +16,7 @@ export const paths = {
  */
 export const toPaymentPath = (paymentId: string): string =>
   generatePath(paths.payment, { paymentId });
+
+/** The screen of an order the payer scanned. Escapes the id, like above. */
+export const toOrderPath = (orderId: string): string =>
+  generatePath(paths.order, { orderId });

@@ -187,6 +187,18 @@ describe("scanQrCode", () => {
     expect(fake.listenerCount()).toBe(0);
   });
 
+  it("is unavailable, not a rejection, when the install can't even start listening", async () => {
+    const fake = createFakeScanner({ available: false });
+    fake.googleCodeScanner.addListener = () =>
+      Promise.reject(new Error("Plugin is not implemented on android"));
+    const { scanQrCode } = createQrScanner({
+      isAndroid: true,
+      googleCodeScanner: fake.googleCodeScanner,
+    });
+
+    expect(await scanQrCode()).toEqual({ kind: "unavailable" });
+  });
+
   it("scans when the scanner got installed between the check and the install", async () => {
     const fake = createFakeScanner({
       available: false,

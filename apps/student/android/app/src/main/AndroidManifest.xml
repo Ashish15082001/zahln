@@ -33,9 +33,24 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Asks Play to install Google's code scanner with the app, so the
+             first Scan QR doesn't wait for a download. The app still installs
+             it on demand when this didn't happen. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode_ui" />
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Only for the app's own camera scanner, used where Google's can't run.
+         Google's scanner needs no permission. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Not required: without it, asking for CAMERA would hide the app from
+         phones without a camera, which can still pay by typing the code. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 </manifest>

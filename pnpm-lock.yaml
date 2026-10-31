@@ -248,6 +248,9 @@ importers:
 
   apps/student:
     dependencies:
+      '@capacitor-mlkit/barcode-scanning':
+        specifier: ^8.2.1
+        version: 8.2.1(@capacitor/core@8.6.0)
       '@capacitor/android':
         specifier: ^8.6.0
         version: 8.6.0(@capacitor/core@8.6.0)

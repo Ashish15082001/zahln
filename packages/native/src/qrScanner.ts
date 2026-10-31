@@ -121,7 +121,7 @@ export const createQrScanner = (config: QrScannerConfig) => {
   /**
    * Opens Google's code scanner, which needs no camera permission, and gives
    * back the QR code's text. On a phone without its scanner yet, installs it
-   * first.
+   * first. Never rejects: every failure comes back as `unavailable`.
    */
   const scanQrCode = async (
     options: ScanQrCodeOptions = {},
@@ -140,7 +140,10 @@ export const createQrScanner = (config: QrScannerConfig) => {
 
     if (!isScannerInstalled) {
       options.handleInstallStart?.();
-      if (!(await installScanner())) return { kind: "unavailable" };
+      // A plugin call failing inside the install, e.g. adding the listener,
+      // means it won't install either.
+      const isInstalled = await installScanner().catch(() => false);
+      if (!isInstalled) return { kind: "unavailable" };
     }
 
     try {
