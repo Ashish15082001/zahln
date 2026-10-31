@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import Home from "../screens/home/Home";
 import Login from "../screens/login/Login";
+import PaymentDetail from "../screens/paymentDetail/PaymentDetail";
 import Welcome from "../screens/welcome/Welcome";
 import { paths } from "./paths";
 import SignedInOnly from "./signedInOnly/SignedInOnly";
@@ -18,7 +19,10 @@ export const router = createBrowserRouter([
   },
   {
     element: <SignedInOnly />,
-    children: [{ path: paths.home, element: <Home /> }],
+    children: [
+      { path: paths.home, element: <Home /> },
+      { path: paths.payment, element: <PaymentDetail /> },
+    ],
   },
   // Capacitor and Vite serve index.html for any path, so an unknown one would
   // otherwise show React Router's developer error page to the payer.

@@ -3,6 +3,7 @@ import { formatCents, formatDateTime } from "@zahln/i18n/format";
 import { pickLanguage } from "@zahln/i18n/language";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
+import { toPaymentPath } from "../../../../app/paths";
 import PaymentRowJSX from "./PaymentRowJSX";
 
 export interface PaymentRowProps {
@@ -37,6 +38,8 @@ const PaymentRow: FC<PaymentRowProps> = ({ payment }) => {
       ? formatCents(payment.pendingRefundAmountCents, language)
       : null;
 
+  const paymentPath = toPaymentPath(payment.id);
+
   return (
     <PaymentRowJSX
       amount={amount}
@@ -44,6 +47,7 @@ const PaymentRow: FC<PaymentRowProps> = ({ payment }) => {
       createdAtIso={createdAtIso}
       itemsSummary={itemsSummary}
       mensaName={payment.mensaName}
+      paymentPath={paymentPath}
       pendingRefund={pendingRefund}
       refunded={refunded}
       status={payment.status}

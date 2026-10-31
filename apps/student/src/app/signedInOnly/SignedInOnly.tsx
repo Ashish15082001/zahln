@@ -1,10 +1,11 @@
 import type { FC } from "react";
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, ScrollRestoration } from "react-router";
 import { useSession } from "../../data/session";
 import { paths } from "../paths";
 
 /**
- * Wraps the screens that need a signed-in payer: Home. Anyone else goes to
+ * Wraps the screens that need a signed-in payer: Home and a payment's detail.
+ * Anyone else goes to
  * Login, whether the saved login ran out or the session ended while the app
  * was open.
  *
@@ -18,7 +19,14 @@ const SignedInOnly: FC = () => {
     return <Navigate replace to={paths.login} />;
   }
 
-  return <Outlet />;
+  return (
+    <>
+      {/* Back from a payment lands where the payer was in the list, not at
+          its top. Only the signed-in screens are long enough to scroll. */}
+      <ScrollRestoration />
+      <Outlet />
+    </>
+  );
 };
 
 export default SignedInOnly;
