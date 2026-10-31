@@ -27,9 +27,15 @@ export type OrderDialogState =
       hasConnectionProblem: boolean;
       // Back to open after a payment was checked: the payer can try again.
       isDeclined: boolean;
+      orderId: string;
       qrPayload: string;
     }
-  | { status: "paying"; hasConnectionProblem: boolean; qrPayload: string }
+  | {
+      status: "paying";
+      hasConnectionProblem: boolean;
+      orderId: string;
+      qrPayload: string;
+    }
   | { status: "paid" }
   | { status: "expired" };
 
@@ -96,9 +102,9 @@ const OrderDialogJSX: FC<OrderDialogJSXProps> = ({
   const { t } = useTranslation("till");
   const { description, title } = getDialogText(state, t);
   // The QR only while the order can be paid, so nobody scans a settled one.
-  const qrPayload =
+  const payableOrder =
     state.status === "open" || state.status === "paying"
-      ? state.qrPayload
+      ? { orderId: state.orderId, qrPayload: state.qrPayload }
       : null;
   const hasConnectionProblem =
     (state.status === "open" || state.status === "paying") &&
@@ -123,17 +129,25 @@ const OrderDialogJSX: FC<OrderDialogJSXProps> = ({
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {qrPayload !== null && (
-          // Black on white in either theme: scanners need a light background.
-          <div className="mx-auto rounded-xl bg-white p-3">
-            <QRCodeSVG
-              bgColor="#ffffff"
-              fgColor="#000000"
-              role="img"
-              size={224}
-              title={t("home.order.qrLabel")}
-              value={qrPayload}
-            />
+        {payableOrder !== null && (
+          <div className="flex flex-col items-center gap-2">
+            {/* Black on white in either theme: scanners need a light
+                background. */}
+            <div className="rounded-xl bg-white p-3">
+              <QRCodeSVG
+                bgColor="#ffffff"
+                fgColor="#000000"
+                role="img"
+                size={224}
+                title={t("home.order.qrLabel")}
+                value={payableOrder.qrPayload}
+              />
+            </div>
+            {/* For a phone that can't scan: the student app's last resort is
+                typing this. Monospace, so 0 and O, 1 and l look different. */}
+            <p className="font-mono text-base break-all">
+              {t("home.order.orderCode", { orderId: payableOrder.orderId })}
+            </p>
           </div>
         )}
         {canTryAgain && (

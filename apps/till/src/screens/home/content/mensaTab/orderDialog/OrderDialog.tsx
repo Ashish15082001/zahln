@@ -43,6 +43,7 @@ const OrderDialog: FC<OrderDialogProps> = ({
           status: "open",
           hasConnectionProblem,
           isDeclined: payingSeenFor === latest.id,
+          orderId: latest.id,
           qrPayload: latest.qrPayload,
         };
         break;
@@ -50,6 +51,7 @@ const OrderDialog: FC<OrderDialogProps> = ({
         state = {
           status: "paying",
           hasConnectionProblem,
+          orderId: latest.id,
           qrPayload: latest.qrPayload,
         };
         break;
