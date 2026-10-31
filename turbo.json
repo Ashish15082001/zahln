@@ -14,7 +14,10 @@
       "dependsOn": ["^typecheck"]
     },
     "lint": {},
-    "test": {},
+    "test": {
+      // App tests load the app's vite.config.ts, which checks the API settings.
+      "env": ["VITE_*"]
+    },
     "dev": {
       "cache": false,
       "persistent": true

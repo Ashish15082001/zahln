@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "lint": "eslint .",
+    "test": "vitest run",
     "android:sync": "vite build && cap sync android",
     "android:run": "vite build && cap sync android && cap run android",
     "android:open": "cap open android"
@@ -16,6 +17,7 @@
   "dependencies": {
     "@capacitor/android": "^8.6.0",
     "@capacitor/core": "^8.6.0",
+    "@tanstack/react-query": "^5.105.0",
     "@zahln/api": "workspace:*",
     "@zahln/domain": "workspace:*",
     "@zahln/i18n": "workspace:*",
@@ -25,7 +27,8 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-i18next": "^17.1.9",
-    "react-router": "^8.5.1"
+    "react-router": "^8.5.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.0",
