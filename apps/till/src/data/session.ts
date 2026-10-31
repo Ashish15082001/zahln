@@ -12,6 +12,7 @@ import { postSession } from "../api/sessions";
 import { config } from "../config";
 import { NotACashierError } from "./loginError";
 import { queryClient } from "./queryClient";
+import { sessionStore } from "./sessionStore";
 
 /** The session as screens see it: who is signed in, never the token. */
 export type TillSession =
@@ -19,9 +20,10 @@ export type TillSession =
 
 const sessionQueryKey = ["session"] as const;
 
-// Who is logged in, with their token: the one record of the login. In memory
-// only, so a reload means logging in again.
-let cashierSession: CashierSession | null = null;
+// Who is logged in, with their token: the one record of the login. Read from
+// storage once, before the first render, so a reopen goes straight in without
+// a flash of the login screen, until the token runs out.
+let cashierSession: CashierSession | null = sessionStore.load();
 
 /**
  * The part of `cashierSession` screens see. The token stays behind: the query
@@ -32,15 +34,21 @@ const toTillSession = (): TillSession =>
     ? { status: "signedIn", cashier: cashierSession.cashier }
     : { status: "signedOut" };
 
-/** Replaces the login and re-renders every screen that uses useSession. */
+/**
+ * Replaces the login, in memory and in storage alike, and re-renders every
+ * screen that uses useSession. The one place either changes, so they can't
+ * disagree.
+ */
 const setCashierSession = (newCashierSession: CashierSession | null): void => {
   cashierSession = newCashierSession;
+  if (newCashierSession) sessionStore.save(newCashierSession);
+  else sessionStore.clear();
   queryClient.setQueryData(sessionQueryKey, toTillSession());
 };
 
 /**
- * Forgets the token and everything fetched with it. Screens see signedOut and
- * go to the login screen.
+ * Forgets the token, the saved login and everything fetched with it. Screens
+ * see signedOut and go to the login screen.
  */
 export const logOut = (): void => {
   // The rest of the cache belongs to this cashier, so the next one never sees
