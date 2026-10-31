@@ -86,3 +86,50 @@ export const PaymentPageResponseSchema = z.object({
 export interface PaymentPageResponse extends z.infer<
   typeof PaymentPageResponseSchema
 > {}
+
+// ---- GET /payments/{paymentId}: a payment with its refunds and history
+
+export const RefundStatusResponseSchema = z.enum([
+  "pending",
+  "completed",
+  "failed",
+]);
+
+export const RefundResponseSchema = z.object({
+  id: z.string().min(1),
+  paymentId: z.string().min(1),
+  amountCents: z.int().min(0),
+  // Always EUR, as on the payment.
+  currency: z.literal("EUR").optional(),
+  status: RefundStatusResponseSchema,
+  reason: z.string().nullable(),
+  createdAt: z.iso.datetime({ offset: true }),
+  updatedAt: z.iso.datetime({ offset: true }),
+});
+
+export interface RefundResponse extends z.infer<typeof RefundResponseSchema> {}
+
+/** One state change of a payment or one of its refunds. */
+export const PaymentEventResponseSchema = z.object({
+  at: z.iso.datetime({ offset: true }),
+  // Any string, not the spec's enum: like the attention reasons, an event the
+  // app doesn't know yet must not stop the whole payment from loading. The
+  // app names the ones it knows in frontend.ts.
+  type: z.string().min(1),
+  amountCents: z.int().min(0).nullable(),
+  refundId: z.string().min(1).nullable(),
+});
+
+export interface PaymentEventResponse extends z.infer<
+  typeof PaymentEventResponseSchema
+> {}
+
+// The list's payment plus its refunds and its history, oldest first.
+export const PaymentDetailResponseSchema = PaymentResponseSchema.extend({
+  refunds: z.array(RefundResponseSchema),
+  history: z.array(PaymentEventResponseSchema),
+});
+
+export interface PaymentDetailResponse extends z.infer<
+  typeof PaymentDetailResponseSchema
+> {}

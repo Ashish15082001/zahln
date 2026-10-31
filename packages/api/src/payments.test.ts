@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createServerClock } from "./clock";
 import { ApiError } from "./errors";
 import { createHttp } from "./http";
-import { getPayments } from "./payments";
+import { getPayment, getPayments } from "./payments";
 import {
   createFakeServer,
   describeCalls,
@@ -126,6 +126,87 @@ describe("getPayments", () => {
       status: 200,
     });
     // A bad 200 is not a passing failure, so it isn't asked again.
+    expect(server.calls).toHaveLength(1);
+  });
+});
+
+/** The payment above with a refund and its history, from GET /payments/{id}. */
+const paymentDetail = {
+  ...payment,
+  refundedAmountCents: 130,
+  refundableAmountCents: 280,
+  version: 4,
+  refunds: [
+    {
+      id: "ref_1",
+      paymentId: payment.id,
+      amountCents: 130,
+      currency: "EUR",
+      status: "completed",
+      reason: "Seed refund",
+      createdAt: "2026-10-28T18:35:04.910Z",
+      updatedAt: "2026-10-28T18:35:07.910Z",
+    },
+  ],
+  history: [
+    {
+      at: "2026-10-28T11:40:14.727Z",
+      type: "payment_created",
+      amountCents: 410,
+      refundId: null,
+    },
+    {
+      at: "2026-10-28T11:40:17.727Z",
+      type: "payment_confirmed",
+      amountCents: 410,
+      refundId: null,
+    },
+  ],
+};
+
+describe("getPayment", () => {
+  it("reads one payment with the token and no key", async () => {
+    const { http, server } = setup([() => jsonReply(200, paymentDetail)]);
+
+    const detail = await getPayment(http, "pay_b363fa8001a7cbd1");
+
+    expect(detail.id).toBe("pay_b363fa8001a7cbd1");
+    expect(detail.tillName).toBe("Kasse 1");
+    expect(detail.refunds.map((refund) => refund.id)).toEqual(["ref_1"]);
+    expect(detail.history).toHaveLength(2);
+    expect(describeCalls(server.calls)).toEqual([
+      "GET /payments/pay_b363fa8001a7cbd1",
+    ]);
+    const [call] = server.calls;
+    expect(call?.headers.get("Authorization")).toBe("Bearer t1");
+    expect(call?.headers.get("Idempotency-Key")).toBeNull();
+  });
+
+  it("escapes the id, so it can't reach another path", async () => {
+    const { http, server } = setup([() => jsonReply(200, paymentDetail)]);
+
+    await getPayment(http, "../orders/ord_1");
+
+    expect(describeCalls(server.calls)).toEqual([
+      "GET /payments/..%2Forders%2Ford_1",
+    ]);
+  });
+
+  it("reports another payer's or a missing payment as not found, without asking again", async () => {
+    const { http, server } = setup([
+      () => problemReply(404, "not_found", false),
+    ]);
+
+    const error: unknown = await getPayment(http, "pay_other").catch(
+      (reason: unknown) => reason,
+    );
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).failure).toMatchObject({
+      kind: "problem",
+      status: 404,
+      problem: { code: "not_found" },
+    });
     expect(server.calls).toHaveLength(1);
   });
 });

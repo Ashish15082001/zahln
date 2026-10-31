@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  PaymentDetailResponseSchema,
   PaymentListRequestSchema,
   PaymentPageResponseSchema,
   PaymentResponseSchema,
@@ -7,6 +8,7 @@ import {
 import {
   newerPayment,
   toPayment,
+  toPaymentDetail,
   toPaymentList,
   toPaymentPage,
   type Payment,
@@ -207,5 +209,177 @@ describe("toPaymentList", () => {
 
   it("is empty with no pages", () => {
     expect(toPaymentList([])).toEqual([]);
+  });
+});
+
+// A real GET /payments/{paymentId} reply from the dev server: the student's
+// payment with half of it refunded.
+const refundedDetailResponse = {
+  id: "pay_1bd59b3f7d95d269",
+  orderId: "ord_398d18d97f6f9b8c",
+  status: "confirmed",
+  amountCents: 260,
+  currency: "EUR",
+  priceGroup: "student",
+  mensa: { id: "mensa_campus", name: "Mensa am Campus" },
+  till: { id: "till_campus_3", name: "Kasse 3" },
+  payer: { id: "usr_student", displayName: "Test Student" },
+  items: [
+    {
+      itemId: "item_campus_spritzer",
+      name: { de: "Apfelschorle 0,5 l", en: "Apple spritzer 0.5 l" },
+      quantity: 1,
+      unitPriceCents: 140,
+    },
+    {
+      itemId: "item_campus_soup",
+      name: { de: "Suppe des Tages", en: "Soup of the day" },
+      quantity: 1,
+      unitPriceCents: 120,
+    },
+  ],
+  refundedAmountCents: 130,
+  pendingRefundAmountCents: 0,
+  refundableAmountCents: 0,
+  needsAttention: false,
+  attentionReasons: [],
+  createdAt: "2026-09-30T09:36:01.910Z",
+  updatedAt: "2026-09-30T18:35:07.910Z",
+  version: 4,
+  refunds: [
+    {
+      id: "ref_93c872de0a0e405c",
+      paymentId: "pay_1bd59b3f7d95d269",
+      amountCents: 130,
+      currency: "EUR",
+      status: "completed",
+      reason: "Seed refund",
+      createdAt: "2026-09-30T18:35:04.910Z",
+      updatedAt: "2026-09-30T18:35:07.910Z",
+    },
+  ],
+  history: [
+    {
+      at: "2026-09-30T09:36:01.910Z",
+      type: "payment_created",
+      amountCents: 260,
+      refundId: null,
+    },
+    {
+      at: "2026-09-30T09:36:04.910Z",
+      type: "payment_confirmed",
+      amountCents: 260,
+      refundId: null,
+    },
+    {
+      at: "2026-09-30T18:35:04.910Z",
+      type: "refund_requested",
+      amountCents: 130,
+      refundId: "ref_93c872de0a0e405c",
+    },
+    {
+      at: "2026-09-30T18:35:07.910Z",
+      type: "refund_completed",
+      amountCents: 130,
+      refundId: "ref_93c872de0a0e405c",
+    },
+  ],
+};
+
+describe("PaymentDetailResponseSchema", () => {
+  it("parses a payment with a refund and its history", () => {
+    expect(
+      PaymentDetailResponseSchema.safeParse(refundedDetailResponse).success,
+    ).toBe(true);
+  });
+
+  it("refuses a refund status it doesn't know", () => {
+    const [refund] = refundedDetailResponse.refunds;
+    const parsed = PaymentDetailResponseSchema.safeParse({
+      ...refundedDetailResponse,
+      refunds: [{ ...refund, status: "reversed" }],
+    });
+
+    expect(parsed.success).toBe(false);
+  });
+
+  it("takes a refund without a reason", () => {
+    const [refund] = refundedDetailResponse.refunds;
+    const parsed = PaymentDetailResponseSchema.safeParse({
+      ...refundedDetailResponse,
+      refunds: [{ ...refund, reason: null }],
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+});
+
+describe("toPaymentDetail", () => {
+  it("keeps the list's fields and adds the till, refunds and history", () => {
+    const parsed = PaymentDetailResponseSchema.parse(refundedDetailResponse);
+
+    const detail = toPaymentDetail(parsed);
+
+    expect(detail).toMatchObject({
+      id: "pay_1bd59b3f7d95d269",
+      status: "confirmed",
+      amountCents: 260,
+      mensaName: "Mensa am Campus",
+      tillName: "Kasse 3",
+      refundedAmountCents: 130,
+      version: 4,
+    });
+    expect(detail.refunds).toEqual([
+      {
+        id: "ref_93c872de0a0e405c",
+        amountCents: 130,
+        status: "completed",
+        reason: "Seed refund",
+        createdAtMs: Date.UTC(2026, 8, 30, 18, 35, 4, 910),
+      },
+    ]);
+    expect(detail.history.map((event) => event.type)).toEqual([
+      "payment_created",
+      "payment_confirmed",
+      "refund_requested",
+      "refund_completed",
+    ]);
+    expect(detail.history[0]).toEqual({
+      atMs: Date.UTC(2026, 8, 30, 9, 36, 1, 910),
+      type: "payment_created",
+      amountCents: 260,
+    });
+  });
+
+  it("names an event the app doesn't know `other` instead of failing", () => {
+    const parsed = PaymentDetailResponseSchema.parse({
+      ...refundedDetailResponse,
+      history: [
+        {
+          at: "2026-09-30T19:00:00.000Z",
+          type: "chargeback_opened",
+          amountCents: null,
+          refundId: null,
+        },
+      ],
+    });
+
+    expect(toPaymentDetail(parsed).history).toEqual([
+      {
+        atMs: Date.UTC(2026, 8, 30, 19, 0, 0),
+        type: "other",
+        amountCents: null,
+      },
+    ]);
+  });
+});
+
+describe("newerPayment with details", () => {
+  it("keeps the detail with the higher version", () => {
+    const parsed = PaymentDetailResponseSchema.parse(refundedDetailResponse);
+    const refunded = toPaymentDetail(parsed);
+    const beforeTheRefund = { ...refunded, version: 2, refunds: [] };
+
+    expect(newerPayment(refunded, beforeTheRefund)).toBe(refunded);
   });
 });
