@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SessionRequestSchema, SessionResponseSchema } from "./backend";
-import { toCashier, toSession, type User } from "./frontend";
+import { toCashier, toCashierSession, toSession, type User } from "./frontend";
 
 // Real POST /sessions responses from the dev server, token replaced.
 const cashierLogin = {
@@ -150,5 +150,28 @@ describe("toCashier", () => {
   it("refuses a cashier without a till or a mensa", () => {
     expect(toCashier({ ...cashierUser, tillId: null })).toBeNull();
     expect(toCashier({ ...cashierUser, mensaId: null })).toBeNull();
+  });
+});
+
+describe("toCashierSession", () => {
+  it("keeps the token, its expiry and the cashier", () => {
+    const session = toSession(SessionResponseSchema.parse(cashierLogin));
+
+    expect(toCashierSession(session)).toEqual({
+      accessToken: "token-cashier",
+      expiresAtMs: Date.UTC(2026, 9, 30, 19, 14, 57, 252),
+      cashier: {
+        id: "usr_cashier_campus_1",
+        displayName: "Mensa am Campus, Kasse 1",
+        tillId: "till_campus_1",
+        mensaId: "mensa_campus",
+      },
+    });
+  });
+
+  it("is null for a user who can't use the till", () => {
+    const session = toSession(SessionResponseSchema.parse(studentLogin));
+
+    expect(toCashierSession(session)).toBeNull();
   });
 });

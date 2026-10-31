@@ -49,6 +49,18 @@ export const CashierSchema = z.object({
 
 export interface Cashier extends z.infer<typeof CashierSchema> {}
 
+/**
+ * A logged-in cashier and their token: all the till keeps about a login. The
+ * raw user isn't kept, since Cashier already has what the till needs.
+ */
+export const CashierSessionSchema = z.object({
+  accessToken: z.string().min(1),
+  expiresAtMs: z.int(),
+  cashier: CashierSchema,
+});
+
+export interface CashierSession extends z.infer<typeof CashierSessionSchema> {}
+
 // ---- from the wire shape
 
 export const toUser = (response: UserResponse): User => ({
@@ -79,5 +91,17 @@ export const toCashier = (user: User): Cashier | null => {
     displayName: user.displayName,
     tillId: user.tillId,
     mensaId: user.mensaId,
+  };
+};
+
+/** The login as the till keeps it, or null when the user can't use the till. */
+export const toCashierSession = (session: Session): CashierSession | null => {
+  const cashier = toCashier(session.user);
+  if (!cashier) return null;
+
+  return {
+    accessToken: session.accessToken,
+    expiresAtMs: session.expiresAtMs,
+    cashier,
   };
 };
