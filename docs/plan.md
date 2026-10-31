@@ -7,14 +7,14 @@ bigger choices goes in [design.md](design.md).
 
 ## Status
 
-| Step | Scope                                                   | Status                     |
-| ---- | ------------------------------------------------------- | -------------------------- |
-| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                       |
-| 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval |
-| 2    | Till                                                    | Planned                    |
-| 3    | Student app                                             | In progress: login done    |
-| 4    | Dashboard                                               | Outline only               |
-| 5    | Ship                                                    | Planned                    |
+| Step | Scope                                                   | Status                                      |
+| ---- | ------------------------------------------------------- | ------------------------------------------- |
+| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                        |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval                  |
+| 2    | Till                                                    | Planned                                     |
+| 3    | Student app                                             | In progress: login and payment history done |
+| 4    | Dashboard                                               | Outline only                                |
+| 5    | Ship                                                    | Planned                                     |
 
 Steps 1 and 2 are planned in detail in [till-plan.md](till-plan.md).
 
@@ -110,9 +110,26 @@ Done so far:
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `4f24faf` | The till's HTTP client, server clock, errors, login request and saved-login store move to `packages/api`, for both apps                                                               |
 | `d55eb4f` | Welcome, login and home ("Hello, {name}", Log out), built like the till's. Only a payer can log in: `student`, `staff` or `guest`. The login is kept under `zahln.student.session.v1` |
+| `3d56df8` | `GET /payments` in `packages/api`, with the payment's schemas in `domain`. A lower `version` never replaces a payment already shown                                                   |
+| `10598a3` | `formatCents` moves from the till to `packages/i18n`, next to a new `formatDateTime` that always shows Berlin time                                                                    |
+| `9ac15a4` | shadcn's `Empty` component, for empty states and full-page errors                                                                                                                     |
+| `cd8250a` | Home lists the payer's payments, 20 at a time with Load more: mensa, amount, date, status, items and refunds. Loading, error, empty and refresh-failed states, in English and German  |
 
-Not yet: picking student, staff or guest before login. The server already
-sends the account's role.
+Changes from the plan:
+
+- **History doesn't poll.** It is fetched when Home opens, when the app comes
+  back to the front, and with Refresh. A seeded payment has been pending for
+  days, so polling for it would never stop.
+- **Each status has a solid badge with an icon and a word.** Green, amber and
+  red with white text, because red text on its own 10% tint is below 4.5:1.
+
+Not yet:
+
+- Picking student, staff or guest before login. The server already sends the
+  account's role.
+- The payment detail view with refunds and history (`GET /payments/{id}`).
+
+The plan for the whole step:
 
 - **Start:** pick student, staff or guest, then log in. The app reads
   `GET /config` at start and again before paying. The config can force an
