@@ -3,6 +3,7 @@ import Home from "../screens/home/Home";
 import Login from "../screens/login/Login";
 import Order from "../screens/order/Order";
 import PaymentDetail from "../screens/paymentDetail/PaymentDetail";
+import Scan from "../screens/scan/Scan";
 import Welcome from "../screens/welcome/Welcome";
 import { paths } from "./paths";
 import SignedInOnly from "./signedInOnly/SignedInOnly";
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: paths.home, element: <Home /> },
       { path: paths.payment, element: <PaymentDetail /> },
       { path: paths.order, element: <Order /> },
+      { path: paths.scan, element: <Scan /> },
     ],
   },
   // Capacitor and Vite serve index.html for any path, so an unknown one would

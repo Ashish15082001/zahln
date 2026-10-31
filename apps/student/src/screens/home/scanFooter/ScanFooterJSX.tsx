@@ -20,8 +20,7 @@ export type ScanStatus =
   // Google's scanner is being installed, which takes a few seconds the first
   // time.
   | "installing"
-  | "notAnOrder"
-  | "unavailable";
+  | "notAnOrder";
 
 export interface ScanFooterJSXProps {
   scanStatus: ScanStatus;
@@ -42,8 +41,7 @@ const ScanFooterJSX: FC<ScanFooterJSXProps> = ({
     scanStatus === "installing"
       ? t("home.scan.installing")
       : t("home.scan.button");
-  const isMessageOpen =
-    scanStatus === "notAnOrder" || scanStatus === "unavailable";
+  const isNotAnOrder = scanStatus === "notAnOrder";
 
   return (
     <>
@@ -70,29 +68,21 @@ const ScanFooterJSX: FC<ScanFooterJSXProps> = ({
       </footer>
       {/* No onOpenChange: the message closes through its own buttons, so a
           stray tap outside can't hide why the scan didn't work. */}
-      <AlertDialog open={isMessageOpen}>
+      <AlertDialog open={isNotAnOrder}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {scanStatus === "notAnOrder"
-                ? t("home.scan.notAnOrderTitle")
-                : t("home.scan.unavailableTitle")}
+              {t("home.scan.notAnOrderTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {scanStatus === "notAnOrder"
-                ? t("home.scan.notAnOrderDescription")
-                : t("home.scan.unavailableDescription")}
+              {t("home.scan.notAnOrderDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCloseMessage}>
               {t("home.scan.close")}
             </AlertDialogCancel>
-            {/* Only after a wrong code: scanning again can fix that, but not
-                a scanner that can't run here. */}
-            {scanStatus === "notAnOrder" && (
-              <Button onClick={handleScan}>{t("home.scan.scanAgain")}</Button>
-            )}
+            <Button onClick={handleScan}>{t("home.scan.scanAgain")}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -60,12 +60,31 @@ const de: Resources = {
         notAnOrderTitle: "Kein Zahln-Code",
         notAnOrderDescription:
           "Mit diesem QR-Code kann nicht in der Mensa bezahlt werden. Scannen Sie den Code auf dem Bildschirm der Kasse.",
-        unavailableTitle: "Scanner kann nicht geöffnet werden",
-        unavailableDescription:
-          "Der Scanner funktioniert auf diesem Gerät nicht.",
         scanAgain: "Erneut scannen",
         close: "Schließen",
       },
+    },
+    scan: {
+      title: "QR scannen",
+      cancel: "Abbrechen",
+      back: "Zurück",
+      starting: "Kamera wird gestartet…",
+      hint: "Richten Sie die Kamera auf den QR-Code auf dem Bildschirm der Kasse.",
+      notAnOrder:
+        "Das ist kein Zahln-Code. Richten Sie die Kamera auf den QR-Code der Kasse.",
+      cameraDeniedTitle: "Kamerazugriff ist aus",
+      cameraDeniedDescription:
+        "Erlauben Sie die Kamera in den Einstellungen und versuchen Sie es erneut. Oder geben Sie den Code unter dem QR-Code der Kasse ein.",
+      openSettings: "Einstellungen öffnen",
+      tryAgain: "Erneut versuchen",
+      unavailableTitle: "Dieses Gerät kann nicht scannen",
+      unavailableDescription:
+        "Geben Sie den Code ein, der unter dem QR-Code auf dem Bildschirm der Kasse steht.",
+      codeLabel: "Bestellcode",
+      codeHint: "Er steht unter dem QR-Code auf dem Bildschirm der Kasse.",
+      codeInvalid:
+        "Das ist kein Bestellcode. Bitte prüfen und erneut versuchen.",
+      openOrder: "Bestellung öffnen",
     },
     order: {
       title: "Bestellung",
@@ -180,6 +199,7 @@ const de: Resources = {
         cancel: "Abbrechen",
         scanToPay: "Zum Bezahlen scannen",
         qrLabel: "QR-Code zum Bezahlen dieser Bestellung",
+        orderCode: "Code: {{orderId}}",
         waiting: "Warten auf Zahlung.",
         paying: "Zahlung wird geprüft…",
         declined: "Zahlung abgelehnt. Die Person kann es erneut versuchen.",

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { CreateOrderRequestSchema, OrderResponseSchema } from "./backend";
-import { newerOrder, toOrder, toOrderIdFromQr, type Order } from "./frontend";
+import {
+  newerOrder,
+  toOrder,
+  toOrderIdFromQr,
+  toOrderIdFromTypedCode,
+  type Order,
+} from "./frontend";
 
 /** An order as the server sends it to the cashier who made it. */
 const orderResponse = {
@@ -129,5 +135,32 @@ describe("toOrderIdFromQr", () => {
     expect(toOrderIdFromQr("zahln://pay?order=")).toBeNull();
     expect(toOrderIdFromQr("zahln://pay?order=../payments")).toBeNull();
     expect(toOrderIdFromQr("zahln://pay?order=ord%201")).toBeNull();
+  });
+});
+
+describe("toOrderIdFromTypedCode", () => {
+  it("takes the order id as the till prints it", () => {
+    expect(toOrderIdFromTypedCode("ord_c0fa341c0c64bffc")).toBe(
+      "ord_c0fa341c0c64bffc",
+    );
+  });
+
+  it("drops spaces, so a code typed in groups still works", () => {
+    expect(toOrderIdFromTypedCode(" ord_c0fa 341c 0c64 bffc ")).toBe(
+      "ord_c0fa341c0c64bffc",
+    );
+  });
+
+  it("takes the QR's text, pasted", () => {
+    expect(
+      toOrderIdFromTypedCode("zahln://pay?order=ord_c0fa341c0c64bffc"),
+    ).toBe("ord_c0fa341c0c64bffc");
+  });
+
+  it("refuses what can't be an order id", () => {
+    expect(toOrderIdFromTypedCode("")).toBeNull();
+    expect(toOrderIdFromTypedCode("   ")).toBeNull();
+    expect(toOrderIdFromTypedCode("ord_1/../payments")).toBeNull();
+    expect(toOrderIdFromTypedCode("https://zahln.de")).toBeNull();
   });
 });

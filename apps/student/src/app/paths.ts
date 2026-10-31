@@ -8,6 +8,7 @@ export const paths = {
   home: "/home",
   payment: "/payments/:paymentId",
   order: "/orders/:orderId",
+  scan: "/scan",
 } as const;
 
 /**

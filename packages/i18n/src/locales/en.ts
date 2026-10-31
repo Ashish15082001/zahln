@@ -54,11 +54,31 @@ const en = {
         notAnOrderTitle: "Not a Zahln code",
         notAnOrderDescription:
           "This QR code isn't for paying at the mensa. Scan the code on the till's screen.",
-        unavailableTitle: "Can't open the scanner",
-        unavailableDescription: "The scanner doesn't work on this device.",
         scanAgain: "Scan again",
         close: "Close",
       },
+    },
+    // The app's own camera scanner, and typing the code as the last resort.
+    scan: {
+      title: "Scan QR",
+      cancel: "Cancel",
+      back: "Back",
+      starting: "Starting the camera…",
+      hint: "Point the camera at the QR code on the till's screen.",
+      notAnOrder:
+        "That's not a Zahln code. Point the camera at the till's QR code.",
+      cameraDeniedTitle: "Camera access is off",
+      cameraDeniedDescription:
+        "Allow the camera in Settings, then try again. Or type the code under the till's QR code.",
+      openSettings: "Open settings",
+      tryAgain: "Try again",
+      unavailableTitle: "This device can't scan",
+      unavailableDescription:
+        "Type the code shown under the QR code on the till's screen.",
+      codeLabel: "Order code",
+      codeHint: "It's under the QR code on the till's screen.",
+      codeInvalid: "That isn't an order code. Check it and try again.",
+      openOrder: "Open order",
     },
     // Until the order screen is built: where a scanned order opens.
     order: {
@@ -171,6 +191,7 @@ const en = {
         cancel: "Cancel",
         scanToPay: "Scan to Pay",
         qrLabel: "QR code to pay this order",
+        orderCode: "Code: {{orderId}}",
         waiting: "Waiting for payment.",
         paying: "Payment being checked…",
         declined: "Payment declined. The payer can try again.",

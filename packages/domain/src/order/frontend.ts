@@ -77,3 +77,16 @@ export const toOrderIdFromQr = (qrText: string): string | null => {
     ? orderId
     : null;
 };
+
+/**
+ * The order id the payer typed from the code under the till's QR, or null
+ * when it can't be one. Spaces are dropped, so a code read out in groups
+ * still works. The QR's own text, pasted, works too.
+ */
+export const toOrderIdFromTypedCode = (typedCode: string): string | null => {
+  const compactCode = typedCode.replace(/\s+/g, "");
+  if (compactCode.startsWith(QR_PAYLOAD_PREFIX)) {
+    return toOrderIdFromQr(compactCode);
+  }
+  return ORDER_ID_PATTERN.test(compactCode) ? compactCode : null;
+};

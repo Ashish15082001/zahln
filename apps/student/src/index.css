@@ -12,3 +12,12 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
+
+/* While the app's own camera scanner runs on a phone, the camera shows behind
+   the WebView. The scan screen sets this class so the page lets it through;
+   the plugin makes the WebView itself see-through. Unlayered, so it beats the
+   body background from globals.css. */
+html.camera-behind-page,
+html.camera-behind-page body {
+  background: transparent;
+}

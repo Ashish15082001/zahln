@@ -1,6 +1,6 @@
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
-import { toOrderPath } from "../../../app/paths";
+import { paths, toOrderPath } from "../../../app/paths";
 import { scanOrderQr } from "../../../data/orderScan";
 import ScanFooterJSX, { type ScanStatus } from "./ScanFooterJSX";
 
@@ -23,8 +23,13 @@ const ScanFooter: FC = () => {
         setScanStatus("idle");
         return;
       case "notAnOrder":
+        setScanStatus("notAnOrder");
+        return;
+      // Google's scanner can't run here: the app's own camera screen is
+      // next, and it offers typing the code only when it can't scan either.
       case "unavailable":
-        setScanStatus(orderScan.kind);
+        setScanStatus("idle");
+        void navigate(paths.scan);
         return;
     }
   };
