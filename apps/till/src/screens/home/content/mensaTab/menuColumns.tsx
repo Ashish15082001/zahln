@@ -1,12 +1,12 @@
 import { MinusSignIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createColumnHelper, type Table } from "@tanstack/react-table";
+import { formatCents } from "@zahln/i18n/format";
 import type { AppLanguage } from "@zahln/i18n/language";
 import { Button } from "@zahln/ui/components/button";
 import { Checkbox } from "@zahln/ui/components/checkbox";
 import type { TFunction } from "i18next";
 import type { DataTableFeatures } from "../../../../components/dataTable/DataTable";
-import { formatCents } from "../../../../format/money";
 import { MAX_QUANTITY, MIN_QUANTITY, type MenuRow } from "./cart";
 
 const helper = createColumnHelper<DataTableFeatures, MenuRow>();
