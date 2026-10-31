@@ -1,5 +1,6 @@
 import type { RowSelectionState } from "@tanstack/react-table";
 import type { MenuItem } from "@zahln/domain/mensa/frontend";
+import type { CreateOrderRequest } from "@zahln/domain/order/backend";
 
 /** The dishes picked for the next order: dish id → quantity. */
 export type Cart = Record<string, number>;
@@ -48,3 +49,24 @@ export const changeQuantity = (cart: Cart, id: string, by: number): Cart => {
 /** The menu with each dish's quantity, for the table. */
 export const toMenuRows = (menu: MenuItem[], cart: Cart): MenuRow[] =>
   menu.map((item) => ({ ...item, quantity: cart[item.id] ?? null }));
+
+/**
+ * What POST /orders gets for the ticked dishes. Built from the menu's rows,
+ * so a dish that has left the menu is never sent, and in menu order, so the
+ * same cart always gives the same request.
+ */
+export const toOrderRequest = (rows: MenuRow[]): CreateOrderRequest => ({
+  items: rows.flatMap((row) =>
+    row.quantity === null ? [] : [{ itemId: row.id, quantity: row.quantity }],
+  ),
+});
+
+/**
+ * Whether two requests are for the same cart: then they're one intent and
+ * share a key. Comparing the JSON is enough, since toOrderRequest always
+ * lists the dishes in menu order.
+ */
+export const isSameRequest = (
+  a: CreateOrderRequest,
+  b: CreateOrderRequest,
+): boolean => JSON.stringify(a) === JSON.stringify(b);

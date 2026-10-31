@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   applyRowSelection,
   changeQuantity,
+  isSameRequest,
   toMenuRows,
+  toOrderRequest,
   toRowSelection,
 } from "./cart";
 
@@ -49,6 +51,44 @@ describe("changeQuantity", () => {
 
   it("leaves out a dish that isn't ticked", () => {
     expect(changeQuantity({}, "curry", 1)).toEqual({});
+  });
+});
+
+describe("toOrderRequest", () => {
+  it("sends the ticked dishes with their quantities, in menu order", () => {
+    const rows = toMenuRows([dish("curry"), dish("soup"), dish("tea")], {
+      tea: 1,
+      curry: 2,
+    });
+
+    expect(toOrderRequest(rows)).toEqual({
+      items: [
+        { itemId: "curry", quantity: 2 },
+        { itemId: "tea", quantity: 1 },
+      ],
+    });
+  });
+
+  it("leaves out a dish in the cart that isn't on the menu", () => {
+    const rows = toMenuRows([dish("curry")], { curry: 1, gone: 3 });
+
+    expect(toOrderRequest(rows).items).toEqual([
+      { itemId: "curry", quantity: 1 },
+    ]);
+  });
+});
+
+describe("isSameRequest", () => {
+  it("matches the same cart, and not a changed quantity", () => {
+    const menu = [dish("curry"), dish("soup")];
+    const request = toOrderRequest(toMenuRows(menu, { curry: 2 }));
+
+    expect(
+      isSameRequest(request, toOrderRequest(toMenuRows(menu, { curry: 2 }))),
+    ).toBe(true);
+    expect(
+      isSameRequest(request, toOrderRequest(toMenuRows(menu, { curry: 3 }))),
+    ).toBe(false);
   });
 });
 

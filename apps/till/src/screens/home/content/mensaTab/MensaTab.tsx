@@ -3,20 +3,30 @@ import {
   type OnChangeFn,
   type RowSelectionState,
 } from "@tanstack/react-table";
+import type { Order } from "@zahln/domain/order/frontend";
 import { pickLanguage } from "@zahln/i18n/language";
 import { useCallback, useMemo, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
+import { newIdempotencyKey } from "../../../../data/idempotencyKey";
 import { useMensa } from "../../../../data/mensa";
+import {
+  isUnconfirmed,
+  useCreateOrder,
+  type CreateOrderInput,
+} from "../../../../data/order";
 import { useSession } from "../../../../data/session";
 import {
   applyRowSelection,
   changeQuantity,
+  isSameRequest,
   toMenuRows,
+  toOrderRequest,
   toRowSelection,
   type Cart,
 } from "./cart";
 import MensaTabJSX, { type MensaTabState } from "./MensaTabJSX";
 import { getMenuColumns } from "./menuColumns";
+import OrderDialog, { type OrderCreation } from "./orderDialog/OrderDialog";
 
 const MensaTab: FC = () => {
   const session = useSession();
@@ -29,6 +39,13 @@ const MensaTab: FC = () => {
   // boxes and the quantities are both read from here, so they can't disagree.
   // Local to this screen: log-out or a reload clears it.
   const [cart, setCart] = useState<Cart>({});
+  const createOrder = useCreateOrder();
+  // The order made from the cart, followed in the dialog until it's settled.
+  const [order, setOrder] = useState<Order | null>(null);
+  // The last attempt whose reply was lost, so the server may have saved it.
+  // Its key goes out again while the cart is the same: the server then hands
+  // back that order instead of making a second one.
+  const [unconfirmed, setUnconfirmed] = useState<CreateOrderInput | null>(null);
 
   // Steps from the cart's latest value rather than this render's, so two
   // quick taps on + add two. setCart never changes, so neither does this.
@@ -88,14 +105,61 @@ const MensaTab: FC = () => {
     );
   };
 
+  const handleCreateOrder = (): void => {
+    const request = toOrderRequest(menuRows);
+    const input: CreateOrderInput = {
+      request,
+      // One key per intent. The same cart as an unconfirmed attempt is the
+      // same intent; any other cart is a new one.
+      idempotencyKey:
+        unconfirmed && isSameRequest(unconfirmed.request, request)
+          ? unconfirmed.idempotencyKey
+          : newIdempotencyKey("order"),
+    };
+    createOrder.mutate(input, {
+      onSuccess: (created) => {
+        setUnconfirmed(null);
+        setOrder(created);
+      },
+      // Once the server has said no, nothing was saved, so the key is spent.
+      onError: (error) => setUnconfirmed(isUnconfirmed(error) ? input : null),
+    });
+  };
+
+  // Back to the cart. An unconfirmed key stays, ready for the same cart.
+  const handleCancelOrder = (): void => createOrder.reset();
+
+  // Settled: start over with an empty cart. The next order gets a new key.
+  const handleAcknowledgeOrder = (): void => {
+    setOrder(null);
+    setCart({});
+    createOrder.reset();
+  };
+
+  let creation: OrderCreation | null = null;
+  if (createOrder.isPending) creation = "creating";
+  else if (createOrder.isError) {
+    creation = isUnconfirmed(createOrder.error) ? "unconfirmed" : "failed";
+  }
+
   return (
-    <MensaTabJSX
-      columns={columns}
-      rowSelection={rowSelection}
-      state={state}
-      handleRetry={handleRetry}
-      handleRowSelectionChange={handleRowSelectionChange}
-    />
+    <>
+      <MensaTabJSX
+        columns={columns}
+        rowSelection={rowSelection}
+        state={state}
+        handleCreateOrder={handleCreateOrder}
+        handleRetry={handleRetry}
+        handleRowSelectionChange={handleRowSelectionChange}
+      />
+      <OrderDialog
+        creation={creation}
+        order={order}
+        handleAcknowledge={handleAcknowledgeOrder}
+        handleCancel={handleCancelOrder}
+        handleTryAgain={handleCreateOrder}
+      />
+    </>
   );
 };
 

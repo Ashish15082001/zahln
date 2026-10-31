@@ -36,6 +36,7 @@ export interface MensaTabJSXProps {
   columns: ColumnDef<DataTableFeatures, MenuRow>[];
   rowSelection: RowSelectionState;
   state: MensaTabState;
+  handleCreateOrder: () => void;
   handleRetry: () => void;
   handleRowSelectionChange: OnChangeFn<RowSelectionState>;
 }
@@ -44,6 +45,7 @@ const MensaTabJSX: FC<MensaTabJSXProps> = ({
   columns,
   rowSelection,
   state,
+  handleCreateOrder,
   handleRetry,
   handleRowSelectionChange,
 }) => {
@@ -103,10 +105,13 @@ const MensaTabJSX: FC<MensaTabJSXProps> = ({
         getRowId={getMenuRowId}
         handleRowSelectionChange={handleRowSelectionChange}
       />
-      {/* Sending the order (POST /orders) comes in the next step. Disabled
-          until a dish is ticked, since an order needs at least one. */}
+      {/* Disabled until a dish is ticked, since an order needs at least
+          one. */}
       <div className="flex justify-end">
-        <Button disabled={state.selectedCount === 0}>
+        <Button
+          disabled={state.selectedCount === 0}
+          onClick={handleCreateOrder}
+        >
           {t("home.mensa.createOrder")}
         </Button>
       </div>
