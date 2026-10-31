@@ -12,6 +12,15 @@ export const RoleResponseSchema = z.enum([
   "finance",
 ]);
 
+// ---- what POST /sessions takes: what the cashier types on the login screen
+
+export const SessionRequestSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+
+export interface SessionRequest extends z.infer<typeof SessionRequestSchema> {}
+
 // ---- user and session, as POST /sessions returns them
 
 export const UserResponseSchema = z.object({

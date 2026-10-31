@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SessionResponseSchema } from "./backend";
+import { SessionRequestSchema, SessionResponseSchema } from "./backend";
 import { toCashier, toSession, type User } from "./frontend";
 
 // Real POST /sessions responses from the dev server, token replaced.
@@ -39,6 +39,25 @@ const cashierUser: User = {
   tillId: "till_campus_1",
   mensaId: "mensa_campus",
 };
+
+describe("SessionRequestSchema", () => {
+  it("accepts a username and password", () => {
+    const credentials = { username: "cashier-campus-1", password: "test1234" };
+
+    expect(SessionRequestSchema.parse(credentials)).toEqual(credentials);
+  });
+
+  it("refuses an empty username or password", () => {
+    expect(
+      SessionRequestSchema.safeParse({ username: "", password: "test1234" })
+        .success,
+    ).toBe(false);
+    expect(
+      SessionRequestSchema.safeParse({ username: "cashier", password: "" })
+        .success,
+    ).toBe(false);
+  });
+});
 
 describe("SessionResponseSchema", () => {
   it("parses a cashier's and a student's login", () => {
