@@ -19,19 +19,19 @@ frontend assignment, in one TypeScript monorepo.
 apps/
   student/     Student app: React + Capacitor (Android)
   till/        Till app: React + Capacitor (Android tablet)
-  dashboard/   Studierendenwerk dashboard: React, static web build
+  dashboard/   Studierendenwerk dashboard: React, static web build (scaffold only)
 packages/
-  domain/      Shapes, money, payment state machine. No React, no DOM.
+  domain/      zod shapes, the server's and the apps', and version checks. No React, no DOM.
   api/         HTTP client: deadlines, retries, idempotency, response parsing
-  i18n/        i18next setup and the de/en strings
+  i18n/        i18next setup, the de/en strings, and money and date formats
   ui/          Accessible components shared by all three surfaces
-  native/      Capacitor wrappers, used by the student app and the till only
+  native/      Capacitor wrappers for the QR scanners, used by the student app
 docs/
-  plan.md      Build plan, step by step, with status
-  till-plan.md Detailed plan for the till
-  till-pieces.md  The till's build pieces, with status and files
-  api-gaps.md  What the API is missing, and what I would change
-  design.md    Design document
+  plan.md          Build plan, step by step, with status and commits
+  till-plan.md     The till: what it does, how, and what is still to build
+  student-plan.md  The student app: what it does, how, and what is still to build
+  api-gaps.md      What the API is missing, and what I would change
+  design.md        Design document
 ```
 
 Packages export their TypeScript source and are compiled by each app's Vite
@@ -97,12 +97,17 @@ loads your laptop's dev server.
 
 ## What I built
 
-_Written as the work lands._
+So far the till and the student app, each described in its own document:
+[docs/till-plan.md](docs/till-plan.md) and
+[docs/student-plan.md](docs/student-plan.md). The dashboard isn't started.
 
 ## What I left out, and why
 
-_Written as the work lands._
+Written at the end. Until then, what each app still lacks is under "Still to
+build" in its document, and what the API makes hard is in
+[docs/api-gaps.md](docs/api-gaps.md).
 
 ## AI tools
 
-- **Claude Code (Anthropic):** monorepo scaffold and tooling configuration.
+- **Claude Code (Anthropic):** planning, code, tests and docs, one step at a
+  time; I reviewed and approved each step before it landed.
