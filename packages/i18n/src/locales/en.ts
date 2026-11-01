@@ -80,11 +80,37 @@ const en = {
       codeInvalid: "That isn't an order code. Check it and try again.",
       openOrder: "Open order",
     },
-    // Until the order screen is built: where a scanned order opens.
+    // The order the payer scanned, before paying.
     order: {
       title: "Order",
-      comingSoon: "Order {{orderId}} opens here soon.",
       back: "Back",
+      loading: "Loading the order…",
+      notFoundTitle: "Order not found",
+      notFoundDescription:
+        "Check the code, or scan the QR code on the till's screen again.",
+      errorTitle: "The order couldn't be loaded",
+      errorDescription: "Check your connection and try again.",
+      retry: "Try again",
+      retrying: "Trying again…",
+      priceGroup: {
+        student: "Student price",
+        staff: "Staff price",
+        guest: "Guest price",
+      },
+      payWithin: "Pay within {{time}}",
+      timeUp: "Time's up. Checking the order…",
+      items: "Items",
+      unitPrice: "{{quantity}} × {{unitPrice}}",
+      total: "Total",
+      payingTitle: "Payment being checked",
+      payingYoursDescription: "Your payment for this order is being checked.",
+      payingDescription: "A payment for this order is being checked.",
+      paidTitle: "Already paid",
+      paidYoursDescription: "You paid this order.",
+      paidDescription: "This order has already been paid.",
+      expiredTitle: "Order expired",
+      expiredDescription: "Nothing was paid. Ask the cashier for a new order.",
+      seePayment: "See the payment",
     },
     // Shared by the list and the detail screen, so a status reads the same on
     // both.

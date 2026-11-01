@@ -73,12 +73,18 @@ export const logOut = (): void => {
 
 const signedOutError = (): ApiError => new ApiError({ kind: "signedOut" });
 
+/**
+ * The server's time, from the Date header of every response. An order's
+ * countdown runs on it, so a phone whose clock is off doesn't end it early.
+ */
+export const serverClock = createServerClock();
+
 /** Every request goes through this. It adds the token from the session. */
 export const http = createHttp({
   baseUrl: config.baseUrl,
   candidateId: config.candidateId,
   appVersion: config.appVersion,
-  clock: createServerClock(),
+  clock: serverClock,
   auth: {
     getToken: () =>
       payerSession

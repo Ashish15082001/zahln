@@ -88,8 +88,36 @@ const de: Resources = {
     },
     order: {
       title: "Bestellung",
-      comingSoon: "Bestellung {{orderId}} wird hier bald angezeigt.",
       back: "Zurück",
+      loading: "Die Bestellung wird geladen…",
+      notFoundTitle: "Bestellung nicht gefunden",
+      notFoundDescription:
+        "Prüfen Sie den Code, oder scannen Sie den QR-Code auf dem Bildschirm der Kasse erneut.",
+      errorTitle: "Die Bestellung konnte nicht geladen werden",
+      errorDescription:
+        "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      retry: "Erneut versuchen",
+      retrying: "Wird erneut versucht…",
+      priceGroup: {
+        student: "Preis für Studierende",
+        staff: "Preis für Bedienstete",
+        guest: "Preis für Gäste",
+      },
+      payWithin: "Bezahlen innerhalb von {{time}}",
+      timeUp: "Die Zeit ist abgelaufen. Die Bestellung wird geprüft…",
+      items: "Artikel",
+      unitPrice: "{{quantity}} × {{unitPrice}}",
+      total: "Summe",
+      payingTitle: "Zahlung wird geprüft",
+      payingYoursDescription: "Ihre Zahlung für diese Bestellung wird geprüft.",
+      payingDescription: "Eine Zahlung für diese Bestellung wird geprüft.",
+      paidTitle: "Bereits bezahlt",
+      paidYoursDescription: "Sie haben diese Bestellung bezahlt.",
+      paidDescription: "Diese Bestellung wurde bereits bezahlt.",
+      expiredTitle: "Bestellung abgelaufen",
+      expiredDescription:
+        "Es wurde nichts bezahlt. Bitten Sie an der Kasse um eine neue Bestellung.",
+      seePayment: "Zur Zahlung",
     },
     paymentStatus: {
       pending: "Wird geprüft",
