@@ -24,19 +24,3 @@ export const postOrder = async (
   });
   return toOrder(response);
 };
-
-/** GET /orders/{orderId}: the order as the server has it now. */
-export const getOrder = async (
-  http: Http,
-  orderId: string,
-  signal?: AbortSignal,
-): Promise<Order> => {
-  const response = await http.request({
-    method: "GET",
-    path: `/orders/${encodeURIComponent(orderId)}`,
-    schema: OrderResponseSchema,
-    authenticated: true,
-    signal,
-  });
-  return toOrder(response);
-};

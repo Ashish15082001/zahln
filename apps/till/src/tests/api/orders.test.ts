@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createServerClock } from "@zahln/api/clock";
 import { createHttp } from "@zahln/api/http";
-import { getOrder, postOrder } from "../../api/orders";
+import { postOrder } from "../../api/orders";
 import {
   createFakeServer,
   describeCalls,
@@ -90,21 +90,5 @@ describe("postOrder", () => {
     expect(
       server.calls.map((call) => call.headers.get("Idempotency-Key")),
     ).toEqual(["order_k1", "order_k1"]);
-  });
-});
-
-describe("getOrder", () => {
-  it("reads the order with the token and no key", async () => {
-    const { http, server } = setup([
-      () => jsonReply(200, { ...order, status: "paid", version: 3 }),
-    ]);
-
-    const read = await getOrder(http, "ord_1");
-
-    expect(read.status).toBe("paid");
-    expect(read.version).toBe(3);
-    const [call] = server.calls;
-    expect(call?.path).toBe("/orders/ord_1");
-    expect(call?.headers.get("Idempotency-Key")).toBeNull();
   });
 });

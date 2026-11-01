@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { LocalizedTextResponseSchema } from "../mensa/backend";
+import { PriceGroupSchema } from "../user/frontend";
 import { OrderStatusResponseSchema, type OrderResponse } from "./backend";
 
 // ---- enums: the same values in the app as on the wire
@@ -25,6 +27,37 @@ export const OrderSchema = z.object({
 
 export interface Order extends z.infer<typeof OrderSchema> {}
 
+/** A dish on the order, at the payer's price. */
+export const PayerOrderLineSchema = z.object({
+  itemId: z.string().min(1),
+  name: LocalizedTextResponseSchema,
+  quantity: z.int().min(1),
+  unitPriceCents: z.int().min(0),
+});
+
+export interface PayerOrderLine extends z.infer<typeof PayerOrderLineSchema> {}
+
+/**
+ * An order as the payer who scanned it sees it: what it costs their price
+ * group. The QR text isn't kept, since the payer just scanned it.
+ */
+export const PayerOrderSchema = z.object({
+  id: z.string().min(1),
+  status: OrderStatusSchema,
+  mensaName: z.string(),
+  tillName: z.string(),
+  items: z.array(PayerOrderLineSchema),
+  amountCents: z.int().min(0),
+  priceGroup: PriceGroupSchema,
+  expiresAtMs: z.int(),
+  version: z.int().min(0),
+  // Filled when the payment is this payer's own; null for anyone else's, as
+  // the dev server answers.
+  paymentId: z.string().min(1).nullable(),
+});
+
+export interface PayerOrder extends z.infer<typeof PayerOrderSchema> {}
+
 // ---- from the wire shape
 
 export const toOrder = (response: OrderResponse): Order => ({
@@ -38,12 +71,50 @@ export const toOrder = (response: OrderResponse): Order => ({
 });
 
 /**
+ * The payer's view of the order, or null when the reply doesn't have the
+ * payer's prices: it was the cashier's view, which the payer app can't show.
+ */
+export const toPayerOrder = (response: OrderResponse): PayerOrder | null => {
+  const { amountCents, priceGroup } = response;
+  if (amountCents == null || priceGroup == null) return null;
+
+  const items: PayerOrderLine[] = [];
+  for (const line of response.items) {
+    if (line.unitPriceCents == null) return null;
+    items.push({
+      itemId: line.itemId,
+      name: line.name,
+      quantity: line.quantity,
+      unitPriceCents: line.unitPriceCents,
+    });
+  }
+
+  return {
+    id: response.id,
+    status: response.status,
+    mensaName: response.mensa.name,
+    tillName: response.till.name,
+    items,
+    amountCents,
+    priceGroup,
+    expiresAtMs: Date.parse(response.expiresAt),
+    version: response.version,
+    paymentId: response.paymentId ?? null,
+  };
+};
+
+/**
  * Of two copies of one order, the later. The server can answer a read with an
  * earlier state, so a lower version never replaces a higher one: an old `open`
- * must not undo `paid`.
+ * must not undo `paid`. Works for the till's view and the payer's alike.
  */
-export const newerOrder = (current: Order | undefined, next: Order): Order =>
-  current && current.version > next.version ? current : next;
+export const newerOrder = <OrderCopy extends { version: number }>(
+  cachedOrder: OrderCopy | undefined,
+  receivedOrder: OrderCopy,
+): OrderCopy =>
+  cachedOrder && cachedOrder.version > receivedOrder.version
+    ? cachedOrder
+    : receivedOrder;
 
 // ---- the till's QR code
 

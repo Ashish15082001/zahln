@@ -5,6 +5,7 @@ import {
   toOrder,
   toOrderIdFromQr,
   toOrderIdFromTypedCode,
+  toPayerOrder,
   type Order,
 } from "./frontend";
 
@@ -162,5 +163,83 @@ describe("toOrderIdFromTypedCode", () => {
     expect(toOrderIdFromTypedCode("   ")).toBeNull();
     expect(toOrderIdFromTypedCode("ord_1/../payments")).toBeNull();
     expect(toOrderIdFromTypedCode("https://zahln.de")).toBeNull();
+  });
+});
+
+// A real GET /orders/{orderId} reply from the dev server, as the student who
+// is paying it sees it.
+const payerOrderResponse = {
+  id: "ord_c0fa341c0c64bffc",
+  status: "paying",
+  mensa: { id: "mensa_nord", name: "Mensa Nord" },
+  till: { id: "till_nord_2", name: "Kasse 2" },
+  items: [
+    {
+      itemId: "item_nord_meat",
+      name: { de: "Tagesgericht mit Fleisch", en: "Meat dish of the day" },
+      quantity: 1,
+      unitPrices: null,
+      unitPriceCents: 320,
+    },
+  ],
+  qrPayload: "zahln://pay?order=ord_c0fa341c0c64bffc",
+  currency: "EUR",
+  amounts: null,
+  priceGroup: "student",
+  amountCents: 320,
+  paymentId: "pay_76dad19ea5ca6141",
+  createdAt: "2026-10-29T11:56:52.391Z",
+  expiresAt: "2026-10-29T12:01:52.391Z",
+  version: 1,
+};
+
+describe("toPayerOrder", () => {
+  it("keeps what the payer sees, at their price", () => {
+    const parsed = OrderResponseSchema.parse(payerOrderResponse);
+
+    expect(toPayerOrder(parsed)).toEqual({
+      id: "ord_c0fa341c0c64bffc",
+      status: "paying",
+      mensaName: "Mensa Nord",
+      tillName: "Kasse 2",
+      items: [
+        {
+          itemId: "item_nord_meat",
+          name: { de: "Tagesgericht mit Fleisch", en: "Meat dish of the day" },
+          quantity: 1,
+          unitPriceCents: 320,
+        },
+      ],
+      amountCents: 320,
+      priceGroup: "student",
+      expiresAtMs: Date.UTC(2026, 9, 29, 12, 1, 52, 391),
+      version: 1,
+      paymentId: "pay_76dad19ea5ca6141",
+    });
+  });
+
+  it("is null for the cashier's view, which has no payer price", () => {
+    const parsed = OrderResponseSchema.parse(orderResponse);
+
+    expect(toPayerOrder(parsed)).toBeNull();
+  });
+
+  it("is null when a dish has no price for the payer", () => {
+    const [line] = payerOrderResponse.items;
+    const parsed = OrderResponseSchema.parse({
+      ...payerOrderResponse,
+      items: [{ ...line, unitPriceCents: null }],
+    });
+
+    expect(toPayerOrder(parsed)).toBeNull();
+  });
+
+  it("has no payment id when someone else is paying", () => {
+    const parsed = OrderResponseSchema.parse({
+      ...payerOrderResponse,
+      paymentId: null,
+    });
+
+    expect(toPayerOrder(parsed)?.paymentId).toBeNull();
   });
 });
