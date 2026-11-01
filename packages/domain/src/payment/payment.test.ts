@@ -7,10 +7,13 @@ import {
 } from "./backend";
 import {
   newerPayment,
+  toCashierPayment,
+  toCashierPaymentPage,
   toPayment,
   toPaymentDetail,
   toPaymentList,
   toPaymentPage,
+  type CashierPayment,
   type Payment,
 } from "./frontend";
 
@@ -156,6 +159,46 @@ describe("toPaymentPage", () => {
   });
 });
 
+describe("toCashierPayment", () => {
+  it("keeps the payer's fields and adds who paid, the refundable amount and the flag", () => {
+    const parsed = PaymentResponseSchema.parse({
+      ...paymentResponse,
+      refundedAmountCents: 130,
+      refundableAmountCents: 280,
+      needsAttention: true,
+      attentionReasons: ["refund_failed"],
+    });
+
+    expect(toCashierPayment(parsed)).toEqual({
+      ...toPayment(parsed),
+      payerName: "Test Student",
+      refundableAmountCents: 280,
+      needsAttention: true,
+    });
+  });
+});
+
+describe("toCashierPaymentPage", () => {
+  it("keeps the order of the payments and the cursor", () => {
+    const parsed = PaymentPageResponseSchema.parse({
+      items: [
+        { ...paymentResponse, id: "pay_newer" },
+        { ...paymentResponse, id: "pay_older" },
+      ],
+      nextCursor: "cursor_2",
+    });
+
+    const page = toCashierPaymentPage(parsed);
+
+    expect(page.payments.map((listed) => listed.id)).toEqual([
+      "pay_newer",
+      "pay_older",
+    ]);
+    expect(page.payments[0]?.payerName).toBe("Test Student");
+    expect(page.nextCursor).toBe("cursor_2");
+  });
+});
+
 describe("newerPayment", () => {
   it("never goes back to a lower version", () => {
     const confirmed = payment(2, "confirmed");
@@ -209,6 +252,19 @@ describe("toPaymentList", () => {
 
   it("is empty with no pages", () => {
     expect(toPaymentList([])).toEqual([]);
+  });
+
+  it("keeps the till's fields on a cashier's payments", () => {
+    const listed: CashierPayment = {
+      ...payment(1, "confirmed"),
+      payerName: "Test Student",
+      refundableAmountCents: 320,
+      needsAttention: false,
+    };
+
+    expect(toPaymentList([{ payments: [listed], nextCursor: null }])).toEqual([
+      listed,
+    ]);
   });
 });
 

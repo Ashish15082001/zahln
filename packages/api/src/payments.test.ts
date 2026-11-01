@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createServerClock } from "./clock";
 import { ApiError } from "./errors";
 import { createHttp } from "./http";
-import { getPayment, getPayments } from "./payments";
+import { getCashierPayments, getPayment, getPayments } from "./payments";
 import {
   createFakeServer,
   describeCalls,
@@ -127,6 +127,35 @@ describe("getPayments", () => {
     });
     // A bad 200 is not a passing failure, so it isn't asked again.
     expect(server.calls).toHaveLength(1);
+  });
+});
+
+describe("getCashierPayments", () => {
+  it("asks for the till's page with the token and keeps who paid", async () => {
+    const { http, server } = setup([
+      () => jsonReply(200, { items: [payment], nextCursor: "cursor_2" }),
+    ]);
+
+    const page = await getCashierPayments(http, {
+      limit: 20,
+      cursor: "cursor_1",
+    });
+
+    expect(page.payments).toEqual([
+      expect.objectContaining({
+        id: "pay_b363fa8001a7cbd1",
+        payerName: "Test Student",
+        refundableAmountCents: 410,
+        needsAttention: false,
+      }),
+    ]);
+    expect(page.nextCursor).toBe("cursor_2");
+    expect(describeCalls(server.calls)).toEqual([
+      "GET /payments?limit=20&cursor=cursor_1",
+    ]);
+    const [call] = server.calls;
+    expect(call?.headers.get("Authorization")).toBe("Bearer t1");
+    expect(call?.headers.get("Idempotency-Key")).toBeNull();
   });
 });
 

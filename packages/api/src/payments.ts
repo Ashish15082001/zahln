@@ -2,26 +2,28 @@ import {
   PaymentDetailResponseSchema,
   PaymentPageResponseSchema,
   type PaymentListRequest,
+  type PaymentPageResponse,
 } from "@zahln/domain/payment/backend";
 import {
+  toCashierPaymentPage,
   toPaymentDetail,
   toPaymentPage,
+  type CashierPaymentPage,
   type PaymentDetail,
   type PaymentPage,
 } from "@zahln/domain/payment/frontend";
 import type { Http } from "./http";
 
 /**
- * GET /payments: one page of payments, newest first. Which ones depends on who
- * is logged in: a payer gets their own, a cashier their till's, finance all.
- * Leave `cursor` out for the first page.
+ * GET /payments: one page, newest first. Which payments depends on who is
+ * logged in: a payer gets their own, a cashier their till's, finance all.
  */
-export const getPayments = async (
+const requestPaymentPage = (
   http: Http,
   request: PaymentListRequest,
   signal?: AbortSignal,
-): Promise<PaymentPage> => {
-  const response = await http.request({
+): Promise<PaymentPageResponse> =>
+  http.request({
     method: "GET",
     path: "/payments",
     // Listed one by one: an interface has no index signature, so it can't be
@@ -31,8 +33,28 @@ export const getPayments = async (
     authenticated: true,
     signal,
   });
-  return toPaymentPage(response);
-};
+
+/**
+ * GET /payments as a payer: one page of their own payments, newest first.
+ * Leave `cursor` out for the first page.
+ */
+export const getPayments = async (
+  http: Http,
+  request: PaymentListRequest,
+  signal?: AbortSignal,
+): Promise<PaymentPage> =>
+  toPaymentPage(await requestPaymentPage(http, request, signal));
+
+/**
+ * GET /payments as a cashier: one page of their till's payments, newest
+ * first, with who paid each. Leave `cursor` out for the first page.
+ */
+export const getCashierPayments = async (
+  http: Http,
+  request: PaymentListRequest,
+  signal?: AbortSignal,
+): Promise<CashierPaymentPage> =>
+  toCashierPaymentPage(await requestPaymentPage(http, request, signal));
 
 /**
  * GET /payments/{paymentId}: one payment with its refunds and history. Another

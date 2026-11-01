@@ -73,6 +73,30 @@ export const PaymentPageSchema = z.object({
 
 export interface PaymentPage extends z.infer<typeof PaymentPageSchema> {}
 
+/**
+ * A payment as the till lists it: the payer's fields, and what only the
+ * cashier sees. Who paid, what can still be refunded, and whether finance
+ * has flagged it.
+ */
+export const CashierPaymentSchema = PaymentSchema.extend({
+  payerName: z.string(),
+  refundableAmountCents: z.int().min(0),
+  needsAttention: z.boolean(),
+});
+
+export interface CashierPayment extends z.infer<typeof CashierPaymentSchema> {}
+
+/** One page of the till's payments, newest first. */
+export const CashierPaymentPageSchema = z.object({
+  payments: z.array(CashierPaymentSchema),
+  /** Null on the last page. */
+  nextCursor: z.string().min(1).nullable(),
+});
+
+export interface CashierPaymentPage extends z.infer<
+  typeof CashierPaymentPageSchema
+> {}
+
 /** A refund as the payer sees it. A completed one is money back. */
 export const RefundSchema = z.object({
   id: z.string().min(1),
@@ -127,6 +151,22 @@ export const toPaymentPage = (response: PaymentPageResponse): PaymentPage => ({
   nextCursor: response.nextCursor,
 });
 
+export const toCashierPayment = (
+  response: PaymentResponse,
+): CashierPayment => ({
+  ...toPayment(response),
+  payerName: response.payer.displayName,
+  refundableAmountCents: response.refundableAmountCents,
+  needsAttention: response.needsAttention,
+});
+
+export const toCashierPaymentPage = (
+  response: PaymentPageResponse,
+): CashierPaymentPage => ({
+  payments: response.items.map(toCashierPayment),
+  nextCursor: response.nextCursor,
+});
+
 export const toRefund = (response: RefundResponse): Refund => ({
   id: response.id,
   amountCents: response.amountCents,
@@ -169,10 +209,13 @@ export const newerPayment = <PaymentCopy extends Payment>(
 /**
  * The loaded pages as one list, newest first. A payment made between two page
  * loads pushes the rest down, so one can come back on two pages: it is listed
- * once, where it first appeared, at its newer version.
+ * once, where it first appeared, at its newer version. Works for the payer's
+ * pages and the till's alike.
  */
-export const toPaymentList = (pages: PaymentPage[]): Payment[] => {
-  const paymentsById = new Map<string, Payment>();
+export const toPaymentList = <ListedPayment extends Payment>(
+  pages: { payments: ListedPayment[]; nextCursor: string | null }[],
+): ListedPayment[] => {
+  const paymentsById = new Map<string, ListedPayment>();
   for (const page of pages) {
     for (const payment of page.payments) {
       paymentsById.set(
