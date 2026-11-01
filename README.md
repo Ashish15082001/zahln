@@ -22,7 +22,7 @@ apps/
   dashboard/   Studierendenwerk dashboard: React, static web build (scaffold only)
 packages/
   domain/      zod shapes, the server's and the apps', and version checks. No React, no DOM.
-  api/         HTTP client: deadlines, retries, idempotency, response parsing
+  api/         HTTP client: deadlines, retries, idempotency, response parsing, token renewal
   i18n/        i18next setup, the de/en strings, and money and date formats
   ui/          Accessible components shared by all three surfaces
   native/      Capacitor wrappers for the QR scanners and the fingerprint, face or PIN check, used by the student app

@@ -91,7 +91,8 @@ The rules every request follows:
   app sees the order a payer may be paying. It needs `packages/storage`: data
   saved per cashier and encrypted with a key made from their password.
 - **Renewing the token** with the password kept in memory, so the session
-  lasts a shift and a refused token never closes the QR dialog.
+  lasts a shift and a refused token never closes the QR dialog. The student
+  app already does this with `createSessionRenewal` from `packages/api`.
 - **Turning off Android backup.** `allowBackup="true"` lets Auto Backup copy
   the saved login off the device. The fix is `allowBackup="false"` plus
   `dataExtractionRules`, which Android 12 and later need for device-to-device

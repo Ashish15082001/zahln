@@ -7,14 +7,14 @@ bigger choices goes in [design.md](design.md).
 
 ## Status
 
-| Step | Scope                                                   | Status                                                                                  |
-| ---- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                                                    |
-| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                  |
-| 2    | Till                                                    | In progress: login, order QR and payments list done                                     |
-| 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check |
-| 4    | Dashboard                                               | Outline only                                                                            |
-| 5    | Ship                                                    | Planned                                                                                 |
+| Step | Scope                                                   | Status                                                                                                    |
+| ---- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                                                                      |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                                    |
+| 2    | Till                                                    | In progress: login, order QR and payments list done                                                       |
+| 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
+| 4    | Dashboard                                               | Outline only                                                                                              |
+| 5    | Ship                                                    | Planned                                                                                                   |
 
 What each app does, and how, is in [till-plan.md](till-plan.md) and
 [student-plan.md](student-plan.md).
@@ -107,8 +107,10 @@ Order, payment and refund shapes came with the screens that use them, in steps
 
 Changes from the plan:
 
-- **A refused token logs out instead of logging in again.** The client can
-  renew, but neither app keeps the password to do it with yet
+- **The till logs out on a refused token instead of logging in again.** The
+  client can renew, and since step 3 the student app does, with the password
+  kept in memory ([student-plan.md](student-plan.md#renewing-the-token)).
+  The till doesn't keep the password yet
   ([API gap 2](api-gaps.md#2-no-refresh-token)).
 - **"Outcome unknown" is a kind of error, not an order state.** A lost
   response comes back as `noResponse`, and the screen shows "checking" and
@@ -178,7 +180,8 @@ Not yet:
 - Refunds, with the payment's detail.
 - Keeping the open order across a restart, and with it `packages/storage`.
 - Renewing the token, so a refused token doesn't log the cashier out
-  ([API gap 2](api-gaps.md#2-no-refresh-token)).
+  ([API gap 2](api-gaps.md#2-no-refresh-token)). `createSessionRenewal` in
+  `packages/api`, which the student app uses, is ready for it.
 - Turning off Android backup, so the saved login can't be copied off the
   device.
 
@@ -209,6 +212,8 @@ Done so far:
 | `a5d1f85` | `identityCheck` in `packages/native`: Android's fingerprint, face or PIN dialog through `@capgo/capacitor-native-biometric`, with every way it can end as a result                                                                                             |
 | `fc8814c` | The pay key store can tell whether a key is already saved for an order and amount                                                                                                                                                                              |
 | `5642562` | Pay asks for a fingerprint, the face or the phone's PIN before anything is sent: Confirming…, then Paying…, or Too many tries and Couldn't confirm it's you. A resend under a saved key doesn't ask again                                                      |
+| `b890666` | `createSessionRenewal` in `packages/api`: logs in again with the password kept in memory 30 seconds before the token ends and after a 401, once for every request waiting on it. A changed password ends the session; no answer keeps it                       |
+| `fba063e` | The student app renews its token, so a payment refused with a 401 is sent again with the same key instead of stopping at the login screen. Log out forgets the password                                                                                        |
 
 Changes from the plan:
 
@@ -238,9 +243,16 @@ Changes from the plan:
 - **The key is spent after a clear refusal too,** as on the till, not only
   after a decline or a changed price: the server may answer a reused key
   with the same refusal.
-- **A refused token logs out mid-payment.** There is no token renewal yet,
-  so the plan's "logs in again and retries with the same key" isn't built
+- **A refused token logs in again with the password kept in memory only,**
+  as the plan's "logs in again and retries with the same key" says, and the
+  token is also renewed 30 seconds before it ends. The password is never
+  saved, so after a reopen a refused token still logs out
   ([API gap 2](api-gaps.md#2-no-refresh-token)).
+- **The key is spent when the session ends,** not kept in case an earlier
+  try reached the server. The server already refuses a new key while a
+  payment is pending or paid, and a kept key would let another payer on the
+  same phone skip the fingerprint, face or PIN check. The reasons are in
+  [student-plan.md](student-plan.md#why-the-key-is-spent-when-the-session-ends).
 - **The payment is read every 2 seconds for 30 seconds,** then the page
   says "Still being checked" and offers Refresh. History on Home shows the
   final result.
@@ -255,8 +267,8 @@ Changes from the plan:
 
 Not yet:
 
-- Renewing the token, so a session that ends mid-payment doesn't lead to
-  the login screen.
+- Renewing the token after a reopen, which needs a refresh token or the
+  password in the Android Keystore.
 - `GET /config`: a forced update and payments switched off.
 - Picking student, staff or guest before login. The server already sends the
   account's role.
