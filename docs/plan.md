@@ -37,7 +37,10 @@ What each app does, and how, is in [till-plan.md](till-plan.md) and
   an older `version`, and retries on its own only to read a payment's detail
   again. react-router for screens.
 - **UI.** shadcn components stay as generated. Our own components follow the
-  React house rules.
+  React house rules. In the two Android apps every screen is built on
+  `ScreenLayoutJSX`: a header that stays at the top, a footer that stays at
+  the bottom, and a page no taller than the screen. A long press there
+  doesn't select text, except in fields.
 - **Languages and access.** Every screen is in English and German. The pay
   flow works with TalkBack.
 - **Done means** format, typecheck, lint, tests and build pass, and the Android
@@ -150,6 +153,7 @@ Done so far:
 | `5650f20` | The cashier's view of `GET /payments` in `packages/api`: each payment with who paid, what can still be refunded and whether it needs attention                                                                |
 | `a1be9af` | The status badge's look moves to `packages/ui`, so the till and the student app show a status the same way                                                                                                    |
 | `b26de4b` | Home's second tab lists the till's payments, 20 at a time with Load more: time, order code, amount, refunded, status, payer and items. Loading, error, empty and refresh-failed states, in English and German |
+| `8e53415` | Every till screen on the shared screen layout (`b5af400`): the greeting, Log out and the tabs at the top, and Create order at the bottom of the Mensa tab                                                     |
 
 Changes from the plan:
 
@@ -158,6 +162,9 @@ Changes from the plan:
   dialog over the Mensa tab.
 - **The cart is the Mensa tab's own state,** not a Redux slice. Log out or a
   reload clears it.
+- **Create order stays at the bottom of the screen** on the Mensa tab, so it
+  is one tap away under a long menu. The Payments tab has no footer: Load
+  more belongs at the end of the list.
 - **The QR dialog closes only with "I acknowledge",** once the order is paid
   or expired. There is no New order button and no countdown on the till, and
   without a cancel call the cashier can't end an order early
@@ -214,6 +221,9 @@ Done so far:
 | `5642562` | Pay asks for a fingerprint, the face or the phone's PIN before anything is sent: Confirming…, then Paying…, or Too many tries and Couldn't confirm it's you. A resend under a saved key doesn't ask again                                                      |
 | `b890666` | `createSessionRenewal` in `packages/api`: logs in again with the password kept in memory 30 seconds before the token ends and after a 401, once for every request waiting on it. A changed password ends the session; no answer keeps it                       |
 | `fba063e` | The student app renews its token, so a payment refused with a 401 is sent again with the same key instead of stopping at the login screen. Log out forgets the password                                                                                        |
+| `338b77e` | A long press no longer selects text, in the student app and the till. Fields stay selectable, and so does the payment detail's Payment ID line, to paste into a message                                                                                        |
+| `b5af400` | `ScreenLayoutJSX` in `packages/ui`, for both apps: a header that stays at the top, a footer that stays at the bottom, and room for the status bar and the nav bar                                                                                              |
+| `c2e46ec` | Every student screen on it: Back and the title at the top, and Scan QR, Pay and a payment's result buttons at the bottom. A page is never taller than the screen                                                                                               |
 
 Changes from the plan:
 
@@ -348,6 +358,11 @@ Open for the detailed plan:
   the pay flow's "declined" screen must not use the pairing either.
 - The alert dialog blurs the page behind it, which is slow on a low-end phone.
   Check it on a device in step 3.
+- When the till's order dialog closes, focus goes to the page instead of back
+  to Create order, so TalkBack starts again from the top. The dialog opens
+  without a trigger, and Radix returns focus only to one.
+- The status bar and nav bar padding shows only on a device: desktop Chrome
+  has neither bar. Check both apps on a phone and the tablet.
 
 ## API gaps
 

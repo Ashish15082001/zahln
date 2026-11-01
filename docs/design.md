@@ -41,6 +41,15 @@ Decisions made so far, to expand:
   is offered only when `DEVICE_CREDENTIAL` is in `allowedBiometryTypes` (its
   `useFallback` option is ignored there), and `maxAttempts` is raised from 1
   to Android's maximum of 5, or one misread finger would end the check.
+- **A sticky header and footer, with the window scrolling.** Both apps build
+  every screen on `ScreenLayoutJSX` in `packages/ui`. Scrolling only the
+  content between a fixed header and footer was ruled out: React Router
+  restores only the window's scroll, so Back from a payment would land at the
+  top of the list. Sticky, not fixed, so a footer that grows, such as Pay
+  with a message above it, never covers the end of the content. The header
+  pads by the status bar and the footer by the nav bar, so the page is the
+  screen's height and their background covers content scrolling under the
+  bars.
 - **Till orientation.** The till is locked to landscape, but Android 16 ignores
   that lock on tablets for apps targeting API 36, so its layout must also work
   in portrait.
