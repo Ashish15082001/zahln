@@ -6,19 +6,25 @@ document links here. New gaps are added as the work finds them.
 
 ## 1. No way to cancel an order
 
-- **Problem:** if a student walks away, the old QR can still be paid for 5
-  minutes while the cashier rings up the next order.
-- **For now:** the till warns that the old QR can still be paid, keeps
-  checking the old order until it expires, and shows a notice if it gets paid.
+- **Problem:** if a student walks away, their order's QR can still be paid for
+  5 minutes, and the cashier has no way to end it.
+- **For now:** the QR dialog stays open until the server says the order is
+  paid or expired, so the till never loses sight of a QR that can still be
+  paid. The cost: when a payer walks away, the cashier waits up to 5 minutes
+  before the next order.
 - **I would add:** `POST /orders/{id}/cancel` for the cashier, refused once a
-  payment is being checked or the order is paid.
+  payment is being checked or the order is paid. The dialog would then get a
+  Cancel order button.
 
 ## 2. No refresh token
 
 - **Problem:** a token lasts 5 minutes, and the only way to get a new one is to
-  log in again. So the app keeps the password in memory for the whole session.
-- **For now:** the password stays in memory only, never on disk, and a restart
-  asks for it again. That's fine for seeded test users, not for production.
+  log in again, which needs the password.
+- **For now:** neither app keeps the password, so neither renews. When the
+  server refuses the token, the app logs out and shows the login screen. On
+  the till that also closes an open QR dialog, so the cashier loses sight of an
+  order that can still be paid. The next step is to keep the password in
+  memory, never on disk, and log in again on a refused token.
 - **I would add:** a long-lived refresh token that changes on every use and is
   kept in the Android Keystore, so the app never holds the password after
   login.
@@ -40,8 +46,9 @@ document links here. New gaps are added as the work finds them.
 - **Made worse by:** idempotency keys are stored per user. If another cashier
   at the same till resends the refund, the server sees a new refund, so the
   money could go back twice.
-- **For now:** only the cashier who started a refund can resend it, because
-  their saved refund is encrypted with their password.
+- **For now:** the till has no refunds yet. The plan is that only the cashier
+  who started a refund can resend it: the refund in progress is saved
+  encrypted with their password, so no other cashier can open it.
 - **I would add:** the idempotency key on each refund in `GET /payments/{id}`,
   or a lookup by key. Keys for cashier actions would be stored per till rather
   than per user.
@@ -73,3 +80,15 @@ document links here. New gaps are added as the work finds them.
 - **I would add:** `GET /orders` for the cashier, scoped to their till like
   `GET /orders/{orderId}`, newest first, with a `status` filter and cursor
   paging.
+
+## 8. No short order code
+
+- **Problem:** the order id is the only code for an order, and it is 20
+  characters, e.g. `ord_ef3781b912e20464`. A student whose phone can't scan has
+  to type all of it while the queue waits.
+- **For now:** the till prints the id under its QR in a monospace font, so 0
+  and O look different. The student app takes it typed, with any spaces, or the
+  QR's whole text pasted.
+- **I would add:** a short code per open order, e.g. 6 characters without
+  look-alike letters, unique among the open orders, and `GET /orders?code=` to
+  look one up.
