@@ -75,6 +75,19 @@ describe("createPayIntentStore", () => {
     expect(payIntentStore.takeKey("ord_2", 450)).toBe("payment_3");
   });
 
+  it("says whether a key is saved for this order and amount", () => {
+    const payIntentStore = setup(createFakeStorage().storage);
+    expect(payIntentStore.hasKey("ord_1", 410)).toBe(false);
+
+    const idempotencyKey = payIntentStore.takeKey("ord_1", 410);
+
+    expect(payIntentStore.hasKey("ord_1", 410)).toBe(true);
+    expect(payIntentStore.hasKey("ord_1", 450)).toBe(false);
+    expect(payIntentStore.hasKey("ord_2", 410)).toBe(false);
+    payIntentStore.spendKey(idempotencyKey);
+    expect(payIntentStore.hasKey("ord_1", 410)).toBe(false);
+  });
+
   it("finds the saved key after the app was closed", () => {
     const { storage } = createFakeStorage();
     const idempotencyKey = setup(storage).takeKey("ord_1", 410);

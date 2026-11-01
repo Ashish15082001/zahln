@@ -19,6 +19,12 @@ interface PayIntent extends z.infer<typeof PayIntentSchema> {}
 /** What `createPayIntentStore` gives back. */
 export interface PayIntentStore {
   /**
+   * Whether a key is saved for `orderId` at `amountCents`: this payment was
+   * sent before, or was about to be, and no answer settled it. `takeKey`
+   * then hands out that same key.
+   */
+  hasKey: (orderId: string, amountCents: number) => boolean;
+  /**
    * The key to pay `orderId` at `amountCents` with. The saved one when it is
    * for this same order and amount, so a retry gets back the payment the
    * server may already have. Otherwise a new one, saved before it is
@@ -75,12 +81,13 @@ export const createPayIntentStore = (
   // that can't be written still keeps the key while the app runs.
   let payIntent = readSavedIntent();
 
+  const hasKey = (orderId: string, amountCents: number): boolean =>
+    payIntent?.orderId === orderId && payIntent.amountCents === amountCents;
+
   return {
+    hasKey,
     takeKey: (orderId, amountCents) => {
-      if (
-        payIntent?.orderId === orderId &&
-        payIntent.amountCents === amountCents
-      ) {
+      if (payIntent !== null && hasKey(orderId, amountCents)) {
         return payIntent.idempotencyKey;
       }
       const newPayIntent: PayIntent = {
