@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { logOut, useSession } from "../../data/session";
+import { useSession } from "../../data/session";
 import HomeJSX from "./HomeJSX";
 
 // Only reached signed in: SignedInOnly sends anyone else to Login. The guard
@@ -8,9 +8,7 @@ const Home: FC = () => {
   const session = useSession();
   if (session.status !== "signedIn") return null;
 
-  return (
-    <HomeJSX displayName={session.payer.displayName} handleLogOut={logOut} />
-  );
+  return <HomeJSX displayName={session.payer.displayName} />;
 };
 
 export default Home;

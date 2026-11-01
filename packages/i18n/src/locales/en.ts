@@ -28,7 +28,7 @@ const en = {
     },
     home: {
       greeting: "Hello, {{name}}",
-      logOut: "Log out",
+      settings: "Settings",
       payments: {
         title: "Your payments",
         loading: "Loading your payments…",
@@ -243,6 +243,10 @@ const en = {
         other: "Other change",
       },
       paymentId: "Payment ID: {{paymentId}}",
+    },
+    settings: {
+      title: "Settings",
+      back: "Back",
     },
   },
   till: {

@@ -31,7 +31,7 @@ const de: Resources = {
     },
     home: {
       greeting: "Hallo, {{name}}",
-      logOut: "Abmelden",
+      settings: "Einstellungen",
       payments: {
         title: "Ihre Zahlungen",
         loading: "Ihre Zahlungen werden geladen…",
@@ -241,6 +241,10 @@ const de: Resources = {
         other: "Sonstige Änderung",
       },
       paymentId: "Zahlungs-ID: {{paymentId}}",
+    },
+    settings: {
+      title: "Einstellungen",
+      back: "Zurück",
     },
   },
   till: {

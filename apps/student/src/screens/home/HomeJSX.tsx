@@ -1,16 +1,19 @@
+import { Settings01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@zahln/ui/components/button";
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
+import { paths } from "../../app/paths";
 import PaymentList from "./paymentList/PaymentList";
 import ScanFooter from "./scanFooter/ScanFooter";
 
 export interface HomeJSXProps {
   displayName: string;
-  handleLogOut: () => void;
 }
 
-const HomeJSX: FC<HomeJSXProps> = ({ displayName, handleLogOut }) => {
+const HomeJSX: FC<HomeJSXProps> = ({ displayName }) => {
   const { t } = useTranslation("student");
 
   const header = (
@@ -18,8 +21,12 @@ const HomeJSX: FC<HomeJSXProps> = ({ displayName, handleLogOut }) => {
       <h1 className="text-2xl font-semibold">
         {t("home.greeting", { name: displayName })}
       </h1>
-      <Button variant="outline" onClick={handleLogOut}>
-        {t("home.logOut")}
+      {/* A link styled as a button: it opens another screen, and TalkBack
+          says so. An icon only, so the label names it. */}
+      <Button asChild size="icon" variant="outline">
+        <Link aria-label={t("home.settings")} to={paths.settings}>
+          <HugeiconsIcon aria-hidden icon={Settings01Icon} />
+        </Link>
       </Button>
     </div>
   );

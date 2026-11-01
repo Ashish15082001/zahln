@@ -12,6 +12,7 @@ export const paths = {
   // Named after the QR's zahln://pay?order=…, which is what opens it.
   pay: "/pay/:orderId",
   scan: "/scan",
+  settings: "/settings",
 } as const;
 
 /**
