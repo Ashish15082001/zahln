@@ -10,13 +10,14 @@ bigger choices goes in [design.md](design.md).
 | Step | Scope                                                   | Status                                              |
 | ---- | ------------------------------------------------------- | --------------------------------------------------- |
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                |
-| 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval                          |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                              |
 | 2    | Till                                                    | In progress: login, order QR and payments list done |
-| 3    | Student app                                             | In progress: login, history and payment detail done |
+| 3    | Student app                                             | In progress: login, history and scan done           |
 | 4    | Dashboard                                               | Outline only                                        |
 | 5    | Ship                                                    | Planned                                             |
 
-Steps 1 and 2 are planned in detail in [till-plan.md](till-plan.md).
+What each app does, and how, is in [till-plan.md](till-plan.md) and
+[student-plan.md](student-plan.md).
 
 ## Rules for every step
 
@@ -29,11 +30,12 @@ Steps 1 and 2 are planned in detail in [till-plan.md](till-plan.md).
 - **Late answers never win.** A response with a lower `version` than one
   already seen is dropped. Server time comes from the `Date` header, not the
   device clock.
-- **Three layers.** UI (screens), store (Redux Toolkit, for each app's own
-  state, such as a cart or a payment in progress) and data access (TanStack
-  Query hooks on top of `packages/api`). Screens never call the API directly.
-  TanStack Query never retries on its own and never takes an older `version`.
-  react-router for screens.
+- **Two layers.** UI (screens) and data access (TanStack Query hooks on top of
+  `packages/api`). Screens never call the API directly. State the server
+  doesn't have, such as the cart, stays in the screen that owns it. A Redux
+  store was planned for it and hasn't been needed. TanStack Query never takes
+  an older `version`, and retries on its own only to read a payment's detail
+  again. react-router for screens.
 - **UI.** shadcn components stay as generated. Our own components follow the
   React house rules.
 - **Languages and access.** Every screen is in English and German. The pay
@@ -91,6 +93,29 @@ app's parts (config, pay, the app version header) in step 3.
   - an out-of-date read
   - the session expiring in the middle of a payment
 
+Done:
+
+| Commit    | What it does                                                                                                                                                                            |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `232cbc3` | zod schemas for users, sessions, errors and mensas in `domain`, split into `backend.ts` and `frontend.ts`                                                                               |
+| `15ba535` | The login request's shape                                                                                                                                                               |
+| `046f30b` | The HTTP client: 10 s per attempt, 3 attempts with backoff, the same key on every retry, server time from the `Date` header, and errors as `problem`, `noResponse` or `invalidResponse` |
+| `4f24faf` | The client, the server clock, the errors, the login request and the saved-login store move to `packages/api`, for both apps                                                             |
+
+Order, payment and refund shapes came with the screens that use them, in steps
+2 and 3.
+
+Changes from the plan:
+
+- **A refused token logs out instead of logging in again.** The client can
+  renew, but neither app keeps the password to do it with yet
+  ([API gap 2](api-gaps.md#2-no-refresh-token)).
+- **"Outcome unknown" is a kind of error, not an order state.** A lost
+  response comes back as `noResponse`, and the screen shows "checking" and
+  resends with the same key.
+- **`storage` isn't started.** It comes with the first thing the till must
+  keep across a restart: the open order or a refund in progress.
+
 ## Step 2: Till
 
 Detailed in [till-plan.md](till-plan.md):
@@ -102,21 +127,44 @@ Detailed in [till-plan.md](till-plan.md):
 - **Layout:** landscape, and it also works in portrait, because Android 16
   ignores the orientation lock on tablets.
 
-The Payments tab, done:
+Done so far:
 
 | Commit    | What it does                                                                                                                                                                                                  |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `5ae0a35` | [API gap 7](api-gaps.md#7-no-list-of-orders): the API has no list of orders                                                                                                                                   |
+| `4b9df57` | Welcome and login screens                                                                                                                                                                                     |
+| `319be5d` | Buttons and fields at least 48 px tall, in the till and the student app                                                                                                                                       |
+| `262b323` | Logs the cashier in. Only a cashier with a till and a mensa gets in                                                                                                                                           |
+| `adcdcfe` | shadcn's table, tabs and checkbox, sized for touch                                                                                                                                                            |
+| `6d3ac43` | Loads the cashier's mensa. Log out clears every cached answer                                                                                                                                                 |
+| `65a1540` | Home's Mensa tab: the menu with the student, staff and guest price of each dish, ticked to pick it                                                                                                            |
+| `3971371` | − and + to set how many of each dish, 1 to 20                                                                                                                                                                 |
+| `e0c5160` | Create order, with one idempotency key per cart, kept for Try again while the outcome is unknown. The order is then polled every 2 seconds                                                                    |
+| `b8d6bf0` | The order's QR and live status in a dialog that stays until the order is paid or expired                                                                                                                      |
+| `c79fec5` | The login as one cashier session, with the token kept out of the UI                                                                                                                                           |
+| `5b09b46` | A store that saves the login in `localStorage`                                                                                                                                                                |
+| `12d86b0` | The saved login comes back on reopen, until its token runs out                                                                                                                                                |
+| `4b5d3ce` | Route guards: signed-out and signed-in screens, so no screen redirects on its own                                                                                                                             |
+| `9e202b8` | The order code under the QR, for phones that can't scan                                                                                                                                                       |
 | `5650f20` | The cashier's view of `GET /payments` in `packages/api`: each payment with who paid, what can still be refunded and whether it needs attention                                                                |
 | `a1be9af` | The status badge's look moves to `packages/ui`, so the till and the student app show a status the same way                                                                                                    |
 | `b26de4b` | Home's second tab lists the till's payments, 20 at a time with Load more: time, order code, amount, refunded, status, payer and items. Loading, error, empty and refresh-failed states, in English and German |
 
 Changes from the plan:
 
-- **Payments is a tab next to the Mensa tab, not a `/payments` screen.** It is
-  fetched each time the tab opens and with Refresh, with no polling. While an
-  order is open its QR dialog covers the screen, so the tab is always fetched
-  again after a payment.
+- **One Home screen with two tabs, Mensa and Payments,** instead of
+  `/charge`, `/charge/:orderId` and `/payments` screens. The order's QR is a
+  dialog over the Mensa tab.
+- **The cart is the Mensa tab's own state,** not a Redux slice. Log out or a
+  reload clears it.
+- **The QR dialog closes only with "I acknowledge",** once the order is paid
+  or expired. There is no New order button and no countdown on the till, and
+  without a cancel call the cashier can't end an order early
+  ([API gap 1](api-gaps.md#1-no-way-to-cancel-an-order)).
+- **The login is saved on the device** until its token runs out, so a quick
+  reopen skips the login screen.
+- **The Payments tab is fetched each time it opens** and with Refresh, with no
+  polling. While an order is open its QR dialog covers the screen, so the tab
+  is always fetched again after a payment.
 - **It lists payments, not orders.** The API has no list of orders, so an
   order nobody paid doesn't appear
   ([API gap 7](api-gaps.md#7-no-list-of-orders)).
@@ -124,6 +172,15 @@ Changes from the plan:
 - **The status comes before the payer and the items.** In portrait the table
   scrolls sideways, and the status must stay in view. Home is wider than
   before, so the whole table fits a tablet in landscape.
+
+Not yet:
+
+- Refunds, with the payment's detail.
+- Keeping the open order across a restart, and with it `packages/storage`.
+- Renewing the token, so a refused token doesn't log the cashier out
+  ([API gap 2](api-gaps.md#2-no-refresh-token)).
+- Turning off Android backup, so the saved login can't be copied off the
+  device.
 
 ## Step 3: Student app
 
@@ -140,6 +197,11 @@ Done so far:
 | `214e76d` | `GET /payments/{paymentId}` in `packages/api`, with schemas for refunds and history events in `domain`                                                                                                                                                         |
 | `4c013df` | `formatDateTimeWithSeconds`, since a payment's history steps are often seconds apart                                                                                                                                                                           |
 | `7a4c4ea` | Each list row opens the payment's detail: amount, mensa and till, items, total, refunds and the history, oldest first. Not found, error, loading and refresh-failed states. Focus moves to the heading on open, and Back returns to the same place in the list |
+| `dae4013` | Google's code scanner in `packages/native`, and reading the order id from the till's QR                                                                                                                                                                        |
+| `ef92468` | A Scan QR footer on Home that opens the scanned order                                                                                                                                                                                                          |
+| `1f503dc` | When Google's scanner can't run: the app's own camera screen, then typing the order code                                                                                                                                                                       |
+| `9bb9f2b` | `getOrder` moves to `packages/api`, next to the payer's view of an order at their price                                                                                                                                                                        |
+| `e29f45e` | The scanned order: mensa, till, items and the payer's price, with a countdown on the server's clock. Paying, paid, expired, not found and error states                                                                                                         |
 
 Changes from the plan:
 
@@ -156,9 +218,19 @@ Changes from the plan:
   whole payment, like an unknown attention reason.
 - **"Not found" also covers another payer's payment.** The server answers
   both with `404 not_found`, so the app can't tell them apart.
+- **Scanning has two fallbacks.** Google's scanner needs Google Play services.
+  Without it the app opens its own camera screen, and without a camera the
+  payer types the code printed under the QR
+  ([API gap 8](api-gaps.md#8-no-short-order-code)).
+- **The QR's text is `zahln://pay?order=<id>`,** as the dev server sends it.
+- **A scan opens a read-only order screen for now.** It polls only once the
+  countdown has run out, until the server says expired or paid.
 
 Not yet:
 
+- Paying: `POST /orders/{id}/payments`, with the key saved before the first
+  send.
+- `GET /config`: a forced update and payments switched off.
 - Picking student, staff or guest before login. The server already sends the
   account's role.
 
@@ -233,7 +305,8 @@ Open for the detailed plan:
 ## Carried forward
 
 - shadcn's `destructive` text on its own 10% tint has 4.39:1 contrast, below
-  the 4.5:1 minimum. The "declined" screen must not use that pairing.
+  the 4.5:1 minimum. The status badges use solid colours for that reason, and
+  the pay flow's "declined" screen must not use the pairing either.
 - The alert dialog blurs the page behind it, which is slow on a low-end phone.
   Check it on a device in step 3.
 
