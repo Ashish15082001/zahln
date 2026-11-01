@@ -20,14 +20,13 @@ document links here. New gaps are added as the work finds them.
 
 - **Problem:** a token lasts 5 minutes, and the only way to get a new one is to
   log in again, which needs the password.
-- **For now:** the student app keeps the password from this run's login in
-  memory, never on disk, and logs in again with it 30 seconds before the token
-  ends and when the server refuses it. A payment refused with a 401 is sent
-  again with the same key
-  ([student-plan.md](student-plan.md#renewing-the-token)). After a reopen
-  there is no password, so a refused token still logs out. The till doesn't
-  renew yet: a refused token logs it out and closes an open QR dialog, so the
-  cashier loses sight of an order that can still be paid.
+- **For now:** both apps keep the password from this run's login in memory,
+  never on disk, and log in again with it 30 seconds before the token ends
+  and when the server refuses it. A payment or an order refused with a 401 is
+  sent again with the same key, and the till's QR stays open
+  ([student-plan.md](student-plan.md#renewing-the-token),
+  [till-plan.md](till-plan.md#renewing-the-token)). After a reopen there is
+  no password, so a refused token still logs out.
 - **I would add:** a long-lived refresh token that changes on every use and is
   kept in the Android Keystore, so the app never holds the password after
   login.

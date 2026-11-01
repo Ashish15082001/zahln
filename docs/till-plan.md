@@ -9,23 +9,25 @@ because Android 16 ignores the orientation lock on tablets.
 
 ## Features
 
-| Feature            | What the cashier sees                                                                                                             | How it works                                                                                                                                                                                                                                     |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Welcome and login  | **Continue**, then username and password. One message per failure: wrong password, not a cashier, no server                       | `POST /sessions`. Only a cashier with a till and a mensa gets in                                                                                                                                                                                 |
-| Staying signed in  | A quick reopen skips the login screen                                                                                             | The token, its expiry and the cashier are saved in `localStorage` (`zahln.till.session.v1`) and restored before the first render. Never the password. A login that has run out or doesn't match its schema is dropped                            |
-| Log out            | Back to the login screen                                                                                                          | Forgets the token, clears the saved login and every cached answer, so the next cashier sees nothing of the last                                                                                                                                  |
-| Mensa tab          | The mensa, its city and the till. The menu with the student, staff and guest price of each dish                                   | `GET /mensas` once per login. Tick a dish to pick it, − and + for 1 to 20 of it                                                                                                                                                                  |
-| Create order       | **Create order** at the bottom of the screen, then a dialog                                                                       | `POST /orders` with an `Idempotency-Key`. One key per cart: when the reply is lost, "Couldn't confirm the order" and **Try again** resend the same key while the cart is the same, so the server hands back the order instead of making a second |
-| The order's QR     | The QR, the order code under it, and a live status line                                                                           | `GET /orders/{id}` every 2 seconds, also in the background, until `paid` or `expired`. A reply with a lower `version` than one shown is dropped                                                                                                  |
-| Payments tab       | This till's payments, newest first: time, order code, amount, refunded, status, payer and items                                   | `GET /payments`, which a cashier gets for their own till only. 20 at a time with **Load more**. Fetched each time the tab opens and with **Refresh**                                                                                             |
-| Screens            | The greeting, Log out and the two tabs stay at the top. On the Mensa tab, Create order stays at the bottom, however long the menu | `ScreenLayoutJSX` from `packages/ui`, as in the student app. The Mensa tab draws Create order into the footer with a React portal, so the cart and its key stay in the tab                                                                       |
-| Languages          | English or German, from the device                                                                                                | i18next. Amounts and times through `Intl`, times on Berlin's clock                                                                                                                                                                               |
-| Touch and TalkBack | Buttons and fields at least 48 px tall. A long press selects no text, except in fields                                            | Every control has a label naming what it acts on, e.g. "Select Currywurst". Status changes are in live regions, so TalkBack reads "Paid" without a focus move                                                                                    |
+| Feature            | What the cashier sees                                                                                                                                                   | How it works                                                                                                                                                                                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Welcome and login  | **Continue**, then username and password. One message per failure: wrong password, not a cashier, no server                                                             | `POST /sessions`. Only a cashier with a till and a mensa gets in                                                                                                                                                                                 |
+| Staying signed in  | A quick reopen skips the login screen, and an open till stays signed in all shift                                                                                       | The token, its expiry and the cashier are saved in `localStorage` (`zahln.till.session.v1`) and restored before the first render. The password only in memory, to renew. A login that has run out or doesn't match its schema is dropped         |
+| Log out            | Back to the login screen                                                                                                                                                | Forgets the token, clears the saved login and every cached answer, so the next cashier sees nothing of the last                                                                                                                                  |
+| Mensa tab          | The mensa, its city and the till. The menu with the student, staff and guest price of each dish                                                                         | `GET /mensas` once per login. Tick a dish to pick it, − and + for 1 to 20 of it                                                                                                                                                                  |
+| Create order       | **Create order** at the bottom of the screen, then a dialog                                                                                                             | `POST /orders` with an `Idempotency-Key`. One key per cart: when the reply is lost, "Couldn't confirm the order" and **Try again** resend the same key while the cart is the same, so the server hands back the order instead of making a second |
+| The order's QR     | The QR, the order code under it, and a live status line                                                                                                                 | `GET /orders/{id}` every 2 seconds, also in the background, until `paid` or `expired`. A reply with a lower `version` than one shown is dropped                                                                                                  |
+| Payments tab       | This till's payments, newest first: time, order code, amount, refunded, status, payer and items                                                                         | `GET /payments`, which a cashier gets for their own till only. 20 at a time with **Load more**. Fetched each time the tab opens and with **Refresh**                                                                                             |
+| Screens            | The greeting, Log out and the two tabs stay at the top. On the Mensa tab, Create order stays at the bottom, however long the menu                                       | `ScreenLayoutJSX` from `packages/ui`, as in the student app. The Mensa tab draws Create order into the footer with a React portal, so the cart and its key stay in the tab                                                                       |
+| Languages          | English or German, from the device                                                                                                                                      | i18next. Amounts and times through `Intl`, times on Berlin's clock                                                                                                                                                                               |
+| Touch and TalkBack | Buttons and fields at least 48 px tall. Refresh is an icon that turns while it works, and each time has a calendar icon. A long press selects no text, except in fields | Every control has a label naming what it acts on, e.g. "Select Currywurst". Status changes are in live regions, so TalkBack reads "Paid" without a focus move. Refresh is named "Refresh" for TalkBack                                           |
 
 ## The order dialog
 
 The dialog is the one place an order is followed, so it never closes on its
-own. Escape and taps outside do nothing.
+own. Escape and taps outside do nothing, and a token that runs out doesn't
+close it either: the till logs in again and keeps reading the order
+([below](#renewing-the-token)).
 
 ```mermaid
 stateDiagram-v2
@@ -58,16 +60,34 @@ The QR is hidden once the order is settled, so nobody scans one that can't be
 paid. The cashier can't end an order early: the API has no cancel call
 ([API gap 1](api-gaps.md#1-no-way-to-cancel-an-order)).
 
+## Renewing the token
+
+A token lasts 5 minutes and the API has no refresh token
+([API gap 2](api-gaps.md#2-no-refresh-token)), so the till logs in again with
+the password from this run's login, kept in memory only. It is the student
+app's `createSessionRenewal` from `packages/api`, with the same rules
+([student-plan.md](student-plan.md#renewing-the-token)): a new login 30
+seconds before the token ends, and on a 401 one login shared by every request
+refused at the time.
+
+| When                                | What happens                                                                                                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create order is refused with 401    | The till logs in again and sends the same key, so the order is made once                                                                                                        |
+| The token ends while the QR is open | The 2-second reads carry on with the new token, and the dialog stays open                                                                                                       |
+| The new login gets no answer        | The session stays. A read shows "Connection problem, checking…" and the next one tries again. Create order shows "Couldn't confirm the order", and Try again sends the same key |
+| The password was changed            | The session ends, and the cashier logs in again                                                                                                                                 |
+| The app was reopened                | There is no password. The token is used until the server refuses it, then the cashier logs in again                                                                             |
+
 ## How it is built
 
-| Layer   | Where                          | What it holds                                                                                                                       |
-| ------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Screens | `apps/till/src/screens/`       | Each part as `Foo.tsx` (data and handlers) and `FooJSX.tsx` (markup only). The cart is the Mensa tab's own state                    |
-| Data    | `apps/till/src/data/`          | TanStack Query hooks: `useSession`, `useLogin`, `useMensa`, `useCreateOrder`, `useOrder`, `usePayments`. Screens never call the API |
-| Routes  | `apps/till/src/app/`           | `/`, `/login` and `/home`. Layout-route guards send a signed-out cashier to the login screen and a signed-in one to `/home`         |
-| Client  | `packages/api`                 | Deadlines, retries, keys, server time, zod checks, typed errors. Shared with the student app                                        |
-| Shapes  | `packages/domain`              | zod schemas, split into the server's shape and the app's, and the version checks                                                    |
-| UI kit  | `packages/ui`, `packages/i18n` | shadcn components as generated, the status badge, the screen layout, the strings and the money and date formats                     |
+| Layer   | Where                          | What it holds                                                                                                                                          |
+| ------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Screens | `apps/till/src/screens/`       | Each part as `Foo.tsx` (data and handlers) and `FooJSX.tsx` (markup only). The cart is the Mensa tab's own state                                       |
+| Data    | `apps/till/src/data/`          | TanStack Query hooks: `useSession`, `useLogin`, `useMensa`, `useCreateOrder`, `useOrder`, `usePayments`. Screens never call the API                    |
+| Routes  | `apps/till/src/app/`           | `/`, `/login` and `/home`. Layout-route guards send a signed-out cashier to the login screen and a signed-in one to `/home`                            |
+| Client  | `packages/api`                 | Deadlines, retries, keys, server time, zod checks, typed errors. Shared with the student app                                                           |
+| Shapes  | `packages/domain`              | zod schemas, split into the server's shape and the app's, and the version checks                                                                       |
+| UI kit  | `packages/ui`, `packages/i18n` | shadcn components as generated, the status badge, the screen layout, the refresh button, the date and time, the strings and the money and date formats |
 
 The rules every request follows:
 
@@ -78,8 +98,9 @@ The rules every request follows:
   lower one never replaces what is shown.
 - **Server time.** Taken from each reply's `Date` header, not the tablet's
   clock.
-- **A refused token logs out.** The app keeps no password to log in again
-  with ([API gap 2](api-gaps.md#2-no-refresh-token)).
+- **A refused token means logging in again, not logging out.** With the
+  password from this run's login, kept in memory only, and the request goes
+  again with the same key ([API gap 2](api-gaps.md#2-no-refresh-token)).
 
 ## Still to build
 
@@ -91,9 +112,10 @@ The rules every request follows:
 - **Keeping the open order across a restart,** so a cashier who reopens the
   app sees the order a payer may be paying. It needs `packages/storage`: data
   saved per cashier and encrypted with a key made from their password.
-- **Renewing the token** with the password kept in memory, so the session
-  lasts a shift and a refused token never closes the QR dialog. The student
-  app already does this with `createSessionRenewal` from `packages/api`.
+- **Renewing after a reopen.** The password is only in memory, so a reopened
+  till can't renew its token. It needs a refresh token
+  ([API gap 2](api-gaps.md#2-no-refresh-token)), or the password in the
+  Android Keystore.
 - **Turning off Android backup.** `allowBackup="true"` lets Auto Backup copy
   the saved login off the device. The fix is `allowBackup="false"` plus
   `dataExtractionRules`, which Android 12 and later need for device-to-device

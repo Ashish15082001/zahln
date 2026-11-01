@@ -11,7 +11,7 @@ bigger choices goes in [design.md](design.md).
 | ---- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                                                                      |
 | 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                                    |
-| 2    | Till                                                    | In progress: login, order QR and payments list done                                                       |
+| 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
 | 4    | Dashboard                                               | Outline only                                                                                              |
 | 5    | Ship                                                    | Planned                                                                                                   |
@@ -40,7 +40,9 @@ What each app does, and how, is in [till-plan.md](till-plan.md) and
   React house rules. In the two Android apps every screen is built on
   `ScreenLayoutJSX`: a header that stays at the top, a footer that stays at
   the bottom, and a page no taller than the screen. A long press there
-  doesn't select text, except in fields.
+  doesn't select text, except in fields. Two buttons in a footer sit side
+  by side at the same width, the main one on the right. Refresh is an icon
+  button, and every date and time has a calendar icon.
 - **Languages and access.** Every screen is in English and German. The pay
   flow works with TalkBack.
 - **Done means** format, typecheck, lint, tests and build pass, and the Android
@@ -110,11 +112,11 @@ Order, payment and refund shapes came with the screens that use them, in steps
 
 Changes from the plan:
 
-- **The till logs out on a refused token instead of logging in again.** The
-  client can renew, and since step 3 the student app does, with the password
-  kept in memory ([student-plan.md](student-plan.md#renewing-the-token)).
-  The till doesn't keep the password yet
-  ([API gap 2](api-gaps.md#2-no-refresh-token)).
+- **Renewing came later than this step.** Neither app kept the password at
+  first, so a refused token logged out. Both now log in again with the
+  password kept in memory, built with the student app's pay flow
+  ([student-plan.md](student-plan.md#renewing-the-token),
+  [API gap 2](api-gaps.md#2-no-refresh-token)).
 - **"Outcome unknown" is a kind of error, not an order state.** A lost
   response comes back as `noResponse`, and the screen shows "checking" and
   resends with the same key.
@@ -154,6 +156,7 @@ Done so far:
 | `a1be9af` | The status badge's look moves to `packages/ui`, so the till and the student app show a status the same way                                                                                                    |
 | `b26de4b` | Home's second tab lists the till's payments, 20 at a time with Load more: time, order code, amount, refunded, status, payer and items. Loading, error, empty and refresh-failed states, in English and German |
 | `8e53415` | Every till screen on the shared screen layout (`b5af400`): the greeting, Log out and the tabs at the top, and Create order at the bottom of the Mensa tab                                                     |
+| `73367f8` | The till renews its token with `createSessionRenewal`, the password kept in memory: Create order refused with a 401 is sent again with the same key, and an open QR stays open. Log out forgets the password  |
 
 Changes from the plan:
 
@@ -186,9 +189,9 @@ Not yet:
 
 - Refunds, with the payment's detail.
 - Keeping the open order across a restart, and with it `packages/storage`.
-- Renewing the token, so a refused token doesn't log the cashier out
-  ([API gap 2](api-gaps.md#2-no-refresh-token)). `createSessionRenewal` in
-  `packages/api`, which the student app uses, is ready for it.
+- Renewing the token after a reopen, which needs a refresh token or the
+  password in the Android Keystore
+  ([API gap 2](api-gaps.md#2-no-refresh-token)).
 - Turning off Android backup, so the saved login can't be copied off the
   device.
 
@@ -224,6 +227,12 @@ Done so far:
 | `338b77e` | A long press no longer selects text, in the student app and the till. Fields stay selectable, and so does the payment detail's Payment ID line, to paste into a message                                                                                        |
 | `b5af400` | `ScreenLayoutJSX` in `packages/ui`, for both apps: a header that stays at the top, a footer that stays at the bottom, and room for the status bar and the nav bar                                                                                              |
 | `c2e46ec` | Every student screen on it: Back and the title at the top, and Scan QR, Pay and a payment's result buttons at the bottom. A page is never taller than the screen                                                                                               |
+| `168bf1d` | shadcn's `Item`, with the `Separator` it uses                                                                                                                                                                                                                  |
+| `4458398` | A gear button in place of Log out on Home, opening a Settings page, empty for now                                                                                                                                                                              |
+| `9870e5c` | Home's payment rows built from `Item`, full width: mensa, amount, date, status and any refund. The dishes stay on the detail                                                                                                                                   |
+| `b1f81f9` | Refresh as one shared icon button in both apps, turning while it works and named for TalkBack                                                                                                                                                                  |
+| `f36c91b` | Every date and time in both apps as a calendar icon and the value, from one shared component                                                                                                                                                                   |
+| `aba823c` | The Pay footer after paying: See the payment and Done side by side at the same width. Refresh moves to the header                                                                                                                                              |
 
 Changes from the plan:
 
@@ -282,6 +291,8 @@ Not yet:
 - `GET /config`: a forced update and payments switched off.
 - Picking student, staff or guest before login. The server already sends the
   account's role.
+- Log out on the Settings page. Settings is empty for now, so the app has
+  no way to log out yet.
 
 The plan for the whole step:
 
