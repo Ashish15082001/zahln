@@ -152,8 +152,10 @@ const PaymentDetailJSX: FC<PaymentDetailJSXProps> = ({
         <RefundList refunds={payment.refunds} />
         <PaymentHistory history={payment.history} />
         {/* For a call to support: the one thing that names this payment
-            for sure. break-all, since it's one long word. */}
-        <p className="text-xs break-all text-muted-foreground">
+            for sure. break-all, since it's one long word. select-text, as
+            the one line in the app that can be copied, to paste into a
+            message. */}
+        <p className="text-xs break-all text-muted-foreground select-text">
           {t("paymentDetail.paymentId", { paymentId: payment.id })}
         </p>
       </>

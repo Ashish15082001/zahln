@@ -42,3 +42,13 @@
 [data-slot="checkbox"]::after {
   inset: -1rem;
 }
+
+/* An app, not a page to read: a long press on a label or a button shouldn't
+   start a text selection. Fields still select, since user-select: auto on an
+   editable element works as contain. In the base layer, so a select-text
+   utility wins on the rare line worth copying. */
+@layer base {
+  body {
+    user-select: none;
+  }
+}
