@@ -119,6 +119,67 @@ const de: Resources = {
         "Es wurde nichts bezahlt. Bitten Sie an der Kasse um eine neue Bestellung.",
       seePayment: "Zur Zahlung",
     },
+    pay: {
+      title: "Bezahlen",
+      back: "Zurück",
+      done: "Fertig",
+      pay: "{{amount}} bezahlen",
+      payNoAmount: "Bezahlen",
+      paying: "Wird bezahlt…",
+      checkAgain: "Erneut prüfen",
+      ownPayment: {
+        pendingTitle: "Zahlung wird geprüft",
+        pendingDescription: "Ihre Zahlung für diese Bestellung wird geprüft.",
+        confirmedTitle: "Bezahlt",
+        confirmedDescription: "Sie haben diese Bestellung bezahlt.",
+      },
+      messages: {
+        declined: {
+          title: "Zahlung abgelehnt",
+          description: "Es wurde nichts bezahlt. Sie können erneut bezahlen.",
+        },
+        unconfirmed: {
+          title: "Zahlung nicht bestätigt",
+          description:
+            "Sie ist vielleicht durchgegangen. Erneut prüfen klärt das und bezahlt nie doppelt.",
+        },
+        priceChanged: {
+          title: "Der Preis hat sich geändert",
+          description: "Prüfen Sie den neuen Betrag und bezahlen Sie dann.",
+        },
+        orderExpired: {
+          title: "Bestellung abgelaufen",
+          description:
+            "Es wurde nichts bezahlt. Bitten Sie an der Kasse um eine neue Bestellung.",
+        },
+        orderPaid: {
+          title: "Bereits bezahlt",
+          description: "Diese Bestellung wurde bereits bezahlt.",
+        },
+        orderPaying: {
+          title: "Zahlung wird geprüft",
+          description: "Eine Zahlung für diese Bestellung wird geprüft.",
+        },
+        orderNotFound: {
+          title: "Bestellung nicht gefunden",
+          description:
+            "Scannen Sie den QR-Code auf dem Bildschirm der Kasse erneut.",
+        },
+        updateRequired: {
+          title: "App aktualisieren",
+          description:
+            "Mit dieser Version können Sie nicht mehr bezahlen. Aktualisieren Sie Zahln und bezahlen Sie dann.",
+        },
+        paymentsPaused: {
+          title: "Zahlungen sind pausiert",
+          description: "Versuchen Sie es in ein paar Minuten erneut.",
+        },
+        failed: {
+          title: "Die Zahlung hat nicht geklappt",
+          description: "Versuchen Sie es erneut.",
+        },
+      },
+    },
     paymentStatus: {
       pending: "Wird geprüft",
       confirmed: "Bezahlt",

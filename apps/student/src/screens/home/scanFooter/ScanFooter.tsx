@@ -1,6 +1,6 @@
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
-import { paths, toOrderPath } from "../../../app/paths";
+import { paths, toPayPath } from "../../../app/paths";
 import { scanOrderQr } from "../../../data/orderScan";
 import ScanFooterJSX, { type ScanStatus } from "./ScanFooterJSX";
 
@@ -17,7 +17,7 @@ const ScanFooter: FC = () => {
     switch (orderScan.kind) {
       case "order":
         setScanStatus("idle");
-        void navigate(toOrderPath(orderScan.orderId));
+        void navigate(toPayPath(orderScan.orderId));
         return;
       case "cancelled":
         setScanStatus("idle");

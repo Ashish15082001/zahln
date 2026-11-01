@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { paths, toOrderPath } from "../../app/paths";
+import { paths, toPayPath } from "../../app/paths";
 import { orderCameraScan, type CameraScanning } from "../../data/orderScan";
 import ScanJSX, { type ScanScreenState } from "./ScanJSX";
 
@@ -51,8 +51,8 @@ const Scan: FC = () => {
         handleOrderId: (orderId) => {
           if (hasOpenedOrderRef.current) return;
           hasOpenedOrderRef.current = true;
-          // In place of the scan screen, so Back from the order goes Home.
-          void navigate(toOrderPath(orderId), { replace: true });
+          // In place of the scan screen, so Back from paying goes Home.
+          void navigate(toPayPath(orderId), { replace: true });
         },
         // The same answer for every frame the wrong code is in view, so it
         // doesn't re-render the screen each time.

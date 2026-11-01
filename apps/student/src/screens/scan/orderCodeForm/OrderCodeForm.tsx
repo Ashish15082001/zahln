@@ -1,6 +1,6 @@
 import { useState, type FC, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { toOrderPath } from "../../../app/paths";
+import { toPayPath } from "../../../app/paths";
 import { readTypedOrderCode } from "../../../data/orderScan";
 import OrderCodeFormJSX from "./OrderCodeFormJSX";
 
@@ -22,8 +22,8 @@ const OrderCodeForm: FC = () => {
       setIsCodeInvalid(true);
       return;
     }
-    // In place of the scan screen, so Back from the order goes Home.
-    void navigate(toOrderPath(orderId), { replace: true });
+    // In place of the scan screen, so Back from paying goes Home.
+    void navigate(toPayPath(orderId), { replace: true });
   };
 
   return (

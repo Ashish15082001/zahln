@@ -1,5 +1,5 @@
 import { useEffect, useState, type FC } from "react";
-import { getServerNow } from "../../../data/order";
+import { getServerNow } from "../../data/order";
 import OrderCountdownJSX from "./OrderCountdownJSX";
 
 export interface OrderCountdownProps {

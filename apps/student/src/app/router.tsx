@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 import Home from "../screens/home/Home";
 import Login from "../screens/login/Login";
 import Order from "../screens/order/Order";
+import Pay from "../screens/pay/Pay";
 import PaymentDetail from "../screens/paymentDetail/PaymentDetail";
 import Scan from "../screens/scan/Scan";
 import Welcome from "../screens/welcome/Welcome";
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
       { path: paths.home, element: <Home /> },
       { path: paths.payment, element: <PaymentDetail /> },
       { path: paths.order, element: <Order /> },
+      { path: paths.pay, element: <Pay /> },
       { path: paths.scan, element: <Scan /> },
     ],
   },

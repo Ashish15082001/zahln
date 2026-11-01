@@ -22,8 +22,8 @@ import type { TFunction } from "i18next";
 import type { FC, ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import OrderCountdown from "./orderCountdown/OrderCountdown";
-import OrderSummary from "./orderSummary/OrderSummary";
+import OrderCountdown from "../../components/orderCountdown/OrderCountdown";
+import OrderSummary from "../../components/orderSummary/OrderSummary";
 
 /** What the screen shows, from first load to the order. */
 export type OrderScreenState =

@@ -7,7 +7,10 @@ export const paths = {
   login: "/login",
   home: "/home",
   payment: "/payments/:paymentId",
+  // Read only, with no Pay. Nothing links here yet.
   order: "/orders/:orderId",
+  // Named after the QR's zahln://pay?order=…, which is what opens it.
+  pay: "/pay/:orderId",
   scan: "/scan",
 } as const;
 
@@ -18,6 +21,6 @@ export const paths = {
 export const toPaymentPath = (paymentId: string): string =>
   generatePath(paths.payment, { paymentId });
 
-/** The screen of an order the payer scanned. Escapes the id, like above. */
-export const toOrderPath = (orderId: string): string =>
-  generatePath(paths.order, { orderId });
+/** Where a scanned order is paid. Escapes the id, like above. */
+export const toPayPath = (orderId: string): string =>
+  generatePath(paths.pay, { orderId });

@@ -80,7 +80,7 @@ const en = {
       codeInvalid: "That isn't an order code. Check it and try again.",
       openOrder: "Open order",
     },
-    // The order the payer scanned, before paying.
+    // The order the payer scanned. The order and pay screens share these.
     order: {
       title: "Order",
       back: "Back",
@@ -111,6 +111,69 @@ const en = {
       expiredTitle: "Order expired",
       expiredDescription: "Nothing was paid. Ask the cashier for a new order.",
       seePayment: "See the payment",
+    },
+    // Paying a scanned order: its details, Pay, and every answer to Pay.
+    pay: {
+      title: "Pay",
+      back: "Back",
+      done: "Done",
+      pay: "Pay {{amount}}",
+      // Before the order is on screen there is no amount to name yet.
+      payNoAmount: "Pay",
+      paying: "Paying…",
+      checkAgain: "Check again",
+      // The payer's own payment for this order.
+      ownPayment: {
+        pendingTitle: "Payment being checked",
+        pendingDescription: "Your payment for this order is being checked.",
+        confirmedTitle: "Paid",
+        confirmedDescription: "You paid this order.",
+      },
+      // One per answer to Pay that isn't a payment going ahead.
+      messages: {
+        declined: {
+          title: "Payment declined",
+          description: "Nothing was paid. You can pay again.",
+        },
+        unconfirmed: {
+          title: "Payment not confirmed",
+          description:
+            "It may have gone through. Check again finds out, and never pays twice.",
+        },
+        priceChanged: {
+          title: "The price changed",
+          description: "Check the new amount, then pay.",
+        },
+        orderExpired: {
+          title: "Order expired",
+          description: "Nothing was paid. Ask the cashier for a new order.",
+        },
+        orderPaid: {
+          title: "Already paid",
+          description: "This order has already been paid.",
+        },
+        orderPaying: {
+          title: "Payment being checked",
+          description: "A payment for this order is being checked.",
+        },
+        orderNotFound: {
+          title: "Order not found",
+          description: "Scan the QR code on the till's screen again.",
+        },
+        updateRequired: {
+          title: "Update the app",
+          description:
+            "This version can't pay any more. Update Zahln, then pay.",
+        },
+        paymentsPaused: {
+          title: "Payments are paused",
+          description: "Try again in a few minutes.",
+        },
+        failed: {
+          title: "The payment didn't go through",
+          description: "Try again.",
+        },
+      },
     },
     // Shared by the list and the detail screen, so a status reads the same on
     // both.
