@@ -18,6 +18,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import RefreshButtonJSX from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import type { TFunction } from "i18next";
@@ -26,7 +27,7 @@ import { useTranslation } from "react-i18next";
 import OrderCountdown from "../../components/orderCountdown/OrderCountdown";
 import OrderSummary from "../../components/orderSummary/OrderSummary";
 import OwnPayment, { type OwnPaymentStatus } from "./ownPayment/OwnPayment";
-import OwnPaymentFooter from "./ownPaymentFooter/OwnPaymentFooter";
+import OwnPaymentFooterJSX from "./ownPaymentFooter/OwnPaymentFooterJSX";
 import PayFooter, { type PayFooterState } from "./payFooter/PayFooter";
 
 /** What the screen shows, from first load to the payer's payment. */
@@ -224,11 +225,26 @@ const PayJSX: FC<PayJSXProps> = ({
     );
   } else if (state.status === "ownPayment") {
     footer = (
-      <OwnPaymentFooter
-        isRefreshing={state.isRefreshing}
+      <OwnPaymentFooterJSX
         paymentPath={state.paymentPath}
-        paymentStatus={state.paymentStatus}
         handleDone={handleGoHome}
+      />
+    );
+  }
+
+  // Refresh only once the page has stopped asking on its own. In the
+  // header at the right of Back, as on the payment's detail, so the footer
+  // keeps two buttons side by side.
+  let refreshButton: ReactNode = null;
+  if (state.status === "ownPayment" && state.paymentStatus === "longPending") {
+    const refreshLabel = state.isRefreshing
+      ? t("pay.ownPayment.refreshing")
+      : t("pay.ownPayment.refresh");
+    refreshButton = (
+      <RefreshButtonJSX
+        isDisabled={state.isRefreshing}
+        isRefreshing={state.isRefreshing}
+        label={refreshLabel}
         handleRefresh={handleRefreshPayment}
       />
     );
@@ -236,12 +252,12 @@ const PayJSX: FC<PayJSXProps> = ({
 
   const header = (
     <>
-      {/* A div, so the column doesn't stretch Back to the full width. */}
-      <div>
+      <div className="flex items-center justify-between gap-4">
         <Button variant="outline" onClick={handleGoHome}>
           <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
           {t("pay.back")}
         </Button>
+        {refreshButton}
       </div>
       {/* tabIndex -1 so the screen can move focus here on open; it isn't in
           the Tab order. No outline: it is a heading, not a control. */}

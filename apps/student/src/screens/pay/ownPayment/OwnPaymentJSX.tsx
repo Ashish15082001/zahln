@@ -13,7 +13,8 @@ export interface OwnPaymentJSXProps {
   title: string;
 }
 
-// Done, Refresh and See payment are in Pay's footer: OwnPaymentFooter.
+// Done and See the payment are in Pay's footer (OwnPaymentFooterJSX),
+// Refresh in its header.
 const OwnPaymentJSX: FC<OwnPaymentJSXProps> = ({
   description,
   headingRef,
