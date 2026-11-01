@@ -34,6 +34,11 @@ export interface StatusBadgeJSXProps {
   tone: StatusTone;
 }
 
+/**
+ * A status as a solid badge with an icon and a word. Shared by the student
+ * app and the till, so a status looks the same in both; each app decides the
+ * word and the tone for its own statuses.
+ */
 const StatusBadgeJSX: FC<StatusBadgeJSXProps> = ({ label, tone }) => {
   const toneStyle = toneStyles[tone];
 

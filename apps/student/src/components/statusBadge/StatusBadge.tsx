@@ -4,7 +4,9 @@ import type {
 } from "@zahln/domain/payment/frontend";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import StatusBadgeJSX, { type StatusTone } from "./StatusBadgeJSX";
+import StatusBadgeJSX, {
+  type StatusTone,
+} from "@zahln/ui/components/statusBadge/StatusBadgeJSX";
 
 /**
  * A payment's or a refund's status. They share `pending` but not its words:
