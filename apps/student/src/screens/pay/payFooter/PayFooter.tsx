@@ -9,6 +9,8 @@ import PayFooterJSX, { type PayMessage } from "./PayFooterJSX";
 /** Where the payer's tap on Pay has got to. */
 export type PayStatus =
   | { status: "idle" }
+  // The phone's own prompt is open. Nothing has been sent yet.
+  | { status: "checkingPayer" }
   | { status: "paying" }
   // Their payment came back declined, and the order is open again.
   | { status: "declined" }
@@ -55,11 +57,16 @@ const getPayMessage = (
   }
   if (payStatus.status !== "failed") return null;
   const { payFailure } = payStatus;
+  // The payer closed the prompt themselves: telling them so is noise.
+  if (payFailure === "payerCheckCancelled") return null;
   return {
     description: t(`pay.messages.${payFailure}.description`),
     // Only where nothing was paid and the payer has to act. "Not confirmed"
     // isn't an error: the payment may well have gone through.
-    isError: payFailure === "failed",
+    isError:
+      payFailure === "failed" ||
+      payFailure === "payerLockedOut" ||
+      payFailure === "payerCheckFailed",
     title: t(`pay.messages.${payFailure}.title`),
   };
 };
@@ -77,26 +84,33 @@ const PayFooter: FC<PayFooterProps> = ({
   const language = pickLanguage([i18n.resolvedLanguage ?? ""]);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  const isCheckingPayer = payStatus.status === "checkingPayer";
   const isPaying = payStatus.status === "paying";
   const payFailure =
     payStatus.status === "failed" ? payStatus.payFailure : null;
   // One value per answer, e.g. "declined" or "unconfirmed".
   const shownAnswer = payFailure ?? payStatus.status;
 
-  // The button is disabled while paying, and a declined payment comes back
-  // after its result screen is gone: either way focus is left on nothing.
-  // Once an answer is in, it goes back to the button, just below the message
-  // TalkBack has read out. Never taken from anywhere the payer moved it.
+  // The button is disabled while the prompt is open and while paying, and a
+  // declined payment comes back after its result screen is gone: either way
+  // focus is left on nothing. Once an answer is in, a closed prompt
+  // included, it goes back to the button, just below the message TalkBack
+  // has read out. Never taken from anywhere the payer moved it.
   useEffect(() => {
-    const isAnswer = shownAnswer !== "idle" && shownAnswer !== "paying";
+    const isAnswer =
+      shownAnswer !== "idle" &&
+      shownAnswer !== "checkingPayer" &&
+      shownAnswer !== "paying";
     if (isAnswer && document.activeElement === document.body) {
       buttonRef.current?.focus();
     }
   }, [shownAnswer]);
   const isRefused = payFailure !== null && FINAL_PAY_FAILURES.has(payFailure);
-  // Disabled while paying, so a second tap can't start a second request.
-  // (It would carry the same key, so it couldn't pay twice either way.)
-  const isButtonDisabled = !isRefused && (!isPayable || isPaying);
+  // Disabled while the prompt is open and while paying, so a second tap
+  // can't open a second prompt or start a second request. (A request would
+  // carry the same key, so it couldn't pay twice either way.)
+  const isButtonDisabled =
+    !isRefused && (!isPayable || isCheckingPayer || isPaying);
 
   let buttonLabel =
     amountCents === null
@@ -104,6 +118,8 @@ const PayFooter: FC<PayFooterProps> = ({
       : t("pay.pay", { amount: formatCents(amountCents, language) });
   if (isRefused) {
     buttonLabel = t("pay.done");
+  } else if (isCheckingPayer) {
+    buttonLabel = t("pay.checkingPayer");
   } else if (isPaying) {
     buttonLabel = t("pay.paying");
   } else if (payFailure === "unconfirmed") {
@@ -117,6 +133,9 @@ const PayFooter: FC<PayFooterProps> = ({
       buttonRef={buttonRef}
       isButtonDisabled={isButtonDisabled}
       message={getPayMessage(payStatus, t)}
+      // Nothing while the prompt is open: Android's own dialog is in front,
+      // and TalkBack reads that. A status from the page behind would talk
+      // over it.
       statusText={isPaying ? t("pay.paying") : ""}
       handleButtonClick={isRefused ? handleDone : handlePay}
     />

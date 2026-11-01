@@ -126,6 +126,8 @@ const de: Resources = {
       pay: "{{amount}} bezahlen",
       payNoAmount: "Bezahlen",
       paying: "Wird bezahlt…",
+      checkingPayer: "Wird bestätigt…",
+      payerCheckTitle: "{{amount}} bezahlen",
       checkAgain: "Erneut prüfen",
       ownPayment: {
         pendingTitle: "Zahlung wird geprüft",
@@ -139,6 +141,15 @@ const de: Resources = {
         refreshing: "Wird aktualisiert…",
       },
       messages: {
+        payerLockedOut: {
+          title: "Zu viele Versuche",
+          description:
+            "Es wurde nichts bezahlt. Warten Sie kurz oder nutzen Sie die PIN Ihres Telefons und bezahlen Sie dann erneut.",
+        },
+        payerCheckFailed: {
+          title: "Bestätigung nicht möglich",
+          description: "Es wurde nichts bezahlt. Versuchen Sie es erneut.",
+        },
         declined: {
           title: "Zahlung abgelehnt",
           description: "Es wurde nichts bezahlt. Sie können erneut bezahlen.",

@@ -121,6 +121,12 @@ const en = {
       // Before the order is on screen there is no amount to name yet.
       payNoAmount: "Pay",
       paying: "Paying…",
+      // While the phone's own prompt asks for a fingerprint, the face or the
+      // PIN. Nothing has been sent yet.
+      checkingPayer: "Confirming…",
+      // The title of that prompt. Android draws it, so the payer sees the
+      // amount in the phone's own dialog.
+      payerCheckTitle: "Pay {{amount}}",
       checkAgain: "Check again",
       // The payer's own payment for this order.
       ownPayment: {
@@ -136,8 +142,18 @@ const en = {
         refresh: "Refresh",
         refreshing: "Refreshing…",
       },
-      // One per answer to Pay that isn't a payment going ahead.
+      // One per answer to Pay that isn't a payment going ahead. A closed
+      // prompt has none: the payer closed it on purpose.
       messages: {
+        payerLockedOut: {
+          title: "Too many tries",
+          description:
+            "Nothing was paid. Wait a moment or use your phone's PIN, then pay again.",
+        },
+        payerCheckFailed: {
+          title: "Couldn't confirm it's you",
+          description: "Nothing was paid. Try again.",
+        },
         declined: {
           title: "Payment declined",
           description: "Nothing was paid. You can pay again.",

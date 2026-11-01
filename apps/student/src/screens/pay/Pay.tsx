@@ -3,7 +3,10 @@ import {
   type OrderPayState,
 } from "@zahln/domain/order/frontend";
 import { newerPayment, type Payment } from "@zahln/domain/payment/frontend";
+import { formatCents } from "@zahln/i18n/format";
+import { pickLanguage } from "@zahln/i18n/language";
 import { useCallback, useEffect, useRef, useState, type FC } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { paths, toPaymentPath } from "../../app/paths";
 import { isOrderNotFound, usePayerOrder } from "../../data/order";
@@ -23,7 +26,11 @@ const Pay: FC = () => {
   const { orderId = "" } = useParams<"orderId">();
   const orderQuery = usePayerOrder(orderId);
   const { refetch } = orderQuery;
-  const payMutation = usePayOrder();
+  const { isCheckingPayer, payMutation } = usePayOrder();
+  const { t, i18n } = useTranslation("student");
+  // i18next only resolves to a supported language. pickLanguage narrows the
+  // type to AppLanguage, with English if that ever changes.
+  const language = pickLanguage([i18n.resolvedLanguage ?? ""]);
   // The order whose countdown has run out. An id rather than a flag, so it
   // can't carry over to another order.
   const [timeUpOrderId, setTimeUpOrderId] = useState<string | null>(null);
@@ -138,7 +145,9 @@ const Pay: FC = () => {
 
   let payStatus: PayStatus = { status: "idle" };
   if (payMutation.isPending) {
-    payStatus = { status: "paying" };
+    payStatus = isCheckingPayer
+      ? { status: "checkingPayer" }
+      : { status: "paying" };
   } else if (payMutation.isError) {
     payStatus = {
       status: "failed",
@@ -170,12 +179,25 @@ const Pay: FC = () => {
     void navigate(paths.home, { replace: true });
   };
 
-  // Pays the amount on screen. Pay is disabled without an open order, so the
-  // guard only narrows the type.
+  // Pays the amount on screen, once the phone has checked it's the payer.
+  // Pay is disabled without an open order, so the guard only narrows the
+  // type.
   const handlePay = (): void => {
     if (state.status !== "open") return;
+    const { amountCents, id, mensaName } = state.order;
     payMutation.mutate(
-      { orderId: state.order.id, amountCents: state.order.amountCents },
+      {
+        orderId: id,
+        amountCents,
+        // The amount and the mensa in Android's own dialog, so the payer
+        // confirms what they see there, not only what the page said.
+        payerCheckPrompt: {
+          title: t("pay.payerCheckTitle", {
+            amount: formatCents(amountCents, language),
+          }),
+          description: mensaName,
+        },
+      },
       {
         // The server knows a newer order: read it, so the screen shows the
         // new price or why it can't be paid.
