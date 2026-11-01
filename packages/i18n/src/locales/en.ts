@@ -128,6 +128,13 @@ const en = {
         pendingDescription: "Your payment for this order is being checked.",
         confirmedTitle: "Paid",
         confirmedDescription: "You paid this order.",
+        // After 30 seconds the page stops asking; the payment can stay
+        // pending for minutes.
+        longPendingTitle: "Still being checked",
+        longPendingDescription:
+          "This can take a few minutes. You will find the result in your payments.",
+        refresh: "Refresh",
+        refreshing: "Refreshing…",
       },
       // One per answer to Pay that isn't a payment going ahead.
       messages: {

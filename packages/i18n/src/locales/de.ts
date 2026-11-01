@@ -132,6 +132,11 @@ const de: Resources = {
         pendingDescription: "Ihre Zahlung für diese Bestellung wird geprüft.",
         confirmedTitle: "Bezahlt",
         confirmedDescription: "Sie haben diese Bestellung bezahlt.",
+        longPendingTitle: "Wird noch geprüft",
+        longPendingDescription:
+          "Das kann ein paar Minuten dauern. Das Ergebnis finden Sie bei Ihren Zahlungen.",
+        refresh: "Aktualisieren",
+        refreshing: "Wird aktualisiert…",
       },
       messages: {
         declined: {

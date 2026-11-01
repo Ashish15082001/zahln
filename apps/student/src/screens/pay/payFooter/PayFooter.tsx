@@ -1,7 +1,7 @@
 import { formatCents } from "@zahln/i18n/format";
 import { pickLanguage } from "@zahln/i18n/language";
 import type { TFunction } from "i18next";
-import type { FC } from "react";
+import { useEffect, useRef, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import type { PayFailure } from "../../../data/pay";
 import PayFooterJSX, { type PayMessage } from "./PayFooterJSX";
@@ -75,10 +75,24 @@ const PayFooter: FC<PayFooterProps> = ({
   // i18next only resolves to a supported language. pickLanguage narrows the
   // type to AppLanguage, with English if that ever changes.
   const language = pickLanguage([i18n.resolvedLanguage ?? ""]);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const isPaying = payStatus.status === "paying";
   const payFailure =
     payStatus.status === "failed" ? payStatus.payFailure : null;
+  // One value per answer, e.g. "declined" or "unconfirmed".
+  const shownAnswer = payFailure ?? payStatus.status;
+
+  // The button is disabled while paying, and a declined payment comes back
+  // after its result screen is gone: either way focus is left on nothing.
+  // Once an answer is in, it goes back to the button, just below the message
+  // TalkBack has read out. Never taken from anywhere the payer moved it.
+  useEffect(() => {
+    const isAnswer = shownAnswer !== "idle" && shownAnswer !== "paying";
+    if (isAnswer && document.activeElement === document.body) {
+      buttonRef.current?.focus();
+    }
+  }, [shownAnswer]);
   const isRefused = payFailure !== null && FINAL_PAY_FAILURES.has(payFailure);
   // Disabled while paying, so a second tap can't start a second request.
   // (It would carry the same key, so it couldn't pay twice either way.)
@@ -100,6 +114,7 @@ const PayFooter: FC<PayFooterProps> = ({
   return (
     <PayFooterJSX
       buttonLabel={buttonLabel}
+      buttonRef={buttonRef}
       isButtonDisabled={isButtonDisabled}
       message={getPayMessage(payStatus, t)}
       statusText={isPaying ? t("pay.paying") : ""}

@@ -4,7 +4,7 @@ import {
   AlertTitle,
 } from "@zahln/ui/components/alert";
 import { Button } from "@zahln/ui/components/button";
-import type { FC } from "react";
+import type { FC, Ref } from "react";
 
 /** What the footer says above Pay, e.g. why the last tap didn't pay. */
 export interface PayMessage {
@@ -15,6 +15,8 @@ export interface PayMessage {
 
 export interface PayFooterJSXProps {
   buttonLabel: string;
+  // Focus comes back here once an answer to Pay is in.
+  buttonRef: Ref<HTMLButtonElement>;
   isButtonDisabled: boolean;
   message: PayMessage | null;
   // Read out by TalkBack while paying, since a disabled button's new label
@@ -25,6 +27,7 @@ export interface PayFooterJSXProps {
 
 const PayFooterJSX: FC<PayFooterJSXProps> = ({
   buttonLabel,
+  buttonRef,
   isButtonDisabled,
   message,
   statusText,
@@ -45,6 +48,7 @@ const PayFooterJSX: FC<PayFooterJSXProps> = ({
         </Alert>
       )}
       <Button
+        ref={buttonRef}
         className="w-full"
         disabled={isButtonDisabled}
         size="lg"

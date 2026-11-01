@@ -1,7 +1,7 @@
 import type { PaymentStatus } from "@zahln/domain/payment/frontend";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import StatusBadge from "../../../components/statusBadge/StatusBadge";
+import StatusBadge from "../statusBadge/StatusBadge";
 
 /** One dish on the payment, written out in the app language. */
 export interface ItemLine {

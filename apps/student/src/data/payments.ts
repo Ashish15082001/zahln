@@ -111,12 +111,28 @@ class OlderThanShownError extends Error {
   }
 }
 
+// While a payment just made is being checked, it is asked for this often.
+const PENDING_POLL_MS = 2_000;
+
+/** Settings for `usePayment`. */
+export interface UsePaymentOptions {
+  /**
+   * Asks again every 2 seconds while the payment is pending: for the payment
+   * the payer has just made, whose answer usually comes in seconds. History
+   * doesn't poll, since a payment can stay pending for days.
+   */
+  isPollingWhilePending?: boolean;
+}
+
 /**
  * One payment with its refunds and history. Fetched when the screen opens and
  * with Refresh, like the list. It never shows a lower version than the list
  * or an earlier read already showed.
  */
-export const usePayment = (paymentId: string) =>
+export const usePayment = (
+  paymentId: string,
+  { isPollingWhilePending = false }: UsePaymentOptions = {},
+) =>
   useQuery({
     queryKey: paymentQueryKey(paymentId),
     queryFn: async ({ queryKey, signal }) => {
@@ -135,8 +151,13 @@ export const usePayment = (paymentId: string) =>
       saveToList(shownDetail);
       return shownDetail;
     },
-    // The route always has an id; this only keeps an empty one off the wire.
+    // Empty when there is no payment to follow yet, e.g. on the Pay page
+    // before Pay.
     enabled: paymentId !== "",
+    refetchInterval: (query) =>
+      isPollingWhilePending && query.state.data?.status === "pending"
+        ? PENDING_POLL_MS
+        : false,
     // The one retry outside the API client: a read that came back out of date
     // is safe to repeat, and the server catches up within seconds.
     retry: (failureCount, error) =>

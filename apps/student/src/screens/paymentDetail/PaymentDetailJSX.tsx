@@ -19,7 +19,7 @@ import { Skeleton } from "@zahln/ui/components/skeleton";
 import type { FC, ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import PaymentHistory from "./paymentHistory/PaymentHistory";
-import PaymentSummary from "./paymentSummary/PaymentSummary";
+import PaymentSummary from "../../components/paymentSummary/PaymentSummary";
 import RefundList from "./refundList/RefundList";
 
 /** Fetching the payment again, and how the last try went. */
