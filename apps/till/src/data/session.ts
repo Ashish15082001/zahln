@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createServerClock } from "@zahln/api/clock";
-import { ApiError } from "@zahln/api/errors";
 import { createHttp } from "@zahln/api/http";
+import { createSessionRenewal } from "@zahln/api/sessionRenewal";
 import { postSession } from "@zahln/api/sessions";
 import {
   createSessionStore,
@@ -60,10 +60,12 @@ const setCashierSession = (newCashierSession: CashierSession | null): void => {
 };
 
 /**
- * Forgets the token, the saved login and everything fetched with it. Screens
- * see signedOut and go to the login screen.
+ * Forgets the token, the saved login, the password kept for renewal and
+ * everything fetched with it. Screens see signedOut and go to the login
+ * screen.
  */
 export const logOut = (): void => {
+  sessionRenewal.forgetCredentials();
   // The rest of the cache belongs to this cashier, so the next one never sees
   // it. The session query stays: screens are subscribed to that very entry,
   // and a new one would never reach them.
@@ -73,27 +75,36 @@ export const logOut = (): void => {
   setCashierSession(null);
 };
 
-const signedOutError = (): ApiError => new ApiError({ kind: "signedOut" });
+/**
+ * The server's time, from the Date header of every response. The token's
+ * expiry is server time, so a tablet whose clock is off renews on time.
+ */
+const serverClock = createServerClock();
 
-/** Every request goes through this. It adds the token from the session. */
+/**
+ * Logs in again shortly before the token runs out and when the server
+ * refuses it, so a shift isn't cut into 5-minute logins and a refused token
+ * never closes an open QR. The password from this run's login is kept in
+ * memory only: after a reopen there is none, and a refused token logs out.
+ */
+const sessionRenewal = createSessionRenewal<CashierSession>({
+  getSession: () => cashierSession,
+  setSession: setCashierSession,
+  endSession: logOut,
+  // Null for an account that can't use a till any more, which ends the
+  // session.
+  logIn: async (credentials) =>
+    toCashierSession(await postSession(http, credentials)),
+  clock: serverClock,
+});
+
+/** Every request goes through this. It adds the token, renewed as needed. */
 export const http = createHttp({
   baseUrl: config.baseUrl,
   candidateId: config.candidateId,
   appVersion: config.appVersion,
-  clock: createServerClock(),
-  auth: {
-    getToken: () =>
-      cashierSession
-        ? Promise.resolve(cashierSession.accessToken)
-        : Promise.reject(signedOutError()),
-    // No renewal yet: a refused token ends the session, and the cashier logs
-    // in again. Renewing with the kept password comes in step 2b.
-    renew: () => {
-      logOut();
-      return Promise.reject(signedOutError());
-    },
-    markEnded: logOut,
-  },
+  clock: serverClock,
+  auth: sessionRenewal.auth,
 });
 
 /** Logs in. On success every screen sees signedIn with the cashier. */
@@ -107,6 +118,8 @@ export const useLogin = () =>
       // token isn't kept, so nothing needs undoing.
       if (!newCashierSession) throw new NotACashierError();
 
+      // Before any screen can send a request, so every one can be renewed.
+      sessionRenewal.keepCredentials(credentials);
       setCashierSession(newCashierSession);
       return newCashierSession.cashier;
     },
