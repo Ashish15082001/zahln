@@ -11,7 +11,7 @@ bigger choices goes in [design.md](design.md).
 | ---- | ------------------------------------------------------- | --------------------------------------------------- |
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                |
 | 1    | `domain`, `api` and `storage`: the parts the till needs | Next, waiting for approval                          |
-| 2    | Till                                                    | Planned                                             |
+| 2    | Till                                                    | In progress: login, order QR and payments list done |
 | 3    | Student app                                             | In progress: login, history and payment detail done |
 | 4    | Dashboard                                               | Outline only                                        |
 | 5    | Ship                                                    | Planned                                             |
@@ -101,6 +101,29 @@ Detailed in [till-plan.md](till-plan.md):
   while an attempt's outcome is unknown.
 - **Layout:** landscape, and it also works in portrait, because Android 16
   ignores the orientation lock on tablets.
+
+The Payments tab, done:
+
+| Commit    | What it does                                                                                                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `5ae0a35` | [API gap 7](api-gaps.md#7-no-list-of-orders): the API has no list of orders                                                                                                                                   |
+| `5650f20` | The cashier's view of `GET /payments` in `packages/api`: each payment with who paid, what can still be refunded and whether it needs attention                                                                |
+| `a1be9af` | The status badge's look moves to `packages/ui`, so the till and the student app show a status the same way                                                                                                    |
+| `b26de4b` | Home's second tab lists the till's payments, 20 at a time with Load more: time, order code, amount, refunded, status, payer and items. Loading, error, empty and refresh-failed states, in English and German |
+
+Changes from the plan:
+
+- **Payments is a tab next to the Mensa tab, not a `/payments` screen.** It is
+  fetched each time the tab opens and with Refresh, with no polling. While an
+  order is open its QR dialog covers the screen, so the tab is always fetched
+  again after a payment.
+- **It lists payments, not orders.** The API has no list of orders, so an
+  order nobody paid doesn't appear
+  ([API gap 7](api-gaps.md#7-no-list-of-orders)).
+- **No search by id yet.** Paging only, like the student app's history.
+- **The status comes before the payer and the items.** In portrait the table
+  scrolls sideways, and the status must stay in view. Home is wider than
+  before, so the whole table fits a tablet in landscape.
 
 ## Step 3: Student app
 

@@ -275,14 +275,14 @@ device's files could read every prefix.
 
 ## Screens
 
-| Route                  | Shows                                                                                |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| `/`                    | "Welcome to Zahln", and **Continue** to the login screen                             |
-| `/login`               | Username and password form. `invalid_credentials` shows "Wrong username or password" |
-| `/charge`              | The menu and the cart, with the total for student, staff and guest                   |
-| `/charge/:orderId`     | QR, countdown and live status                                                        |
-| `/payments`            | This till's payments, newest first, paged, searchable by payment or order id         |
-| `/payments/:paymentId` | Amount, refunded, refundable, refunds, history, and the refund form                  |
+| Route                  | Shows                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `/`                    | "Welcome to Zahln", and **Continue** to the login screen                              |
+| `/login`               | Username and password form. `invalid_credentials` shows "Wrong username or password"  |
+| `/charge`              | The menu and the cart, with the total for student, staff and guest                    |
+| `/charge/:orderId`     | QR, countdown and live status                                                         |
+| `/home`, Payments tab  | This till's payments, newest first, 20 at a time. Search by payment or order id later |
+| `/payments/:paymentId` | Amount, refunded, refundable, refunds, history, and the refund form                   |
 
 `/` and `/login` are only for someone signed out. A signed-in cashier,
 including one whose saved login came back at startup, goes straight to the
@@ -301,7 +301,7 @@ Log out.
 | `useMenu`         | `GET /mensas`, then the cashier's mensa | Once per login, starting from the saved copy                 |
 | `useCreateOrder`  | `POST /orders`                          | Mutation                                                     |
 | `useOrder`        | `GET /orders/{id}`                      | Every 2 seconds until `paid` or `expired`                    |
-| `usePayments`     | `GET /payments`, paged with `cursor`    | On opening the screen, and on Refresh                        |
+| `usePayments`     | `GET /payments`, paged with `cursor`    | Each time the tab opens, and on Refresh                      |
 | `usePayment`      | `GET /payments/{id}`                    | On opening, then every 2 seconds while a refund is `pending` |
 | `useCreateRefund` | `POST /payments/{id}/refunds`           | Mutation                                                     |
 
@@ -332,7 +332,8 @@ Log out.
 
 ## Refund flow
 
-1. On `/payments` the cashier finds the payment, by scrolling or searching.
+1. On the Payments tab the cashier finds the payment by scrolling, or later by
+   searching.
 2. `/payments/:paymentId` shows the amount, refunded, pending refunds,
    refundable, the refunds and the history.
 3. **Refund all** fills in the refundable amount. A partial amount must be
