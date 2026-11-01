@@ -31,6 +31,16 @@ Decisions made so far, to expand:
   and accessibility lint matters for the screen-reader requirement.
 - **Flat `node_modules` (`nodeLinker: hoisted`).** Capacitor's Gradle files
   reach native plugins through `node_modules` paths.
+- **`@capgo/capacitor-native-biometric` for the check before Pay.** It is
+  free on public npm, supports Capacitor 8, is kept up to date, and can also
+  keep secrets in the Android Keystore, which the till's re-login will need.
+  Capawesome's Biometrics plugin has a nicer API but needs a paid licence and
+  a private npm registry, so a clone of this public repo wouldn't install.
+  `@aparajita/capacitor-biometric-auth` can't store secrets. Two of the
+  plugin's Android defaults are worked around in `packages/native`: the PIN
+  is offered only when `DEVICE_CREDENTIAL` is in `allowedBiometryTypes` (its
+  `useFallback` option is ignored there), and `maxAttempts` is raised from 1
+  to Android's maximum of 5, or one misread finger would end the check.
 - **Till orientation.** The till is locked to landscape, but Android 16 ignores
   that lock on tablets for apps targeting API 36, so its layout must also work
   in portrait.

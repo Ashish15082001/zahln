@@ -7,14 +7,14 @@ bigger choices goes in [design.md](design.md).
 
 ## Status
 
-| Step | Scope                                                   | Status                                              |
-| ---- | ------------------------------------------------------- | --------------------------------------------------- |
-| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                |
-| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                              |
-| 2    | Till                                                    | In progress: login, order QR and payments list done |
-| 3    | Student app                                             | In progress: login, history, scan and pay done      |
-| 4    | Dashboard                                               | Outline only                                        |
-| 5    | Ship                                                    | Planned                                             |
+| Step | Scope                                                   | Status                                                                                  |
+| ---- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                                                    |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                  |
+| 2    | Till                                                    | In progress: login, order QR and payments list done                                     |
+| 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check |
+| 4    | Dashboard                                               | Outline only                                                                            |
+| 5    | Ship                                                    | Planned                                                                                 |
 
 What each app does, and how, is in [till-plan.md](till-plan.md) and
 [student-plan.md](student-plan.md).
@@ -206,6 +206,9 @@ Done so far:
 | `e9ea4e1` | A pay key store that keeps one key per order and amount on the device, `needsSameKey` for when a retry must reuse it, and `toOrderPayState` in `domain` for whether an order can still be paid                                                                 |
 | `abf559e` | The Pay page at `/pay/:orderId`: a scan opens it, with the order, a countdown and Pay, and a message and a next step for every answer. The order page becomes read only                                                                                        |
 | `dbc9b28` | After Pay the page reads the payment every 2 seconds for 30 seconds: Being checked, Paid, Still being checked with Refresh, or back to Pay after a decline. Focus moves to each result                                                                         |
+| `a5d1f85` | `identityCheck` in `packages/native`: Android's fingerprint, face or PIN dialog through `@capgo/capacitor-native-biometric`, with every way it can end as a result                                                                                             |
+| `fc8814c` | The pay key store can tell whether a key is already saved for an order and amount                                                                                                                                                                              |
+| `5642562` | Pay asks for a fingerprint, the face or the phone's PIN before anything is sent: Confirming…, then Paying…, or Too many tries and Couldn't confirm it's you. A resend under a saved key doesn't ask again                                                      |
 
 Changes from the plan:
 
@@ -243,10 +246,15 @@ Changes from the plan:
   final result.
 - **Pay turns off when the countdown reaches 0,** Check again included. The
   order is read every 3 seconds until the server says expired or paid.
+- **A phone without a screen lock pays without the fingerprint, face or PIN
+  check,** where the plan said nothing about it: there is nothing on such a
+  phone to protect, and an emulator has no screen lock. Check again, and Pay
+  with a key that is still saved, don't ask again: the payer confirmed that
+  payment already. Weak face unlock counts. The reasons are in
+  [student-plan.md](student-plan.md#confirming-its-the-payer).
 
 Not yet:
 
-- Biometrics, or the device PIN, before Pay.
 - Renewing the token, so a session that ends mid-payment doesn't lead to
   the login screen.
 - `GET /config`: a forced update and payments switched off.

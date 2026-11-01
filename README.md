@@ -25,7 +25,7 @@ packages/
   api/         HTTP client: deadlines, retries, idempotency, response parsing
   i18n/        i18next setup, the de/en strings, and money and date formats
   ui/          Accessible components shared by all three surfaces
-  native/      Capacitor wrappers for the QR scanners, used by the student app
+  native/      Capacitor wrappers for the QR scanners and the fingerprint, face or PIN check, used by the student app
 docs/
   plan.md          Build plan, step by step, with status and commits
   till-plan.md     The till: what it does, how, and what is still to build
