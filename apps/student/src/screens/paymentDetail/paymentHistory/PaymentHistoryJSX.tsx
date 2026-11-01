@@ -1,3 +1,4 @@
+import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -34,12 +35,11 @@ const PaymentHistoryJSX: FC<PaymentHistoryJSXProps> = ({ eventLines }) => {
                 <span className="tabular-nums">{eventLine.amount}</span>
               )}
             </div>
-            <time
+            <DateTimeJSX
               className="text-sm text-muted-foreground"
-              dateTime={eventLine.atIso}
-            >
-              {eventLine.at}
-            </time>
+              dateTimeIso={eventLine.atIso}
+              value={eventLine.at}
+            />
           </li>
         ))}
       </ol>

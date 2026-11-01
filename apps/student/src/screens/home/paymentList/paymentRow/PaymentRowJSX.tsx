@@ -1,6 +1,7 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { PaymentStatus } from "@zahln/domain/payment/frontend";
+import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import {
   Item,
   ItemActions,
@@ -53,7 +54,7 @@ const PaymentRowJSX: FC<PaymentRowJSXProps> = ({
               <span className="tabular-nums">{amount}</span>
             </ItemTitle>
             <ItemDescription className="flex items-center justify-between gap-4">
-              <time dateTime={createdAtIso}>{createdAt}</time>
+              <DateTimeJSX dateTimeIso={createdAtIso} value={createdAt} />
               <StatusBadge kind="payment" status={status} />
             </ItemDescription>
             {/* In the text colour, not muted: money coming back stands out

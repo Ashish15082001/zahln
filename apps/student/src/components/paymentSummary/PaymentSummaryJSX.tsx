@@ -1,4 +1,5 @@
 import type { PaymentStatus } from "@zahln/domain/payment/frontend";
+import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import StatusBadge from "../statusBadge/StatusBadge";
@@ -43,9 +44,11 @@ const PaymentSummaryJSX: FC<PaymentSummaryJSXProps> = ({
           <StatusBadge kind="payment" status={status} />
         </div>
         <p className="text-muted-foreground">{place}</p>
-        <time className="text-sm text-muted-foreground" dateTime={createdAtIso}>
-          {createdAt}
-        </time>
+        <DateTimeJSX
+          className="text-sm text-muted-foreground"
+          dateTimeIso={createdAtIso}
+          value={createdAt}
+        />
       </div>
       <section aria-labelledby={itemsHeadingId} className="flex flex-col gap-2">
         <h2 id={itemsHeadingId} className="text-lg font-semibold">

@@ -2,6 +2,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import type { CashierPayment } from "@zahln/domain/payment/frontend";
 import { formatCents, formatDateTime } from "@zahln/i18n/format";
 import type { AppLanguage } from "@zahln/i18n/language";
+import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import type { TFunction } from "i18next";
 import type { DataTableFeatures } from "../../../../components/dataTable/DataTable";
 import StatusBadge from "../../../../components/statusBadge/StatusBadge";
@@ -82,11 +83,10 @@ export const getPaymentColumns = (
     helper.accessor("createdAtMs", {
       header: t("home.payments.time"),
       cell: (info) => (
-        // <time>, so the moment is machine-readable whatever language it
-        // shows in.
-        <time dateTime={new Date(info.getValue()).toISOString()}>
-          {formatDateTime(info.getValue(), language)}
-        </time>
+        <DateTimeJSX
+          dateTimeIso={new Date(info.getValue()).toISOString()}
+          value={formatDateTime(info.getValue(), language)}
+        />
       ),
     }),
     helper.accessor("orderId", {

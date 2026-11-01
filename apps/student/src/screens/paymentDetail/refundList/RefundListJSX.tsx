@@ -1,4 +1,5 @@
 import type { RefundStatus } from "@zahln/domain/payment/frontend";
+import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import StatusBadge from "../../../components/statusBadge/StatusBadge";
@@ -35,12 +36,11 @@ const RefundListJSX: FC<RefundListJSXProps> = ({ refundLines }) => {
               </span>
               <StatusBadge kind="refund" status={refundLine.status} />
             </div>
-            <time
+            <DateTimeJSX
               className="text-sm text-muted-foreground"
-              dateTime={refundLine.createdAtIso}
-            >
-              {refundLine.createdAt}
-            </time>
+              dateTimeIso={refundLine.createdAtIso}
+              value={refundLine.createdAt}
+            />
             {refundLine.reason !== null && (
               <p className="text-sm">{refundLine.reason}</p>
             )}
