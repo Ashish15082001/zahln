@@ -11,6 +11,11 @@ const Content: FC = () => {
   // Kept here rather than inside Tabs, so the Payments tab can tell it's on
   // screen: it fetches only then.
   const [selectedTab, setSelectedTab] = useState<HomeTab>("mensa");
+  // The node in the footer that the Mensa tab draws Create order into. Set
+  // by a ref callback, so the tab hears when the footer comes and goes.
+  const [createOrderSlot, setCreateOrderSlot] = useState<HTMLElement | null>(
+    null,
+  );
   if (session.status !== "signedIn") return null;
 
   const handleSelectTab = (value: string): void => {
@@ -19,6 +24,8 @@ const Content: FC = () => {
 
   return (
     <ContentJSX
+      createOrderSlot={createOrderSlot}
+      createOrderSlotRef={setCreateOrderSlot}
       displayName={session.cashier.displayName}
       selectedTab={selectedTab}
       handleLogOut={logOut}

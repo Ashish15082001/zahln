@@ -66,7 +66,7 @@ const PaymentsTabJSX: FC<PaymentsTabJSXProps> = ({
 
   if (state.status === "loading") {
     return (
-      <div className="flex flex-col gap-4 pt-4">
+      <div className="flex flex-col gap-4">
         {heading}
         {/* The grey blocks say nothing to a screen reader, so the status line
             tells TalkBack the payments are on their way. */}
@@ -81,7 +81,7 @@ const PaymentsTabJSX: FC<PaymentsTabJSXProps> = ({
 
   if (state.status === "error") {
     return (
-      <div className="flex flex-col gap-4 pt-4">
+      <div className="flex flex-col gap-4">
         {heading}
         <Empty>
           {/* An alert, so TalkBack reads out why the list didn't come, in
@@ -143,7 +143,7 @@ const PaymentsTabJSX: FC<PaymentsTabJSXProps> = ({
 
   if (state.status === "empty") {
     return (
-      <div className="flex flex-col gap-4 pt-4">
+      <div className="flex flex-col gap-4">
         {header}
         {refreshFailedAlert}
         <Empty>
@@ -172,7 +172,7 @@ const PaymentsTabJSX: FC<PaymentsTabJSXProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-4 pt-4">
+    <div className="flex flex-col gap-4">
       {header}
       {refreshFailedAlert}
       <DataTable

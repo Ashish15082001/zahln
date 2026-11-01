@@ -28,7 +28,11 @@ import MensaTabJSX, { type MensaTabState } from "./MensaTabJSX";
 import { getMenuColumns } from "./menuColumns";
 import OrderDialog, { type OrderCreation } from "./orderDialog/OrderDialog";
 
-const MensaTab: FC = () => {
+export interface MensaTabProps {
+  createOrderSlot: HTMLElement | null;
+}
+
+const MensaTab: FC<MensaTabProps> = ({ createOrderSlot }) => {
   const session = useSession();
   const mensaQuery = useMensa();
   const { t, i18n } = useTranslation("till");
@@ -146,6 +150,7 @@ const MensaTab: FC = () => {
     <>
       <MensaTabJSX
         columns={columns}
+        createOrderSlot={createOrderSlot}
         rowSelection={rowSelection}
         state={state}
         handleCreateOrder={handleCreateOrder}

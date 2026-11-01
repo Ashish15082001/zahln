@@ -7,7 +7,8 @@ import type { Mensa } from "@zahln/domain/mensa/frontend";
 import { Alert, AlertTitle } from "@zahln/ui/components/alert";
 import { Button } from "@zahln/ui/components/button";
 import { Skeleton } from "@zahln/ui/components/skeleton";
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import DataTable, {
   type DataTableFeatures,
@@ -34,6 +35,9 @@ export type MensaTabState =
 
 export interface MensaTabJSXProps {
   columns: ColumnDef<DataTableFeatures, MenuRow>[];
+  // Where Create order goes: a node in the screen's footer. null while the
+  // footer isn't on screen.
+  createOrderSlot: HTMLElement | null;
   rowSelection: RowSelectionState;
   state: MensaTabState;
   handleCreateOrder: () => void;
@@ -43,6 +47,7 @@ export interface MensaTabJSXProps {
 
 const MensaTabJSX: FC<MensaTabJSXProps> = ({
   columns,
+  createOrderSlot,
   rowSelection,
   state,
   handleCreateOrder,
@@ -51,22 +56,21 @@ const MensaTabJSX: FC<MensaTabJSXProps> = ({
 }) => {
   const { t } = useTranslation("till");
 
+  let content: ReactNode;
   if (state.status === "loading") {
-    return (
+    content = (
       // The grey blocks say nothing to a screen reader, so the status line
       // tells TalkBack the menu is on its way.
-      <div className="flex flex-col gap-3 pt-4" role="status">
+      <div className="flex flex-col gap-3" role="status">
         <span className="sr-only">{t("home.mensa.loading")}</span>
         <Skeleton className="h-7 w-1/3" />
         <Skeleton className="h-5 w-1/4" />
         <Skeleton className="h-48 w-full" />
       </div>
     );
-  }
-
-  if (state.status === "error") {
-    return (
-      <div className="flex flex-col items-start gap-4 pt-4">
+  } else if (state.status === "error") {
+    content = (
+      <div className="flex flex-col items-start gap-4">
         <Alert variant="destructive">
           <AlertTitle>{t("home.mensa.error")}</AlertTitle>
         </Alert>
@@ -81,41 +85,52 @@ const MensaTabJSX: FC<MensaTabJSXProps> = ({
         </Button>
       </div>
     );
-  }
-
-  if (state.status === "notFound") {
-    return (
-      <Alert className="mt-4">
+  } else if (state.status === "notFound") {
+    content = (
+      <Alert>
         <AlertTitle>{t("home.mensa.notFound")}</AlertTitle>
       </Alert>
     );
+  } else {
+    content = (
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">{state.mensa.name}</h2>
+          <p className="text-muted-foreground">{state.place}</p>
+        </div>
+        <DataTable
+          columns={columns}
+          data={state.menuRows}
+          emptyText={t("home.mensa.emptyMenu")}
+          rowSelection={rowSelection}
+          getRowId={getMenuRowId}
+          handleRowSelectionChange={handleRowSelectionChange}
+        />
+      </div>
+    );
   }
 
+  // Disabled until a dish is ticked, since an order needs at least one. Shown
+  // without a menu too, disabled, so the footer is never an empty bar and
+  // the button doesn't appear from nowhere once the menu is in.
+  const isCreateOrderDisabled =
+    state.status !== "ready" || state.selectedCount === 0;
+  const createOrderButton = (
+    <Button disabled={isCreateOrderDisabled} onClick={handleCreateOrder}>
+      {t("home.mensa.createOrder")}
+    </Button>
+  );
+
   return (
-    <div className="flex flex-col gap-4 pt-4">
-      <div>
-        <h2 className="text-xl font-semibold">{state.mensa.name}</h2>
-        <p className="text-muted-foreground">{state.place}</p>
-      </div>
-      <DataTable
-        columns={columns}
-        data={state.menuRows}
-        emptyText={t("home.mensa.emptyMenu")}
-        rowSelection={rowSelection}
-        getRowId={getMenuRowId}
-        handleRowSelectionChange={handleRowSelectionChange}
-      />
-      {/* Disabled until a dish is ticked, since an order needs at least
-          one. */}
-      <div className="flex justify-end">
-        <Button
-          disabled={state.selectedCount === 0}
-          onClick={handleCreateOrder}
-        >
-          {t("home.mensa.createOrder")}
-        </Button>
-      </div>
-    </div>
+    <>
+      {content}
+      {/* A portal, so the button sits in the screen's footer while the cart
+          and the order's idempotency key stay in this tab. Lifting them to
+          the screen would move the code that keeps an order from being made
+          twice, for a button's place. */}
+      {createOrderSlot !== null &&
+        createPortal(createOrderButton, createOrderSlot)}
+    </>
   );
 };
 
