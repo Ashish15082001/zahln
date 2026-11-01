@@ -11,7 +11,7 @@ export interface PaymentRowProps {
 }
 
 const PaymentRow: FC<PaymentRowProps> = ({ payment }) => {
-  const { t, i18n } = useTranslation("student");
+  const { i18n } = useTranslation("student");
   // i18next only resolves to a supported language. pickLanguage narrows the
   // type to AppLanguage, with English if that ever changes.
   const language = pickLanguage([i18n.resolvedLanguage ?? ""]);
@@ -20,14 +20,6 @@ const PaymentRow: FC<PaymentRowProps> = ({ payment }) => {
   const createdAt = formatDateTime(payment.createdAtMs, language);
   // For <time>, so the date is machine-readable whatever language it shows in.
   const createdAtIso = new Date(payment.createdAtMs).toISOString();
-  const itemsSummary = payment.items
-    .map((item) =>
-      t("home.payments.item", {
-        quantity: item.quantity,
-        name: item.name[language],
-      }),
-    )
-    .join(", ");
   // Null hides the line: most payments have no refund at all.
   const refunded =
     payment.refundedAmountCents > 0
@@ -45,7 +37,6 @@ const PaymentRow: FC<PaymentRowProps> = ({ payment }) => {
       amount={amount}
       createdAt={createdAt}
       createdAtIso={createdAtIso}
-      itemsSummary={itemsSummary}
       mensaName={payment.mensaName}
       paymentPath={paymentPath}
       pendingRefund={pendingRefund}

@@ -50,7 +50,6 @@ const de: Resources = {
         loadMore: "Mehr laden",
         loadingMore: "Wird geladen…",
         loadMoreFailed: "Weitere Zahlungen konnten nicht geladen werden.",
-        item: "{{quantity}}× {{name}}",
         refunded: "{{amount}} erstattet",
         refundPending: "Erstattung von {{amount}} in Bearbeitung",
       },

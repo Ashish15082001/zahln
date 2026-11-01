@@ -1,6 +1,13 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { PaymentStatus } from "@zahln/domain/payment/frontend";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@zahln/ui/components/item";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -10,7 +17,6 @@ export interface PaymentRowJSXProps {
   amount: string;
   createdAt: string;
   createdAtIso: string;
-  itemsSummary: string;
   mensaName: string;
   paymentPath: string;
   pendingRefund: string | null;
@@ -22,7 +28,6 @@ const PaymentRowJSX: FC<PaymentRowJSXProps> = ({
   amount,
   createdAt,
   createdAtIso,
-  itemsSummary,
   mensaName,
   paymentPath,
   pendingRefund,
@@ -33,39 +38,46 @@ const PaymentRowJSX: FC<PaymentRowJSXProps> = ({
 
   return (
     <li>
-      {/* A real link around the whole row: the tap target is the row, and
-          TalkBack reads it as one link to the payment's detail. */}
-      <Link
-        className="flex items-center gap-3 rounded-md py-3 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        to={paymentPath}
-      >
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex items-start justify-between gap-4">
-            <span className="font-medium">{mensaName}</span>
-            <span className="font-medium tabular-nums">{amount}</span>
-          </div>
-          <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-            <time dateTime={createdAtIso}>{createdAt}</time>
-            <StatusBadge kind="payment" status={status} />
-          </div>
-          <p className="text-sm text-muted-foreground">{itemsSummary}</p>
-          {refunded !== null && (
-            <p className="text-sm">
-              {t("home.payments.refunded", { amount: refunded })}
-            </p>
-          )}
-          {pendingRefund !== null && (
-            <p className="text-sm">
-              {t("home.payments.refundPending", { amount: pendingRefund })}
-            </p>
-          )}
-        </div>
-        <HugeiconsIcon
-          aria-hidden
-          className="shrink-0 text-muted-foreground"
-          icon={ArrowRight01Icon}
-        />
-      </Link>
+      {/* The item is a real link around the whole row: the tap target is the
+          row, and TalkBack reads it as one link to the payment's detail. The
+          list reaches the screen's edges, so the item pads by the content's
+          24 px inside, and its text lines up with the heading. Square, as a
+          row that runs edge to edge. */}
+      <Item asChild className="gap-3 rounded-none px-6 py-3">
+        <Link to={paymentPath}>
+          <ItemContent className="min-w-0">
+            {/* The amount on the title's line, as the figure the payer looks
+                for next to where they paid. */}
+            <ItemTitle className="w-full justify-between gap-4 text-base">
+              <span>{mensaName}</span>
+              <span className="tabular-nums">{amount}</span>
+            </ItemTitle>
+            <ItemDescription className="flex items-center justify-between gap-4">
+              <time dateTime={createdAtIso}>{createdAt}</time>
+              <StatusBadge kind="payment" status={status} />
+            </ItemDescription>
+            {/* In the text colour, not muted: money coming back stands out
+                from the rest of the row. */}
+            {refunded !== null && (
+              <ItemDescription className="text-foreground">
+                {t("home.payments.refunded", { amount: refunded })}
+              </ItemDescription>
+            )}
+            {pendingRefund !== null && (
+              <ItemDescription className="text-foreground">
+                {t("home.payments.refundPending", { amount: pendingRefund })}
+              </ItemDescription>
+            )}
+          </ItemContent>
+          <ItemActions>
+            <HugeiconsIcon
+              aria-hidden
+              className="text-muted-foreground"
+              icon={ArrowRight01Icon}
+            />
+          </ItemActions>
+        </Link>
+      </Item>
     </li>
   );
 };

@@ -44,7 +44,6 @@ const en = {
         loadMore: "Load more",
         loadingMore: "Loading more…",
         loadMoreFailed: "More payments couldn't be loaded.",
-        item: "{{quantity}}× {{name}}",
         refunded: "{{amount}} refunded",
         refundPending: "Refund of {{amount}} on its way",
       },

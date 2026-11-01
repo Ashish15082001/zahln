@@ -178,7 +178,10 @@ const PaymentListJSX: FC<PaymentListJSXProps> = ({
     <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
       {header}
       {refreshFailedAlert}
-      <ul className="divide-y">
+      {/* -mx-6 undoes the content's padding (ScreenLayoutJSX's p-6), so a
+          row's tap area and highlight reach the screen's edges. Each row pads
+          by the same 24 px inside. */}
+      <ul className="-mx-6 divide-y">
         {state.payments.map((payment) => (
           <PaymentRow key={payment.id} payment={payment} />
         ))}
