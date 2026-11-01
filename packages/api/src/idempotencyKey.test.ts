@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { newIdempotencyKey } from "../../data/idempotencyKey";
+import { newIdempotencyKey } from "./idempotencyKey";
 
 describe("newIdempotencyKey", () => {
   it("is the prefix and 32 hex digits, within the API's 255 characters", () => {

@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { createServerClock } from "./clock";
 import { ApiError } from "./errors";
 import { createHttp } from "./http";
-import { getCashierPayments, getPayment, getPayments } from "./payments";
+import {
+  getCashierPayments,
+  getPayment,
+  getPayments,
+  payOrder,
+} from "./payments";
 import {
   createFakeServer,
   describeCalls,
@@ -237,5 +242,95 @@ describe("getPayment", () => {
       problem: { code: "not_found" },
     });
     expect(server.calls).toHaveLength(1);
+  });
+});
+
+/** The payment above as POST /orders/{id}/payments returns it: just made. */
+const newPayment = {
+  ...payment,
+  status: "pending",
+  refundableAmountCents: 0,
+  updatedAt: payment.createdAt,
+  version: 1,
+};
+
+describe("payOrder", () => {
+  it("sends the amount shown with the token and the key", async () => {
+    const { http, server } = setup([() => jsonReply(201, newPayment)]);
+
+    const paid = await payOrder(
+      http,
+      "ord_f494ab66c7ee64d4",
+      { amountCents: 410 },
+      "payment_k1",
+    );
+
+    expect(paid.id).toBe("pay_b363fa8001a7cbd1");
+    expect(paid.status).toBe("pending");
+    expect(describeCalls(server.calls)).toEqual([
+      "POST /orders/ord_f494ab66c7ee64d4/payments",
+    ]);
+    const [call] = server.calls;
+    expect(call?.body).toEqual({ amountCents: 410 });
+    expect(call?.headers.get("Authorization")).toBe("Bearer t1");
+    expect(call?.headers.get("Idempotency-Key")).toBe("payment_k1");
+  });
+
+  it("resends a lost reply with the same key, so it can't pay twice", async () => {
+    const { http, server } = setup([
+      () => problemReply(504, "timeout", true),
+      () => "network",
+      () => jsonReply(201, newPayment),
+    ]);
+
+    const paid = await payOrder(
+      http,
+      "ord_f494ab66c7ee64d4",
+      { amountCents: 410 },
+      "payment_k1",
+    );
+
+    expect(paid.id).toBe("pay_b363fa8001a7cbd1");
+    expect(
+      server.calls.map((call) => call.headers.get("Idempotency-Key")),
+    ).toEqual(["payment_k1", "payment_k1", "payment_k1"]);
+    expect(
+      server.calls.map((call) => call.body as { amountCents: number }),
+    ).toEqual([
+      { amountCents: 410 },
+      { amountCents: 410 },
+      { amountCents: 410 },
+    ]);
+  });
+
+  it("reports a changed price without asking again", async () => {
+    const { http, server } = setup([
+      () => problemReply(409, "amount_mismatch", false),
+    ]);
+
+    const error: unknown = await payOrder(
+      http,
+      "ord_f494ab66c7ee64d4",
+      { amountCents: 410 },
+      "payment_k1",
+    ).catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).failure).toMatchObject({
+      kind: "problem",
+      status: 409,
+      problem: { code: "amount_mismatch" },
+    });
+    expect(server.calls).toHaveLength(1);
+  });
+
+  it("escapes the order id, so it can't reach another path", async () => {
+    const { http, server } = setup([() => jsonReply(201, newPayment)]);
+
+    await payOrder(http, "../sessions", { amountCents: 410 }, "payment_k1");
+
+    expect(describeCalls(server.calls)).toEqual([
+      "POST /orders/..%2Fsessions/payments",
+    ]);
   });
 });

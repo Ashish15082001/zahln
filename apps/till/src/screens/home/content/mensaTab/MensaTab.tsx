@@ -3,11 +3,11 @@ import {
   type OnChangeFn,
   type RowSelectionState,
 } from "@tanstack/react-table";
+import { newIdempotencyKey } from "@zahln/api/idempotencyKey";
 import type { Order } from "@zahln/domain/order/frontend";
 import { pickLanguage } from "@zahln/i18n/language";
 import { useCallback, useMemo, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import { newIdempotencyKey } from "../../../../data/idempotencyKey";
 import { useMensa } from "../../../../data/mensa";
 import {
   isUnconfirmed,

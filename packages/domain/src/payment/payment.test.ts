@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CreatePaymentRequestSchema,
   PaymentDetailResponseSchema,
   PaymentListRequestSchema,
   PaymentPageResponseSchema,
@@ -74,6 +75,19 @@ describe("PaymentListRequestSchema", () => {
     expect(limit(200)).toBe(true);
     expect(limit(0)).toBe(false);
     expect(limit(201)).toBe(false);
+  });
+});
+
+describe("CreatePaymentRequestSchema", () => {
+  it("takes a whole number of cents above 0, as the spec does", () => {
+    const amount = (amountCents: number) =>
+      CreatePaymentRequestSchema.safeParse({ amountCents }).success;
+
+    expect(amount(1)).toBe(true);
+    expect(amount(410)).toBe(true);
+    expect(amount(0)).toBe(false);
+    expect(amount(-410)).toBe(false);
+    expect(amount(4.1)).toBe(false);
   });
 });
 

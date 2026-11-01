@@ -1,14 +1,18 @@
 import {
   PaymentDetailResponseSchema,
   PaymentPageResponseSchema,
+  PaymentResponseSchema,
+  type CreatePaymentRequest,
   type PaymentListRequest,
   type PaymentPageResponse,
 } from "@zahln/domain/payment/backend";
 import {
   toCashierPaymentPage,
+  toPayment,
   toPaymentDetail,
   toPaymentPage,
   type CashierPaymentPage,
+  type Payment,
   type PaymentDetail,
   type PaymentPage,
 } from "@zahln/domain/payment/frontend";
@@ -73,4 +77,30 @@ export const getPayment = async (
     signal,
   });
   return toPaymentDetail(response);
+};
+
+/**
+ * POST /orders/{orderId}/payments: pays the order as the logged-in payer, at
+ * the amount they were shown. The key goes with every attempt, so a retry
+ * after a lost reply gets back the same payment instead of paying twice. The
+ * payment usually starts `pending` while the server checks it.
+ *
+ * No signal: once sent, a payment may be saved whatever the screen does, so
+ * the caller can't call it off half-way.
+ */
+export const payOrder = async (
+  http: Http,
+  orderId: string,
+  request: CreatePaymentRequest,
+  idempotencyKey: string,
+): Promise<Payment> => {
+  const response = await http.request({
+    method: "POST",
+    path: `/orders/${encodeURIComponent(orderId)}/payments`,
+    body: request,
+    schema: PaymentResponseSchema,
+    idempotencyKey,
+    authenticated: true,
+  });
+  return toPayment(response);
 };

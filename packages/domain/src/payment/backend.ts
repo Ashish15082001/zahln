@@ -16,7 +16,20 @@ export interface PaymentListRequest extends z.infer<
   typeof PaymentListRequestSchema
 > {}
 
-// ---- a payment, as GET /payments lists it
+// ---- what POST /orders/{orderId}/payments takes
+
+// The amount the payer was shown. The server refuses it with amount_mismatch
+// when the order no longer costs them that, so they never pay a price they
+// didn't see.
+export const CreatePaymentRequestSchema = z.object({
+  amountCents: z.int().min(1),
+});
+
+export interface CreatePaymentRequest extends z.infer<
+  typeof CreatePaymentRequestSchema
+> {}
+
+// ---- a payment, as GET /payments lists it and POST .../payments returns it
 
 /** pending: still being checked, which can last minutes. */
 export const PaymentStatusResponseSchema = z.enum([
