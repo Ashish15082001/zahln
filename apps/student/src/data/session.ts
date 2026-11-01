@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createServerClock } from "@zahln/api/clock";
-import { ApiError } from "@zahln/api/errors";
 import { createHttp } from "@zahln/api/http";
+import { createSessionRenewal } from "@zahln/api/sessionRenewal";
 import { postSession } from "@zahln/api/sessions";
 import {
   createSessionStore,
@@ -58,10 +58,12 @@ const setPayerSession = (newPayerSession: PayerSession | null): void => {
 };
 
 /**
- * Forgets the token, the saved login and everything fetched with it. Screens
- * see signedOut and go to the login screen.
+ * Forgets the token, the saved login, the password kept for renewal and
+ * everything fetched with it. Screens see signedOut and go to the login
+ * screen.
  */
 export const logOut = (): void => {
+  sessionRenewal.forgetCredentials();
   // The rest of the cache belongs to this payer, so the next one never sees
   // it. The session query stays: screens are subscribed to that very entry,
   // and a new one would never reach them.
@@ -71,34 +73,35 @@ export const logOut = (): void => {
   setPayerSession(null);
 };
 
-const signedOutError = (): ApiError => new ApiError({ kind: "signedOut" });
-
 /**
  * The server's time, from the Date header of every response. An order's
  * countdown runs on it, so a phone whose clock is off doesn't end it early.
  */
 export const serverClock = createServerClock();
 
-/** Every request goes through this. It adds the token from the session. */
+/**
+ * Logs in again shortly before the token runs out and when the server
+ * refuses it, so a payment never stops halfway at the login screen. The
+ * password from this run's login is kept in memory only: after a reopen
+ * there is none, and a refused token logs out.
+ */
+const sessionRenewal = createSessionRenewal<PayerSession>({
+  getSession: () => payerSession,
+  setSession: setPayerSession,
+  endSession: logOut,
+  // Null for an account that can't pay any more, which ends the session.
+  logIn: async (credentials) =>
+    toPayerSession(await postSession(http, credentials)),
+  clock: serverClock,
+});
+
+/** Every request goes through this. It adds the token, renewed as needed. */
 export const http = createHttp({
   baseUrl: config.baseUrl,
   candidateId: config.candidateId,
   appVersion: config.appVersion,
   clock: serverClock,
-  auth: {
-    getToken: () =>
-      payerSession
-        ? Promise.resolve(payerSession.accessToken)
-        : Promise.reject(signedOutError()),
-    // No renewal yet: a refused token ends the session, and the payer logs in
-    // again. Renewal comes with the pay screen, which must never stop halfway
-    // at a login.
-    renew: () => {
-      logOut();
-      return Promise.reject(signedOutError());
-    },
-    markEnded: logOut,
-  },
+  auth: sessionRenewal.auth,
 });
 
 /** Logs in. On success every screen sees signedIn with the payer. */
@@ -112,6 +115,8 @@ export const useLogin = () =>
       // isn't kept, so nothing needs undoing.
       if (!newPayerSession) throw new NotAPayerError();
 
+      // Before any screen can send a request, so every one can be renewed.
+      sessionRenewal.keepCredentials(credentials);
       setPayerSession(newPayerSession);
       return newPayerSession.payer;
     },
