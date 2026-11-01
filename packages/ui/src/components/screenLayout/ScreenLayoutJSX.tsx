@@ -27,6 +27,10 @@ export interface ScreenLayoutJSXProps {
  * own: React Router's ScrollRestoration knows only the window, and back from
  * a payment has to land where the payer was in the list.
  *
+ * Header and footer are sticky, not fixed: they take their own room in the
+ * page, so however tall the footer grows, e.g. with a message above Pay, it
+ * never covers the end of the content.
+ *
  * The page runs under the status bar and the nav bar (viewport-fit=cover).
  * The header pads by the status bar and the footer by the nav bar, so their
  * background covers the content scrolling under the bars; padding on body

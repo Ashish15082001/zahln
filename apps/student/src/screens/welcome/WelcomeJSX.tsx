@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@zahln/ui/components/card";
+import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -19,7 +20,10 @@ const WelcomeJSX: FC<WelcomeJSXProps> = ({ appVersion }) => {
   const { t } = useTranslation(["student", "common"]);
 
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6">
+    <ScreenLayoutJSX
+      columnWidth="md"
+      contentClassName="items-center justify-center gap-4"
+    >
       <Card className="w-full max-w-sm">
         <CardHeader>
           {/* CardTitle is a div, so the h1 inside gives the screen a heading
@@ -40,7 +44,7 @@ const WelcomeJSX: FC<WelcomeJSXProps> = ({ appVersion }) => {
       <p className="text-sm text-muted-foreground">
         {t("common:version", { version: appVersion })}
       </p>
-    </main>
+    </ScreenLayoutJSX>
   );
 };
 

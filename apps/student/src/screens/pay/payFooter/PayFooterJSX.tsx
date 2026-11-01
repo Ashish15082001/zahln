@@ -33,34 +33,29 @@ const PayFooterJSX: FC<PayFooterJSXProps> = ({
   statusText,
   handleButtonClick,
 }) => (
-  // Sticky, not fixed like Home's Scan QR: the message above Pay changes the
-  // footer's height, and a fixed footer would then cover the end of the
-  // order. Sticky keeps it on screen and still lets the page scroll past
-  // everything. Outside <main>, so it is the page's footer landmark; the
-  // bottom inset keeps it clear of the gesture bar.
-  <footer className="sticky bottom-0 z-10 border-t bg-background">
-    <div className="mx-auto flex w-full max-w-md flex-col gap-3 px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-      {/* Alert has role="alert", so TalkBack reads it as soon as it shows. */}
-      {message !== null && (
-        <Alert variant={message.isError ? "destructive" : "default"}>
-          <AlertTitle>{message.title}</AlertTitle>
-          <AlertDescription>{message.description}</AlertDescription>
-        </Alert>
-      )}
-      <Button
-        ref={buttonRef}
-        className="w-full"
-        disabled={isButtonDisabled}
-        size="lg"
-        onClick={handleButtonClick}
-      >
-        {buttonLabel}
-      </Button>
-      <span className="sr-only" role="status">
-        {statusText}
-      </span>
-    </div>
-  </footer>
+  // Pay's screen puts this in its footer, which stays at the bottom and
+  // grows with the message above Pay.
+  <>
+    {/* Alert has role="alert", so TalkBack reads it as soon as it shows. */}
+    {message !== null && (
+      <Alert variant={message.isError ? "destructive" : "default"}>
+        <AlertTitle>{message.title}</AlertTitle>
+        <AlertDescription>{message.description}</AlertDescription>
+      </Alert>
+    )}
+    <Button
+      ref={buttonRef}
+      className="w-full"
+      disabled={isButtonDisabled}
+      size="lg"
+      onClick={handleButtonClick}
+    >
+      {buttonLabel}
+    </Button>
+    <span className="sr-only" role="status">
+      {statusText}
+    </span>
+  </>
 );
 
 export default PayFooterJSX;

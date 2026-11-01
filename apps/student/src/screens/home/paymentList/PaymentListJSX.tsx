@@ -50,7 +50,7 @@ export interface PaymentListJSXProps {
 // Every state is the same section, named by its heading, so TalkBack users
 // can jump to it from the greeting. flex-1 lets the empty and error states
 // fill the rest of the page.
-const SECTION_CLASS_NAME = "flex flex-1 flex-col gap-4 pt-8";
+const SECTION_CLASS_NAME = "flex flex-1 flex-col gap-4";
 
 const PaymentListJSX: FC<PaymentListJSXProps> = ({
   state,

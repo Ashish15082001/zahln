@@ -18,13 +18,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import type { TFunction } from "i18next";
-import type { FC, ReactNode, Ref } from "react";
+import type { FC, ReactElement, ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import OrderCountdown from "../../components/orderCountdown/OrderCountdown";
 import OrderSummary from "../../components/orderSummary/OrderSummary";
 import OwnPayment, { type OwnPaymentStatus } from "./ownPayment/OwnPayment";
+import OwnPaymentFooter from "./ownPaymentFooter/OwnPaymentFooter";
 import PayFooter, { type PayFooterState } from "./payFooter/PayFooter";
 
 /** What the screen shows, from first load to the payer's payment. */
@@ -180,13 +182,9 @@ const PayJSX: FC<PayJSXProps> = ({
     content = (
       <OwnPayment
         headingRef={resultHeadingRef}
-        isRefreshing={state.isRefreshing}
         payment={state.payment}
-        paymentPath={state.paymentPath}
         paymentStatus={state.paymentStatus}
         tillName={state.tillName}
-        handleDone={handleGoHome}
-        handleRefresh={handleRefreshPayment}
       />
     );
   } else {
@@ -210,38 +208,57 @@ const PayJSX: FC<PayJSXProps> = ({
     );
   }
 
+  // Pay until the order can't be paid, then the payer's own result's
+  // buttons in its place. Neither for someone else's or a missing order:
+  // the screen then has its own Done.
+  let footer: ReactElement | undefined;
+  if (payFooter !== null) {
+    footer = (
+      <PayFooter
+        amountCents={payFooter.amountCents}
+        isPayable={payFooter.isPayable}
+        payStatus={payFooter.payStatus}
+        handleDone={handleGoHome}
+        handlePay={handlePay}
+      />
+    );
+  } else if (state.status === "ownPayment") {
+    footer = (
+      <OwnPaymentFooter
+        isRefreshing={state.isRefreshing}
+        paymentPath={state.paymentPath}
+        paymentStatus={state.paymentStatus}
+        handleDone={handleGoHome}
+        handleRefresh={handleRefreshPayment}
+      />
+    );
+  }
+
+  const header = (
+    <>
+      {/* A div, so the column doesn't stretch Back to the full width. */}
+      <div>
+        <Button variant="outline" onClick={handleGoHome}>
+          <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
+          {t("pay.back")}
+        </Button>
+      </div>
+      {/* tabIndex -1 so the screen can move focus here on open; it isn't in
+          the Tab order. No outline: it is a heading, not a control. */}
+      <h1
+        ref={headingRef}
+        className="text-2xl font-semibold outline-none"
+        tabIndex={-1}
+      >
+        {t("pay.title")}
+      </h1>
+    </>
+  );
+
   return (
-    // A column the height of the screen, with main taking what the footer
-    // leaves, so Pay sits at the bottom even under a short order.
-    <div className="flex min-h-svh flex-col">
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-6">
-        <div>
-          <Button variant="outline" onClick={handleGoHome}>
-            <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
-            {t("pay.back")}
-          </Button>
-        </div>
-        {/* tabIndex -1 so the screen can move focus here on open; it isn't
-            in the Tab order. No outline: it is a heading, not a control. */}
-        <h1
-          ref={headingRef}
-          className="text-2xl font-semibold outline-none"
-          tabIndex={-1}
-        >
-          {t("pay.title")}
-        </h1>
-        {content}
-      </main>
-      {payFooter !== null && (
-        <PayFooter
-          amountCents={payFooter.amountCents}
-          isPayable={payFooter.isPayable}
-          payStatus={payFooter.payStatus}
-          handleDone={handleGoHome}
-          handlePay={handlePay}
-        />
-      )}
-    </div>
+    <ScreenLayoutJSX columnWidth="md" footer={footer} header={header}>
+      {content}
+    </ScreenLayoutJSX>
   );
 };
 

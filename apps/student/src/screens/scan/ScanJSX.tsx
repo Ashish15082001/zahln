@@ -9,6 +9,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import OrderCodeForm from "./orderCodeForm/OrderCodeForm";
@@ -51,9 +52,9 @@ const ScanJSX: FC<ScanJSXProps> = ({
 
   if (state.status === "cameraDenied" || state.status === "unavailable") {
     const isCameraDenied = state.status === "cameraDenied";
-
-    return (
-      <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-6 p-6">
+    const header = (
+      <>
+        {/* A div, so the column doesn't stretch Back to the full width. */}
         <div>
           <Button variant="outline" onClick={handleCancel}>
             <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
@@ -61,6 +62,11 @@ const ScanJSX: FC<ScanJSXProps> = ({
           </Button>
         </div>
         <h1 className="text-2xl font-semibold">{t("scan.title")}</h1>
+      </>
+    );
+
+    return (
+      <ScreenLayoutJSX columnWidth="md" header={header}>
         <Empty>
           {/* An alert, so TalkBack reads out why there's no camera, in place
               of the status line it just read. */}
@@ -106,12 +112,14 @@ const ScanJSX: FC<ScanJSXProps> = ({
             <OrderCodeForm />
           </EmptyContent>
         </Empty>
-      </main>
+      </ScreenLayoutJSX>
     );
   }
 
+  // No header or footer: Cancel and the hints sit on the camera picture,
+  // and the screen never scrolls.
   return (
-    <main className="relative flex min-h-svh flex-col gap-6 p-6">
+    <ScreenLayoutJSX columnWidth="md" contentClassName="relative">
       {/* muted and playsInline: a browser starts a video by itself only when
           it's silent and inline. Decorative to a screen reader: the status
           line says what it shows. */}
@@ -156,7 +164,7 @@ const ScanJSX: FC<ScanJSXProps> = ({
           </p>
         </div>
       </div>
-    </main>
+    </ScreenLayoutJSX>
   );
 };
 

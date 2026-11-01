@@ -17,6 +17,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import type { TFunction } from "i18next";
 import type { FC, ReactNode, Ref } from "react";
@@ -181,8 +182,9 @@ const OrderJSX: FC<OrderJSXProps> = ({
     );
   }
 
-  return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-6 p-6">
+  const header = (
+    <>
+      {/* A div, so the column doesn't stretch Back to the full width. */}
       <div>
         <Button variant="outline" onClick={handleBack}>
           <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
@@ -198,8 +200,13 @@ const OrderJSX: FC<OrderJSXProps> = ({
       >
         {t("order.title")}
       </h1>
+    </>
+  );
+
+  return (
+    <ScreenLayoutJSX columnWidth="md" header={header}>
       {content}
-    </main>
+    </ScreenLayoutJSX>
   );
 };
 

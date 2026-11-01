@@ -15,6 +15,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import type { FC, ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
@@ -162,8 +163,10 @@ const PaymentDetailJSX: FC<PaymentDetailJSXProps> = ({
     );
   }
 
-  return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-6 p-6">
+  // The title under Back and Refresh, not between them: "Wird
+  // aktualisiert…" and "Zurück" leave too little of a phone's row for it.
+  const header = (
+    <>
       <div className="flex items-center justify-between gap-4">
         <Button variant="outline" onClick={handleBack}>
           <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
@@ -180,8 +183,13 @@ const PaymentDetailJSX: FC<PaymentDetailJSXProps> = ({
       >
         {t("paymentDetail.title")}
       </h1>
+    </>
+  );
+
+  return (
+    <ScreenLayoutJSX columnWidth="md" header={header}>
       {content}
-    </main>
+    </ScreenLayoutJSX>
   );
 };
 

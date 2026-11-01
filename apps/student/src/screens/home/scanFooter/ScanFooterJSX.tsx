@@ -44,28 +44,23 @@ const ScanFooterJSX: FC<ScanFooterJSXProps> = ({
   const isNotAnOrder = scanStatus === "notAnOrder";
 
   return (
+    // Home puts this in the screen's footer, so Scan QR is one tap away
+    // however far the list scrolls.
     <>
-      {/* Fixed, so Scan QR is one tap away however far the list scrolls.
-          Outside <main>, so it is the page's footer landmark. It sits under
-          the gesture bar, hence the bottom inset. */}
-      <footer className="fixed inset-x-0 bottom-0 z-10 border-t bg-background">
-        <div className="mx-auto w-full max-w-md px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-          <Button
-            className="w-full"
-            disabled={isScanning}
-            size="lg"
-            onClick={handleScan}
-          >
-            <HugeiconsIcon aria-hidden icon={QrCodeScanIcon} />
-            {buttonLabel}
-          </Button>
-          {/* The label change alone isn't read out, so TalkBack hears why
-              the scanner hasn't opened yet. */}
-          <span className="sr-only" role="status">
-            {scanStatus === "installing" ? t("home.scan.installing") : ""}
-          </span>
-        </div>
-      </footer>
+      <Button
+        className="w-full"
+        disabled={isScanning}
+        size="lg"
+        onClick={handleScan}
+      >
+        <HugeiconsIcon aria-hidden icon={QrCodeScanIcon} />
+        {buttonLabel}
+      </Button>
+      {/* The label change alone isn't read out, so TalkBack hears why the
+          scanner hasn't opened yet. */}
+      <span className="sr-only" role="status">
+        {scanStatus === "installing" ? t("home.scan.installing") : ""}
+      </span>
       {/* No onOpenChange: the message closes through its own buttons, so a
           stray tap outside can't hide why the scan didn't work. */}
       <AlertDialog open={isNotAnOrder}>

@@ -7,10 +7,10 @@
 }
 
 body {
-  /* viewport-fit=cover lets the WebView draw under the system bars; the insets
-     keep content out from under them. */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* viewport-fit=cover lets the WebView draw under the system bars. The sides
+     only: each screen's header and footer pad by the status bar and the nav
+     bar (ScreenLayoutJSX), so the page is the screen's height and no more. */
+  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
 /* While the app's own camera scanner runs on a phone, the camera shows behind

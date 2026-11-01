@@ -9,6 +9,7 @@ import {
 } from "@zahln/ui/components/card";
 import { Input } from "@zahln/ui/components/input";
 import { Label } from "@zahln/ui/components/label";
+import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import { useId, type FC, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { LoginErrorReason } from "../../data/loginError";
@@ -40,7 +41,10 @@ const LoginJSX: FC<LoginJSXProps> = ({
   const isSubmitting = status === "submitting";
 
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center p-6">
+    <ScreenLayoutJSX
+      columnWidth="md"
+      contentClassName="items-center justify-center"
+    >
       <Card className="w-full max-w-sm">
         <CardHeader>
           {/* CardTitle is a div, so the h1 inside gives the screen a heading
@@ -95,7 +99,7 @@ const LoginJSX: FC<LoginJSXProps> = ({
           </form>
         </CardContent>
       </Card>
-    </main>
+    </ScreenLayoutJSX>
   );
 };
 
