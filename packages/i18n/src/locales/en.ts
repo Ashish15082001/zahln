@@ -185,7 +185,7 @@ const en = {
       logOut: "Log out",
       tabs: {
         mensa: "Mensa",
-        orders: "Orders",
+        payments: "Payments",
       },
       mensa: {
         loading: "Loading the menu…",
@@ -228,9 +228,38 @@ const en = {
         expiredDescription: "Nothing was paid.",
         acknowledge: "I acknowledge",
       },
-      orders: {
-        comingSoon: "Orders will show here.",
+      payments: {
+        title: "This till's payments",
+        loading: "Loading the payments…",
+        refresh: "Refresh",
+        refreshing: "Refreshing…",
+        refreshFailed: "Couldn't refresh. These are the payments from before.",
+        errorTitle: "The payments couldn't be loaded",
+        errorDescription: "Check the connection and try again.",
+        retry: "Try again",
+        retrying: "Trying again…",
+        emptyTitle: "No payments yet",
+        emptyDescription: "Orders paid at this till show up here.",
+        loadMore: "Load more",
+        loadingMore: "Loading more…",
+        loadMoreFailed: "More payments couldn't be loaded.",
+        time: "Time",
+        orderCode: "Order code",
+        payer: "Payer",
+        items: "Items",
+        amount: "Amount",
+        refunded: "Refunded",
+        status: "Status",
+        item: "{{quantity}}× {{name}}",
+        refundPending: "{{amount}} pending",
       },
+    },
+    // At the till's root, not under the tab: the payment's detail will show
+    // the same badge.
+    paymentStatus: {
+      pending: "Being checked",
+      confirmed: "Paid",
+      declined: "Declined",
     },
   },
   dashboard: {

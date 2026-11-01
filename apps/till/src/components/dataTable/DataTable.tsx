@@ -10,8 +10,8 @@ import {
 import DataTableJSX from "./DataTableJSX";
 
 /**
- * Row selection only. Sorting, filtering and paging are TanStack Table
- * features too, added here when a table needs them.
+ * Row selection only, for the tables that tick rows. Sorting, filtering and
+ * paging are TanStack Table features too, added here when a table needs them.
  */
 export const dataTableFeatures = tableFeatures({ rowSelectionFeature });
 
@@ -21,12 +21,19 @@ export interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[];
   data: TData[];
   emptyText: string;
-  /** Selected row ids. The owner keeps them, since it acts on them. */
-  rowSelection: RowSelectionState;
+  /**
+   * Selected row ids. The owner keeps them, since it acts on them. Left out,
+   * with the handler, for a table nobody picks rows in.
+   */
+  rowSelection?: RowSelectionState;
   /** The row's id from the data, so a row keeps its key when others change. */
   getRowId: (item: TData) => string;
-  handleRowSelectionChange: OnChangeFn<RowSelectionState>;
+  handleRowSelectionChange?: OnChangeFn<RowSelectionState>;
 }
+
+// One object for every read-only table: a new {} each render would be a new
+// state for the table to compare.
+const NO_ROW_SELECTION: RowSelectionState = {};
 
 /**
  * shadcn's Data Table: TanStack Table works out the rows and cells, and the
@@ -41,7 +48,7 @@ const DataTable = <TData extends RowData>({
   columns,
   data,
   emptyText,
-  rowSelection,
+  rowSelection = NO_ROW_SELECTION,
   getRowId,
   handleRowSelectionChange,
 }: DataTableProps<TData>) => {

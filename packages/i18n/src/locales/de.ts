@@ -192,7 +192,7 @@ const de: Resources = {
       logOut: "Abmelden",
       tabs: {
         mensa: "Mensa",
-        orders: "Bestellungen",
+        payments: "Zahlungen",
       },
       mensa: {
         loading: "Speiseplan wird geladen…",
@@ -238,9 +238,39 @@ const de: Resources = {
         expiredDescription: "Es wurde nichts bezahlt.",
         acknowledge: "Zur Kenntnis genommen",
       },
-      orders: {
-        comingSoon: "Hier erscheinen die Bestellungen.",
+      payments: {
+        title: "Zahlungen dieser Kasse",
+        loading: "Zahlungen werden geladen…",
+        refresh: "Aktualisieren",
+        refreshing: "Wird aktualisiert…",
+        refreshFailed:
+          "Aktualisieren fehlgeschlagen. Das sind die Zahlungen von vorher.",
+        errorTitle: "Die Zahlungen konnten nicht geladen werden",
+        errorDescription:
+          "Prüfen Sie die Verbindung und versuchen Sie es erneut.",
+        retry: "Erneut versuchen",
+        retrying: "Wird erneut versucht…",
+        emptyTitle: "Noch keine Zahlungen",
+        emptyDescription:
+          "Bestellungen, die an dieser Kasse bezahlt werden, erscheinen hier.",
+        loadMore: "Mehr laden",
+        loadingMore: "Wird geladen…",
+        loadMoreFailed: "Weitere Zahlungen konnten nicht geladen werden.",
+        time: "Zeit",
+        orderCode: "Bestellcode",
+        payer: "Zahlende Person",
+        items: "Gerichte",
+        amount: "Betrag",
+        refunded: "Erstattet",
+        status: "Status",
+        item: "{{quantity}}× {{name}}",
+        refundPending: "{{amount}} in Bearbeitung",
       },
+    },
+    paymentStatus: {
+      pending: "Wird geprüft",
+      confirmed: "Bezahlt",
+      declined: "Abgelehnt",
     },
   },
   dashboard: {
