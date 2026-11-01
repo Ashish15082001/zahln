@@ -291,7 +291,7 @@ Not yet:
 - `GET /config`: a forced update and payments switched off.
 - Picking student, staff or guest before login. The server already sends the
   account's role.
-- Log out on the Settings page. Settings is empty for now, so the app has
+- Log out on the Profile page. Profile is empty for now, so the app has
   no way to log out yet.
 
 The plan for the whole step:

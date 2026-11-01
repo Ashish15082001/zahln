@@ -28,7 +28,7 @@ const en = {
     },
     home: {
       greeting: "Hello, {{name}}",
-      settings: "Settings",
+      profile: "Profile",
       payments: {
         title: "Your payments",
         loading: "Loading your payments…",
@@ -243,8 +243,8 @@ const en = {
       },
       paymentId: "Payment ID: {{paymentId}}",
     },
-    settings: {
-      title: "Settings",
+    profile: {
+      title: "Profile",
       back: "Back",
     },
   },

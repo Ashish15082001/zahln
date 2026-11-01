@@ -31,7 +31,7 @@ const de: Resources = {
     },
     home: {
       greeting: "Hallo, {{name}}",
-      settings: "Einstellungen",
+      profile: "Profil",
       payments: {
         title: "Ihre Zahlungen",
         loading: "Ihre Zahlungen werden geladen…",
@@ -241,8 +241,8 @@ const de: Resources = {
       },
       paymentId: "Zahlungs-ID: {{paymentId}}",
     },
-    settings: {
-      title: "Einstellungen",
+    profile: {
+      title: "Profil",
       back: "Zurück",
     },
   },

@@ -1,4 +1,4 @@
-import { Settings01Icon } from "@hugeicons/core-free-icons";
+import { UserCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@zahln/ui/components/button";
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
@@ -24,8 +24,8 @@ const HomeJSX: FC<HomeJSXProps> = ({ displayName }) => {
       {/* A link styled as a button: it opens another screen, and TalkBack
           says so. An icon only, so the label names it. */}
       <Button asChild size="icon" variant="outline">
-        <Link aria-label={t("home.settings")} to={paths.settings}>
-          <HugeiconsIcon aria-hidden icon={Settings01Icon} />
+        <Link aria-label={t("home.profile")} to={paths.profile}>
+          <HugeiconsIcon aria-hidden icon={UserCircleIcon} />
         </Link>
       </Button>
     </div>

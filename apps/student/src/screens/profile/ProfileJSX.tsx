@@ -5,12 +5,12 @@ import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
 
-export interface SettingsJSXProps {
+export interface ProfileJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
   handleBack: () => void;
 }
 
-const SettingsJSX: FC<SettingsJSXProps> = ({ headingRef, handleBack }) => {
+const ProfileJSX: FC<ProfileJSXProps> = ({ headingRef, handleBack }) => {
   const { t } = useTranslation("student");
 
   const header = (
@@ -19,7 +19,7 @@ const SettingsJSX: FC<SettingsJSXProps> = ({ headingRef, handleBack }) => {
       <div>
         <Button variant="outline" onClick={handleBack}>
           <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
-          {t("settings.back")}
+          {t("profile.back")}
         </Button>
       </div>
       {/* tabIndex -1 so the screen can move focus here on open; it isn't in
@@ -29,18 +29,18 @@ const SettingsJSX: FC<SettingsJSXProps> = ({ headingRef, handleBack }) => {
         className="text-2xl font-semibold outline-none"
         tabIndex={-1}
       >
-        {t("settings.title")}
+        {t("profile.title")}
       </h1>
     </>
   );
 
   return (
     <ScreenLayoutJSX columnWidth="md" header={header}>
-      {/* Empty for now: the settings come later. The layout still draws the
+      {/* Empty for now: the profile comes later. The layout still draws the
           page, so the header stays at the top. */}
       {null}
     </ScreenLayoutJSX>
   );
 };
 
-export default SettingsJSX;
+export default ProfileJSX;

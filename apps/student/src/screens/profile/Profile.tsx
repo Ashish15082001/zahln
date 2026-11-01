@@ -1,9 +1,9 @@
 import { useEffect, useRef, type FC } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { paths } from "../../app/paths";
-import SettingsJSX from "./SettingsJSX";
+import ProfileJSX from "./ProfileJSX";
 
-const Settings: FC = () => {
+const Profile: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -25,7 +25,7 @@ const Settings: FC = () => {
     }
   };
 
-  return <SettingsJSX headingRef={headingRef} handleBack={handleBack} />;
+  return <ProfileJSX headingRef={headingRef} handleBack={handleBack} />;
 };
 
-export default Settings;
+export default Profile;
