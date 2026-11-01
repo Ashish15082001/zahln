@@ -14,6 +14,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import RefreshButtonJSX from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
@@ -129,13 +130,12 @@ const PaymentListJSX: FC<PaymentListJSXProps> = ({
   const header = (
     <div className="flex items-center justify-between gap-4">
       {heading}
-      <Button
-        disabled={state.isFetching}
-        variant="outline"
-        onClick={handleRefresh}
-      >
-        {refreshLabel}
-      </Button>
+      <RefreshButtonJSX
+        isDisabled={state.isFetching}
+        isRefreshing={state.refresh === "refreshing"}
+        label={refreshLabel}
+        handleRefresh={handleRefresh}
+      />
     </div>
   );
   const refreshFailedAlert = state.refresh === "failed" && (

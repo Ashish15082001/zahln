@@ -15,6 +15,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@zahln/ui/components/empty";
+import RefreshButtonJSX from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import type { FC, ReactNode, Ref } from "react";
@@ -129,16 +130,17 @@ const PaymentDetailJSX: FC<PaymentDetailJSXProps> = ({
     );
   } else {
     const { payment } = state;
+    const isRefreshing = state.refresh === "refreshing";
+    const refreshLabel = isRefreshing
+      ? t("paymentDetail.refreshing")
+      : t("paymentDetail.refresh");
     refreshButton = (
-      <Button
-        disabled={state.refresh === "refreshing"}
-        variant="outline"
-        onClick={handleRefresh}
-      >
-        {state.refresh === "refreshing"
-          ? t("paymentDetail.refreshing")
-          : t("paymentDetail.refresh")}
-      </Button>
+      <RefreshButtonJSX
+        isDisabled={isRefreshing}
+        isRefreshing={isRefreshing}
+        label={refreshLabel}
+        handleRefresh={handleRefresh}
+      />
     );
     content = (
       <>
@@ -163,8 +165,7 @@ const PaymentDetailJSX: FC<PaymentDetailJSXProps> = ({
     );
   }
 
-  // The title under Back and Refresh, not between them: "Wird
-  // aktualisiert…" and "Zurück" leave too little of a phone's row for it.
+  // The title under Back and Refresh, as on every screen with Back.
   const header = (
     <>
       <div className="flex items-center justify-between gap-4">
