@@ -246,6 +246,11 @@ const en = {
     profile: {
       title: "Profile",
       back: "Back",
+      priceGroup: {
+        student: "Student prices",
+        staff: "Staff prices",
+        guest: "Guest prices",
+      },
     },
   },
   till: {

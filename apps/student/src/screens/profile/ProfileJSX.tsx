@@ -4,6 +4,7 @@ import { Button } from "@zahln/ui/components/button";
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
+import ProfileSummary from "./profileSummary/ProfileSummary";
 
 export interface ProfileJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
@@ -36,9 +37,7 @@ const ProfileJSX: FC<ProfileJSXProps> = ({ headingRef, handleBack }) => {
 
   return (
     <ScreenLayoutJSX columnWidth="md" header={header}>
-      {/* Empty for now: the profile comes later. The layout still draws the
-          page, so the header stays at the top. */}
-      {null}
+      <ProfileSummary />
     </ScreenLayoutJSX>
   );
 };

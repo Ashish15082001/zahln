@@ -244,6 +244,11 @@ const de: Resources = {
     profile: {
       title: "Profil",
       back: "Zurück",
+      priceGroup: {
+        student: "Preise für Studierende",
+        staff: "Preise für Bedienstete",
+        guest: "Preise für Gäste",
+      },
     },
   },
   till: {
