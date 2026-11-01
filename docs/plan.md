@@ -12,7 +12,7 @@ bigger choices goes in [design.md](design.md).
 | 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                |
 | 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                              |
 | 2    | Till                                                    | In progress: login, order QR and payments list done |
-| 3    | Student app                                             | In progress: login, history and scan done           |
+| 3    | Student app                                             | In progress: login, history, scan and pay done      |
 | 4    | Dashboard                                               | Outline only                                        |
 | 5    | Ship                                                    | Planned                                             |
 
@@ -202,6 +202,10 @@ Done so far:
 | `1f503dc` | When Google's scanner can't run: the app's own camera screen, then typing the order code                                                                                                                                                                       |
 | `9bb9f2b` | `getOrder` moves to `packages/api`, next to the payer's view of an order at their price                                                                                                                                                                        |
 | `e29f45e` | The scanned order: mensa, till, items and the payer's price, with a countdown on the server's clock. Paying, paid, expired, not found and error states                                                                                                         |
+| `3c5eb93` | `payOrder` (`POST /orders/{id}/payments`) in `packages/api`. The idempotency key maker moves there from the till, for both apps                                                                                                                                |
+| `e9ea4e1` | A pay key store that keeps one key per order and amount on the device, `needsSameKey` for when a retry must reuse it, and `toOrderPayState` in `domain` for whether an order can still be paid                                                                 |
+| `abf559e` | The Pay page at `/pay/:orderId`: a scan opens it, with the order, a countdown and Pay, and a message and a next step for every answer. The order page becomes read only                                                                                        |
+| `dbc9b28` | After Pay the page reads the payment every 2 seconds for 30 seconds: Being checked, Paid, Still being checked with Refresh, or back to Pay after a decline. Focus moves to each result                                                                         |
 
 Changes from the plan:
 
@@ -223,13 +227,28 @@ Changes from the plan:
   payer types the code printed under the QR
   ([API gap 8](api-gaps.md#8-no-short-order-code)).
 - **The QR's text is `zahln://pay?order=<id>`,** as the dev server sends it.
-- **A scan opens a read-only order screen for now.** It polls only once the
-  countdown has run out, until the server says expired or paid.
+- **Paying has its own page.** A scan opens the Pay page at `/pay/:orderId`,
+  which shows the order, Pay and every answer, each with a next step. The
+  order page at `/orders/:orderId` is read only, and nothing links to it.
+  The flows and edge cases are in
+  [student-plan.md](student-plan.md#paying).
+- **The key is spent after a clear refusal too,** as on the till, not only
+  after a decline or a changed price: the server may answer a reused key
+  with the same refusal.
+- **A refused token logs out mid-payment.** There is no token renewal yet,
+  so the plan's "logs in again and retries with the same key" isn't built
+  ([API gap 2](api-gaps.md#2-no-refresh-token)).
+- **The payment is read every 2 seconds for 30 seconds,** then the page
+  says "Still being checked" and offers Refresh. History on Home shows the
+  final result.
+- **Pay turns off when the countdown reaches 0,** Check again included. The
+  order is read every 3 seconds until the server says expired or paid.
 
 Not yet:
 
-- Paying: `POST /orders/{id}/payments`, with the key saved before the first
-  send.
+- Biometrics, or the device PIN, before Pay.
+- Renewing the token, so a session that ends mid-payment doesn't lead to
+  the login screen.
 - `GET /config`: a forced update and payments switched off.
 - Picking student, staff or guest before login. The server already sends the
   account's role.
