@@ -249,6 +249,24 @@ const de: Resources = {
         staff: "Preise für Bedienstete",
         guest: "Preise für Gäste",
       },
+      theme: {
+        title: "App-Design",
+        description: "Hell oder dunkel",
+        system: "Wie das Handy",
+        light: "Hell",
+        dark: "Dunkel",
+      },
+      language: {
+        title: "App-Sprache",
+        description: "Englisch oder Deutsch",
+        device: "Wie das Handy",
+        en: "English",
+        de: "Deutsch",
+      },
+      logOut: {
+        title: "Abmelden",
+        description: "Beendet die Sitzung auf diesem Handy",
+      },
     },
   },
   till: {

@@ -4,6 +4,7 @@ import { Button } from "@zahln/ui/components/button";
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
+import ProfileOptions from "./profileOptions/ProfileOptions";
 import ProfileSummary from "./profileSummary/ProfileSummary";
 
 export interface ProfileJSXProps {
@@ -38,6 +39,7 @@ const ProfileJSX: FC<ProfileJSXProps> = ({ headingRef, handleBack }) => {
   return (
     <ScreenLayoutJSX columnWidth="md" header={header}>
       <ProfileSummary />
+      <ProfileOptions />
     </ScreenLayoutJSX>
   );
 };

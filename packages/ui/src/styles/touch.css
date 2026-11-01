@@ -10,7 +10,9 @@
    where a screen needs to. */
 @layer base {
   [data-slot="button"],
-  [data-slot="input"] {
+  [data-slot="input"],
+  [data-slot="select-trigger"],
+  [data-slot="select-item"] {
     min-height: 3rem;
   }
 

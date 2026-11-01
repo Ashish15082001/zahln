@@ -251,6 +251,24 @@ const en = {
         staff: "Staff prices",
         guest: "Guest prices",
       },
+      theme: {
+        title: "App theme",
+        description: "Light or dark",
+        system: "Same as phone",
+        light: "Light",
+        dark: "Dark",
+      },
+      language: {
+        title: "App language",
+        description: "English or German",
+        device: "Same as phone",
+        en: "English",
+        de: "Deutsch",
+      },
+      logOut: {
+        title: "Log out",
+        description: "Ends your session on this phone",
+      },
     },
   },
   till: {
