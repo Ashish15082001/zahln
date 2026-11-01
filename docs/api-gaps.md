@@ -62,3 +62,14 @@ document links here. New gaps are added as the work finds them.
   and keeps checking until then.
 - **I would add:** one sentence in the spec, for example: "An order with a
   pending payment does not expire until that payment is decided."
+
+## 7. No list of orders
+
+- **Problem:** only `GET /orders/{orderId}` exists, so a cashier can't list
+  their till's orders. Once they acknowledge the QR dialog, an order that
+  expired unpaid can't be seen again.
+- **For now:** the till's Payments tab lists the till's payments
+  (`GET /payments`). An order that was never paid isn't in it.
+- **I would add:** `GET /orders` for the cashier, scoped to their till like
+  `GET /orders/{orderId}`, newest first, with a `status` filter and cursor
+  paging.
