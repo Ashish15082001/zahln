@@ -5,8 +5,10 @@ import {
   toOrder,
   toOrderIdFromQr,
   toOrderIdFromTypedCode,
+  toOrderPayState,
   toPayerOrder,
   type Order,
+  type PayerOrder,
 } from "./frontend";
 
 /** An order as the server sends it to the cashier who made it. */
@@ -241,5 +243,125 @@ describe("toPayerOrder", () => {
     });
 
     expect(toPayerOrder(parsed)?.paymentId).toBeNull();
+  });
+});
+
+/** An order as the payer sees it, with no payment unless a test says so. */
+const payerOrder = (
+  status: PayerOrder["status"],
+  paymentId: string | null = null,
+): PayerOrder => ({
+  id: "ord_1",
+  status,
+  mensaName: "Mensa Nord",
+  tillName: "Kasse 2",
+  items: [],
+  amountCents: 320,
+  priceGroup: "student",
+  expiresAtMs: 0,
+  version: 1,
+  paymentId,
+});
+
+/** The payment Pay brought back for ord_1. */
+const sentPayment = (status: "pending" | "confirmed" | "declined") => ({
+  id: "pay_1",
+  orderId: "ord_1",
+  status,
+});
+
+describe("toOrderPayState", () => {
+  it("can be paid when it is open and nothing was sent", () => {
+    expect(toOrderPayState(payerOrder("open"), undefined)).toEqual({
+      status: "open",
+    });
+  });
+
+  it("ignores a payment sent for another order", () => {
+    expect(
+      toOrderPayState(payerOrder("open"), {
+        ...sentPayment("pending"),
+        orderId: "ord_2",
+      }),
+    ).toEqual({ status: "open" });
+  });
+
+  it("never offers Pay again while the sent payment is being checked", () => {
+    expect(toOrderPayState(payerOrder("open"), sentPayment("pending"))).toEqual(
+      { status: "ownPayment", paymentId: "pay_1", paymentStatus: "pending" },
+    );
+  });
+
+  it("shows a confirmed payment before the order says paid", () => {
+    expect(
+      toOrderPayState(payerOrder("paying", "pay_1"), sentPayment("confirmed")),
+    ).toEqual({
+      status: "ownPayment",
+      paymentId: "pay_1",
+      paymentStatus: "confirmed",
+    });
+  });
+
+  it("can be paid again once the sent payment was declined", () => {
+    expect(
+      toOrderPayState(payerOrder("paying", "pay_1"), sentPayment("declined")),
+    ).toEqual({ status: "open" });
+    expect(
+      toOrderPayState(payerOrder("open"), sentPayment("declined")),
+    ).toEqual({ status: "open" });
+  });
+
+  it("leaves someone else's payment in place after a decline", () => {
+    expect(
+      toOrderPayState(payerOrder("paying"), sentPayment("declined")),
+    ).toEqual({ status: "closed", orderStatus: "paying" });
+  });
+
+  it("finds the payer's own payment from the order alone", () => {
+    expect(toOrderPayState(payerOrder("paying", "pay_9"), undefined)).toEqual({
+      status: "ownPayment",
+      paymentId: "pay_9",
+      paymentStatus: "pending",
+    });
+    expect(toOrderPayState(payerOrder("paid", "pay_9"), undefined)).toEqual({
+      status: "ownPayment",
+      paymentId: "pay_9",
+      paymentStatus: "confirmed",
+    });
+  });
+
+  it("is closed when someone else pays or the time ran out", () => {
+    expect(toOrderPayState(payerOrder("paying"), undefined)).toEqual({
+      status: "closed",
+      orderStatus: "paying",
+    });
+    expect(toOrderPayState(payerOrder("paid"), undefined)).toEqual({
+      status: "closed",
+      orderStatus: "paid",
+    });
+    expect(toOrderPayState(payerOrder("expired"), undefined)).toEqual({
+      status: "closed",
+      orderStatus: "expired",
+    });
+  });
+
+  it("takes paid from the order over a payment still pending", () => {
+    expect(
+      toOrderPayState(payerOrder("paid", "pay_1"), sentPayment("pending")),
+    ).toEqual({
+      status: "ownPayment",
+      paymentId: "pay_1",
+      paymentStatus: "confirmed",
+    });
+  });
+
+  it("never says expired while the sent payment may still go through", () => {
+    expect(
+      toOrderPayState(payerOrder("expired"), sentPayment("pending")),
+    ).toEqual({
+      status: "ownPayment",
+      paymentId: "pay_1",
+      paymentStatus: "pending",
+    });
   });
 });

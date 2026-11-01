@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, isOutcomeUnknown, isRetryable } from "./errors";
+import {
+  ApiError,
+  isOutcomeUnknown,
+  isRetryable,
+  needsSameKey,
+} from "./errors";
 
 /** An ApiError as if the server had answered with this error. */
 const problem = (status: number, code: string, retryable: boolean): ApiError =>
@@ -47,5 +52,36 @@ describe("isRetryable", () => {
       isRetryable(new ApiError({ kind: "noResponse", reason: "timeout" })),
     ).toBe(true);
     expect(isRetryable(new ApiError({ kind: "signedOut" }))).toBe(false);
+  });
+});
+
+describe("needsSameKey", () => {
+  it("keeps the key while the request may have been saved", () => {
+    expect(
+      needsSameKey(new ApiError({ kind: "noResponse", reason: "network" })),
+    ).toBe(true);
+    expect(needsSameKey(problem(504, "timeout", true))).toBe(true);
+    // A saved payment whose reply can't be read, and the server says no retry.
+    expect(
+      needsSameKey(
+        new ApiError({ kind: "invalidResponse", status: 201, issues: "x" }),
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps the key while sending it again may pass", () => {
+    expect(needsSameKey(problem(503, "unavailable", true))).toBe(true);
+  });
+
+  it("frees the key once the server has clearly refused", () => {
+    expect(needsSameKey(problem(409, "order_expired", false))).toBe(false);
+    expect(needsSameKey(problem(422, "idempotency_mismatch", false))).toBe(
+      false,
+    );
+    expect(needsSameKey(new ApiError({ kind: "signedOut" }))).toBe(false);
+  });
+
+  it("keeps the key after an error that isn't the API's", () => {
+    expect(needsSameKey(new TypeError("surprise"))).toBe(true);
   });
 });

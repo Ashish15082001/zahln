@@ -107,3 +107,14 @@ export const isOutcomeUnknown = (error: ApiError): boolean => {
       return false;
   }
 };
+
+/**
+ * Whether the next try of this intent must send the same idempotency key:
+ * the server may have saved the request (a lost reply), or it may pass if
+ * sent again. Only a clear refusal frees the key, and then the next try must
+ * not reuse it, since the server may answer a reused key with that refusal
+ * again. Anything that isn't an ApiError is a surprise, so the key is kept:
+ * resending it can never do the thing twice.
+ */
+export const needsSameKey = (error: unknown): boolean =>
+  !isApiError(error) || isRetryable(error) || isOutcomeUnknown(error);

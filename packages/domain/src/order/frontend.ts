@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LocalizedTextResponseSchema } from "../mensa/backend";
+import type { Payment } from "../payment/frontend";
 import { PriceGroupSchema } from "../user/frontend";
 import { OrderStatusResponseSchema, type OrderResponse } from "./backend";
 
@@ -115,6 +116,70 @@ export const newerOrder = <OrderCopy extends { version: number }>(
   cachedOrder && cachedOrder.version > receivedOrder.version
     ? cachedOrder
     : receivedOrder;
+
+/** Whether the payer can pay an order, and if not, why. */
+export type OrderPayState =
+  | { status: "open" }
+  // The payer's own payment, being checked or paid.
+  | {
+      status: "ownPayment";
+      paymentId: string;
+      paymentStatus: "pending" | "confirmed";
+    }
+  // Someone else's payment holds it or paid it, or its time ran out.
+  | { status: "closed"; orderStatus: "paying" | "paid" | "expired" };
+
+/**
+ * Whether the payer can pay `order`, given the payment Pay last brought back
+ * for it, if any. The order's paymentId is only ever the payer's own, so it
+ * tells their payment from someone else's. The sent payment's answer can be
+ * newer than the last order read, so it wins: a read that still says `open`
+ * must not offer Pay again while their payment is checked, and one that
+ * still says `paying` must not hide that it was declined. Only paid, which is
+ * final, wins over it.
+ */
+export const toOrderPayState = (
+  order: PayerOrder,
+  sentPayment: Pick<Payment, "id" | "orderId" | "status"> | undefined,
+): OrderPayState => {
+  const isSentForThisOrder = sentPayment?.orderId === order.id;
+
+  if (order.status === "paid") {
+    return order.paymentId === null
+      ? { status: "closed", orderStatus: "paid" }
+      : {
+          status: "ownPayment",
+          paymentId: order.paymentId,
+          paymentStatus: "confirmed",
+        };
+  }
+  // Before expired too: "nothing was paid" would be untrue while their
+  // payment may still go through.
+  if (isSentForThisOrder && sentPayment.status !== "declined") {
+    return {
+      status: "ownPayment",
+      paymentId: sentPayment.id,
+      paymentStatus: sentPayment.status,
+    };
+  }
+  if (order.status === "expired") {
+    return { status: "closed", orderStatus: "expired" };
+  }
+  if (order.status === "paying") {
+    // Declined: a read from before the decline still names this payment.
+    if (isSentForThisOrder && order.paymentId === sentPayment.id) {
+      return { status: "open" };
+    }
+    return order.paymentId === null
+      ? { status: "closed", orderStatus: "paying" }
+      : {
+          status: "ownPayment",
+          paymentId: order.paymentId,
+          paymentStatus: "pending",
+        };
+  }
+  return { status: "open" };
+};
 
 // ---- the till's QR code
 
