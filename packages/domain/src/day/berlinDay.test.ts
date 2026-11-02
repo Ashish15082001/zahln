@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addDays,
   berlinDayOf,
+  berlinDayStartIso,
   fromPickerDate,
   parseBerlinDay,
   toPickerDate,
@@ -33,6 +34,30 @@ describe("addDays", () => {
     expect(addDays("2026-10-25", 1)).toBe("2026-10-26");
     expect(addDays("2026-10-26", -1)).toBe("2026-10-25");
     expect(addDays("2027-03-28", 1)).toBe("2027-03-29");
+  });
+});
+
+describe("berlinDayStartIso", () => {
+  it("starts a summer day at +02:00 and a winter day at +01:00", () => {
+    expect(berlinDayStartIso("2026-10-20")).toBe("2026-10-20T00:00:00+02:00");
+    expect(berlinDayStartIso("2026-11-02")).toBe("2026-11-02T00:00:00+01:00");
+  });
+
+  it("takes the offset of midnight on the days the clocks change", () => {
+    // The clocks go back at 03:00 on 25 Oct 2026, so midnight is still summer
+    // time; they go forward at 02:00 on 28 Mar 2027, so midnight is winter
+    // time.
+    expect(berlinDayStartIso("2026-10-25")).toBe("2026-10-25T00:00:00+02:00");
+    expect(berlinDayStartIso("2026-10-26")).toBe("2026-10-26T00:00:00+01:00");
+    expect(berlinDayStartIso("2027-03-28")).toBe("2027-03-28T00:00:00+01:00");
+    expect(berlinDayStartIso("2027-03-29")).toBe("2027-03-29T00:00:00+02:00");
+  });
+
+  it("is the moment berlinDayOf calls the start of that day", () => {
+    const startMs = Date.parse(berlinDayStartIso("2026-10-25"));
+
+    expect(berlinDayOf(startMs)).toBe("2026-10-25");
+    expect(berlinDayOf(startMs - 1)).toBe("2026-10-24");
   });
 });
 

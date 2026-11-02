@@ -44,6 +44,30 @@ export const berlinDayOf = (ms: number): BerlinDay => {
 export const addDays = (day: BerlinDay, count: number): BerlinDay =>
   new Date(toUtcMidnightMs(day) + count * DAY_MS).toISOString().slice(0, 10);
 
+// Berlin's offset from UTC as "GMT+01:00" or "GMT+02:00".
+const berlinOffsetFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Europe/Berlin",
+  timeZoneName: "longOffset",
+});
+
+/**
+ * The moment the day starts in Berlin, with its offset, e.g.
+ * "2026-10-20T00:00:00+02:00": what GET /payments takes as `from` and `to`.
+ * The offset is read at midnight UTC, when it is already that day in Berlin
+ * and before 02:00 there, when the clocks change, so it is the offset of
+ * Berlin's own midnight that day.
+ */
+export const berlinDayStartIso = (day: BerlinDay): string => {
+  const offsetName =
+    berlinOffsetFormat
+      .formatToParts(toUtcMidnightMs(day))
+      .find((part) => part.type === "timeZoneName")?.value ?? "GMT";
+  // "GMT" alone means no offset. Berlin never has one, but it is still a
+  // moment the server takes.
+  const offset = offsetName === "GMT" ? "Z" : offsetName.slice("GMT".length);
+  return `${day}T00:00:00${offset}`;
+};
+
 /** The day in `text`, e.g. from the URL, or null when it isn't one. */
 export const parseBerlinDay = (text: string | null): BerlinDay | null => {
   const parseResult = BerlinDaySchema.safeParse(text);

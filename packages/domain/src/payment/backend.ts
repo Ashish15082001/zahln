@@ -3,13 +3,33 @@ import { LocalizedTextResponseSchema } from "../mensa/backend";
 import { RefResponseSchema } from "../order/backend";
 import { PriceGroupResponseSchema } from "../user/backend";
 
+// ---- a payment's status, which GET /payments also filters by
+
+/** pending: still being checked, which can last minutes. */
+export const PaymentStatusResponseSchema = z.enum([
+  "pending",
+  "confirmed",
+  "declined",
+]);
+
 // ---- what GET /payments takes, as query parameters
 
-// Only paging for now. The spec's filters (mensa, till, status, dates, search)
-// come with the dashboard, the first screen that sets them.
+// Paging, and the dashboard's filters, which all combine with AND. from and
+// to are moments with an offset: the server refuses a bare date, since which
+// moment a day starts depends on the time zone. q is the start of a payment,
+// order or payer id.
 export const PaymentListRequestSchema = z.object({
   limit: z.int().min(1).max(200).optional(),
   cursor: z.string().min(1).optional(),
+  mensaId: z.string().min(1).optional(),
+  tillId: z.string().min(1).optional(),
+  status: PaymentStatusResponseSchema.optional(),
+  // Created at or after.
+  from: z.iso.datetime({ offset: true }).optional(),
+  // Created before.
+  to: z.iso.datetime({ offset: true }).optional(),
+  needsAttention: z.boolean().optional(),
+  q: z.string().min(1).max(100).optional(),
 });
 
 export interface PaymentListRequest extends z.infer<
@@ -30,13 +50,6 @@ export interface CreatePaymentRequest extends z.infer<
 > {}
 
 // ---- a payment, as GET /payments lists it and POST .../payments returns it
-
-/** pending: still being checked, which can last minutes. */
-export const PaymentStatusResponseSchema = z.enum([
-  "pending",
-  "confirmed",
-  "declined",
-]);
 
 export const PaymentItemResponseSchema = z.object({
   itemId: z.string().min(1),

@@ -9,6 +9,7 @@ import {
   type PaymentResponse,
   type RefundResponse,
 } from "./backend";
+import { PriceGroupSchema } from "../user/frontend";
 
 // ---- enums: the same values in the app as on the wire
 
@@ -33,6 +34,19 @@ export const PaymentEventTypeSchema = z.enum([
 export type PaymentEventType = z.infer<typeof PaymentEventTypeSchema>;
 
 const PaymentEventTypeOrOtherSchema = PaymentEventTypeSchema.catch("other");
+
+// Why finance should look at a payment: the spec's reasons, and `other` for
+// any the app doesn't know yet, so a screen always has words for it. The wire
+// accepts any string, like the event types.
+export const AttentionReasonSchema = z.enum([
+  "pending_too_long",
+  "refund_pending_too_long",
+  "refund_failed",
+  "other",
+]);
+export type AttentionReason = z.infer<typeof AttentionReasonSchema>;
+
+const AttentionReasonOrOtherSchema = AttentionReasonSchema.catch("other");
 
 // ---- shapes used in the app
 
@@ -95,6 +109,37 @@ export const CashierPaymentPageSchema = z.object({
 
 export interface CashierPaymentPage extends z.infer<
   typeof CashierPaymentPageSchema
+> {}
+
+/**
+ * A payment as the dashboard lists it: the payer's fields and everything
+ * finance checks. Who paid, by id as well, since the search takes ids; where,
+ * at which price group; what can still be refunded; and why it needs
+ * attention.
+ */
+export const FinancePaymentSchema = PaymentSchema.extend({
+  payerId: z.string().min(1),
+  payerName: z.string(),
+  priceGroup: PriceGroupSchema,
+  mensaId: z.string().min(1),
+  tillId: z.string().min(1),
+  tillName: z.string(),
+  refundableAmountCents: z.int().min(0),
+  needsAttention: z.boolean(),
+  attentionReasons: z.array(AttentionReasonSchema),
+});
+
+export interface FinancePayment extends z.infer<typeof FinancePaymentSchema> {}
+
+/** One page of every mensa's payments, newest first. */
+export const FinancePaymentPageSchema = z.object({
+  payments: z.array(FinancePaymentSchema),
+  /** Null on the last page. */
+  nextCursor: z.string().min(1).nullable(),
+});
+
+export interface FinancePaymentPage extends z.infer<
+  typeof FinancePaymentPageSchema
 > {}
 
 /** A refund as the payer sees it. A completed one is money back. */
@@ -164,6 +209,30 @@ export const toCashierPaymentPage = (
   response: PaymentPageResponse,
 ): CashierPaymentPage => ({
   payments: response.items.map(toCashierPayment),
+  nextCursor: response.nextCursor,
+});
+
+export const toFinancePayment = (
+  response: PaymentResponse,
+): FinancePayment => ({
+  ...toPayment(response),
+  payerId: response.payer.id,
+  payerName: response.payer.displayName,
+  priceGroup: response.priceGroup,
+  mensaId: response.mensa.id,
+  tillId: response.till.id,
+  tillName: response.till.name,
+  refundableAmountCents: response.refundableAmountCents,
+  needsAttention: response.needsAttention,
+  attentionReasons: response.attentionReasons.map((reason) =>
+    AttentionReasonOrOtherSchema.parse(reason),
+  ),
+});
+
+export const toFinancePaymentPage = (
+  response: PaymentPageResponse,
+): FinancePaymentPage => ({
+  payments: response.items.map(toFinancePayment),
   nextCursor: response.nextCursor,
 });
 

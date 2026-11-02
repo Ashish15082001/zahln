@@ -10,6 +10,8 @@ import {
   newerPayment,
   toCashierPayment,
   toCashierPaymentPage,
+  toFinancePayment,
+  toFinancePaymentPage,
   toPayment,
   toPaymentDetail,
   toPaymentList,
@@ -75,6 +77,25 @@ describe("PaymentListRequestSchema", () => {
     expect(limit(200)).toBe(true);
     expect(limit(0)).toBe(false);
     expect(limit(201)).toBe(false);
+  });
+
+  it("takes from and to only with an offset", () => {
+    const from = (moment: string) =>
+      PaymentListRequestSchema.safeParse({ from: moment }).success;
+
+    expect(from("2026-10-20T00:00:00+02:00")).toBe(true);
+    expect(from("2026-10-20T00:00:00Z")).toBe(true);
+    expect(from("2026-10-20T00:00:00")).toBe(false);
+    expect(from("2026-10-20")).toBe(false);
+  });
+
+  it("takes only the spec's statuses", () => {
+    expect(
+      PaymentListRequestSchema.safeParse({ status: "pending" }).success,
+    ).toBe(true);
+    expect(
+      PaymentListRequestSchema.safeParse({ status: "refunded" }).success,
+    ).toBe(false);
   });
 });
 
@@ -189,6 +210,58 @@ describe("toCashierPayment", () => {
       refundableAmountCents: 280,
       needsAttention: true,
     });
+  });
+});
+
+describe("toFinancePayment", () => {
+  it("adds who paid, where, the price group and why it needs attention", () => {
+    const parsed = PaymentResponseSchema.parse({
+      ...paymentResponse,
+      refundedAmountCents: 130,
+      refundableAmountCents: 280,
+      needsAttention: true,
+      attentionReasons: ["refund_failed", "pending_too_long"],
+    });
+
+    expect(toFinancePayment(parsed)).toEqual({
+      ...toPayment(parsed),
+      payerId: "usr_student",
+      payerName: "Test Student",
+      priceGroup: "student",
+      mensaId: "mensa_nord",
+      tillId: "till_nord_1",
+      tillName: "Kasse 1",
+      refundableAmountCents: 280,
+      needsAttention: true,
+      attentionReasons: ["refund_failed", "pending_too_long"],
+    });
+  });
+
+  it("calls a reason the app doesn't know yet other", () => {
+    const parsed = PaymentResponseSchema.parse({
+      ...paymentResponse,
+      needsAttention: true,
+      attentionReasons: ["chargeback_opened"],
+    });
+
+    expect(toFinancePayment(parsed).attentionReasons).toEqual(["other"]);
+  });
+});
+
+describe("toFinancePaymentPage", () => {
+  it("keeps the order of the payments and the cursor", () => {
+    const page = toFinancePaymentPage(
+      PaymentPageResponseSchema.parse({
+        items: [paymentResponse, { ...paymentResponse, id: "pay_2" }],
+        nextCursor: "cursor_2",
+      }),
+    );
+
+    expect(page.payments.map((listed) => listed.id)).toEqual([
+      "pay_b363fa8001a7cbd1",
+      "pay_2",
+    ]);
+    expect(page.nextCursor).toBe("cursor_2");
   });
 });
 
