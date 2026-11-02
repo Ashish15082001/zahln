@@ -103,3 +103,14 @@ export const localKeyValueStorage: KeyValueStorage = {
   set: (key, value) => localStorage.setItem(key, value),
   remove: (key) => localStorage.removeItem(key),
 };
+
+/**
+ * The browser tab's sessionStorage, where the dashboard keeps its login. It
+ * outlives a reload but not the tab, so closing the tab on a shared office
+ * computer leaves no token behind, which localStorage would.
+ */
+export const tabKeyValueStorage: KeyValueStorage = {
+  get: (key) => sessionStorage.getItem(key),
+  set: (key, value) => sessionStorage.setItem(key, value),
+  remove: (key) => sessionStorage.removeItem(key),
+};
