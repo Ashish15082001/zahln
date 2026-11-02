@@ -241,6 +241,7 @@ Done so far:
 | `5e5e0aa` | Each student screen's header, content and footer are components of their own, handed to `ScreenLayoutJSX`, which takes the content as a prop like the other two. Parts only one screen uses sit in its `components/` folder                                    |
 | `0974dac` | Student screens named for what they are: `homeScreen/` with `homeHeader/`, `homeContent/` and `homeFooter/`. Pay's footer picks the Pay button or the result's buttons. No component keeps markup in a variable                                                |
 | `c842e93` | Every student component is a container and its JSX, and a parent always renders the container. Labels and a closed order's message are worked out in the container                                                                                             |
+| `57bd4a5` | The till gets the same shape: `homeScreen/` with `homeHeader/`, `homeContent/` and `homeFooter/` inside the tabs, `loginScreen/` and `welcomeScreen/`, and a container beside every JSX                                                                        |
 
 Changes from the plan:
 
