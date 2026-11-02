@@ -1,12 +1,12 @@
 import { createBrowserRouter, Navigate } from "react-router";
-import Home from "../screens/home/Home";
-import Login from "../screens/login/Login";
-import Order from "../screens/order/Order";
-import Pay from "../screens/pay/Pay";
-import PaymentDetail from "../screens/paymentDetail/PaymentDetail";
-import Profile from "../screens/profile/Profile";
-import Scan from "../screens/scan/Scan";
-import Welcome from "../screens/welcome/Welcome";
+import HomeScreen from "../screens/homeScreen/HomeScreen";
+import LoginScreen from "../screens/loginScreen/LoginScreen";
+import OrderScreen from "../screens/orderScreen/OrderScreen";
+import PayScreen from "../screens/payScreen/PayScreen";
+import PaymentDetailScreen from "../screens/paymentDetailScreen/PaymentDetailScreen";
+import ProfileScreen from "../screens/profileScreen/ProfileScreen";
+import ScanScreen from "../screens/scanScreen/ScanScreen";
+import WelcomeScreen from "../screens/welcomeScreen/WelcomeScreen";
 import { paths } from "./paths";
 import SignedInOnly from "./signedInOnly/SignedInOnly";
 import SignedOutOnly from "./signedOutOnly/SignedOutOnly";
@@ -17,19 +17,19 @@ export const router = createBrowserRouter([
   {
     element: <SignedOutOnly />,
     children: [
-      { path: paths.welcome, element: <Welcome /> },
-      { path: paths.login, element: <Login /> },
+      { path: paths.welcome, element: <WelcomeScreen /> },
+      { path: paths.login, element: <LoginScreen /> },
     ],
   },
   {
     element: <SignedInOnly />,
     children: [
-      { path: paths.home, element: <Home /> },
-      { path: paths.payment, element: <PaymentDetail /> },
-      { path: paths.order, element: <Order /> },
-      { path: paths.pay, element: <Pay /> },
-      { path: paths.scan, element: <Scan /> },
-      { path: paths.profile, element: <Profile /> },
+      { path: paths.home, element: <HomeScreen /> },
+      { path: paths.payment, element: <PaymentDetailScreen /> },
+      { path: paths.order, element: <OrderScreen /> },
+      { path: paths.pay, element: <PayScreen /> },
+      { path: paths.scan, element: <ScanScreen /> },
+      { path: paths.profile, element: <ProfileScreen /> },
     ],
   },
   // Capacitor and Vite serve index.html for any path, so an unknown one would
