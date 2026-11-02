@@ -16,11 +16,20 @@ const de: Resources = {
     login: {
       title: "Anmelden",
       description:
-        "Melden Sie sich mit Ihrem Konto für Studierende, Bedienstete oder Gäste an.",
-      username: "Benutzername",
-      password: "Passwort",
+        "Wählen Sie einen Testnutzer. Dieselbe Bestellung kostet für jeden einen anderen Betrag.",
       submit: "Anmelden",
       submitting: "Anmeldung läuft…",
+      testUsers: {
+        student: {
+          title: "Studierende",
+          description: "Zahlt Preise für Studierende.",
+        },
+        staff: {
+          title: "Bedienstete",
+          description: "Zahlt Preise für Bedienstete.",
+        },
+        guest: { title: "Gäste", description: "Zahlt Preise für Gäste." },
+      },
       errors: {
         wrongPassword: "Benutzername oder Passwort ist falsch.",
         notPayer: "Mit diesem Konto kann die Zahln-App nicht benutzt werden.",

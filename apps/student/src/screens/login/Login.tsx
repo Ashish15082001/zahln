@@ -1,12 +1,14 @@
-import { useState, type FC, type FormEvent } from "react";
+import type { PriceGroup } from "@zahln/domain/user/frontend";
+import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { loginErrorReason } from "../../data/loginError";
 import { useLogin } from "../../data/session";
-import LoginJSX, { type LoginStatus } from "./LoginJSX";
+import { TEST_USERS } from "../../data/testUsers";
+import LoginJSX, { type LoginStatus, type TestUserOption } from "./LoginJSX";
 
 const Login: FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  // Success needs no navigate() call in the submit handler: the session
+  const { t } = useTranslation("student");
+  // Success needs no navigate() call in the click handler: the session
   // changes, and SignedOutOnly around this screen redirects to Home.
   const login = useLogin();
 
@@ -15,22 +17,30 @@ const Login: FC = () => {
   else if (login.isError) status = "error";
 
   const errorReason = login.isError ? loginErrorReason(login.error) : null;
+  // Whose card was tapped, read from the login being sent rather than kept
+  // in a state of its own, so it can't outlive that login.
+  const loggingInUsername = login.isPending ? login.variables.username : null;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
-    // Without this the browser reloads the page and the WebView starts over.
-    event.preventDefault();
-    login.mutate({ username: username.trim(), password });
+  const testUserOptions: TestUserOption[] = TEST_USERS.map((testUser) => ({
+    description: t(`login.testUsers.${testUser.priceGroup}.description`),
+    isLoggingIn: testUser.credentials.username === loggingInUsername,
+    priceGroup: testUser.priceGroup,
+    title: t(`login.testUsers.${testUser.priceGroup}.title`),
+  }));
+
+  const handleLogIn = (priceGroup: PriceGroup): void => {
+    const testUser = TEST_USERS.find(
+      (candidate) => candidate.priceGroup === priceGroup,
+    );
+    if (testUser) login.mutate(testUser.credentials);
   };
 
   return (
     <LoginJSX
       errorReason={errorReason}
-      password={password}
       status={status}
-      username={username}
-      handleChangePassword={setPassword}
-      handleChangeUsername={setUsername}
-      handleSubmit={handleSubmit}
+      testUserOptions={testUserOptions}
+      handleLogIn={handleLogIn}
     />
   );
 };

@@ -13,11 +13,15 @@ const en = {
     },
     login: {
       title: "Log in",
-      description: "Log in with your student, staff or guest account.",
-      username: "Username",
-      password: "Password",
+      description:
+        "Pick a test user. The same order costs each of them a different amount.",
       submit: "Log in",
       submitting: "Logging in…",
+      testUsers: {
+        student: { title: "Student", description: "Pays student prices." },
+        staff: { title: "Staff", description: "Pays staff prices." },
+        guest: { title: "Guest", description: "Pays guest prices." },
+      },
       errors: {
         wrongPassword: "Wrong username or password.",
         notPayer: "This account can't use the Zahln app.",
