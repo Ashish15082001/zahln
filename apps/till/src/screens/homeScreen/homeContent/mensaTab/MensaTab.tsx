@@ -14,7 +14,7 @@ import {
   useCreateOrder,
   type CreateOrderInput,
 } from "../../../../data/order";
-import { useSession } from "../../../../data/session";
+import { useTillSession } from "../../../../data/session";
 import {
   applyRowSelection,
   changeQuantity,
@@ -34,7 +34,7 @@ export interface MensaTabProps {
 }
 
 const MensaTab: FC<MensaTabProps> = ({ createOrderSlot }) => {
-  const session = useSession();
+  const tillSession = useTillSession();
   const mensaQuery = useMensa();
   const { t, i18n } = useTranslation("till");
   // i18next only resolves to a supported language. pickLanguage narrows the
@@ -69,7 +69,7 @@ const MensaTab: FC<MensaTabProps> = ({ createOrderSlot }) => {
   // New rows only when the menu or the cart changes.
   const menuRows = useMemo(() => toMenuRows(menu ?? [], cart), [menu, cart]);
 
-  if (session.status !== "signedIn") return null;
+  if (tillSession.status !== "signedIn") return null;
 
   // Data before error: a failed refetch doesn't make a loaded menu wrong.
   let state: MensaTabState = { status: "loading" };
@@ -78,7 +78,7 @@ const MensaTab: FC<MensaTabProps> = ({ createOrderSlot }) => {
     state = { status: "notFound" };
   } else if (mensa !== undefined) {
     const till = mensa.tills.find(
-      (candidate) => candidate.id === session.cashier.tillId,
+      (candidate) => candidate.id === tillSession.cashier.tillId,
     );
     // The city and the till's name are both from the server, so the dot
     // between them is the only text here, and it reads the same in any

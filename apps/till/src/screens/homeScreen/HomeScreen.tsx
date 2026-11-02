@@ -1,5 +1,5 @@
 import { useState, type FC } from "react";
-import { useSession } from "../../data/session";
+import { useTillSession } from "../../data/session";
 import HomeScreenJSX, { type HomeTab } from "./HomeScreenJSX";
 
 // Radix hands back any string; only the tabs the screen has are taken.
@@ -9,7 +9,7 @@ const isHomeTab = (value: string): value is HomeTab =>
 // Only reached signed in: SignedInOnly sends anyone else to Login. The guard
 // covers the render in which a log-out lands, so no part of Home shows then.
 const HomeScreen: FC = () => {
-  const session = useSession();
+  const tillSession = useTillSession();
   // Kept here rather than inside Tabs, so the Payments tab can tell it's on
   // screen: it fetches only then.
   const [selectedTab, setSelectedTab] = useState<HomeTab>("mensa");
@@ -18,7 +18,7 @@ const HomeScreen: FC = () => {
   const [createOrderSlot, setCreateOrderSlot] = useState<HTMLElement | null>(
     null,
   );
-  if (session.status !== "signedIn") return null;
+  if (tillSession.status !== "signedIn") return null;
 
   const isMensaTabShown = selectedTab === "mensa";
   const isPaymentsTabShown = selectedTab === "payments";

@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { Navigate, Outlet, ScrollRestoration } from "react-router";
-import { useSession } from "../../data/session";
+import { useAppSession } from "../../data/session";
 import { paths } from "../paths";
 
 /**
@@ -10,12 +10,12 @@ import { paths } from "../paths";
  * was open.
  *
  * A component, not a route loader: a loader runs only on navigation, and Log
- * out or a refused token ends the session without one. useSession re-renders
+ * out or a refused token ends the session without one. useAppSession re-renders
  * this on every change, so the redirect follows.
  */
 const SignedInOnly: FC = () => {
-  const session = useSession();
-  if (session.status !== "signedIn") {
+  const appSession = useAppSession();
+  if (appSession.status !== "signedIn") {
     return <Navigate replace to={paths.login} />;
   }
 

@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { useSession } from "../../../../data/session";
+import { useAppSession } from "../../../../data/session";
 import ProfileSummaryJSX from "./ProfileSummaryJSX";
 
 // The name's first letter, for the avatar. Composed first, so an accent sent
@@ -13,10 +13,10 @@ const getNameInitial = (displayName: string): string =>
 // below narrows the type, and covers the render in which a log-out lands.
 const ProfileSummary: FC = () => {
   const { t } = useTranslation("student");
-  const session = useSession();
-  if (session.status !== "signedIn") return null;
+  const appSession = useAppSession();
+  if (appSession.status !== "signedIn") return null;
 
-  const { displayName, priceGroup } = session.payer;
+  const { displayName, priceGroup } = appSession.payer;
   const nameInitial = getNameInitial(displayName);
   const priceGroupLabel = t(`profile.priceGroup.${priceGroup}`);
 

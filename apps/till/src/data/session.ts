@@ -22,10 +22,10 @@ import { queryClient } from "./queryClient";
 export type TillSession =
   { status: "signedIn"; cashier: Cashier } | { status: "signedOut" };
 
-const sessionQueryKey = ["session"] as const;
+const tillSessionQueryKey = ["tillSession"] as const;
 
 /** The till's saved login, so a reopen doesn't mean logging in again. */
-const sessionStore = createSessionStore<CashierSession>({
+const cashierSessionStore = createSessionStore<CashierSession>({
   storage: localKeyValueStorage,
   // Unchanged since the store moved to @zahln/api, so a login saved before
   // that still opens the till.
@@ -36,7 +36,7 @@ const sessionStore = createSessionStore<CashierSession>({
 // Who is logged in, with their token: the one record of the login. Read from
 // storage once, before the first render, so a reopen goes straight in without
 // a flash of the login screen, until the token runs out.
-let cashierSession: CashierSession | null = sessionStore.load();
+let cashierSession: CashierSession | null = cashierSessionStore.load();
 
 /**
  * The part of `cashierSession` screens see. The token stays behind: the query
@@ -49,14 +49,14 @@ const toTillSession = (): TillSession =>
 
 /**
  * Replaces the login, in memory and in storage alike, and re-renders every
- * screen that uses useSession. The one place either changes, so they can't
+ * screen that uses useTillSession. The one place either changes, so they can't
  * disagree.
  */
 const setCashierSession = (newCashierSession: CashierSession | null): void => {
   cashierSession = newCashierSession;
-  if (newCashierSession) sessionStore.save(newCashierSession);
-  else sessionStore.clear();
-  queryClient.setQueryData(sessionQueryKey, toTillSession());
+  if (newCashierSession) cashierSessionStore.save(newCashierSession);
+  else cashierSessionStore.clear();
+  queryClient.setQueryData(tillSessionQueryKey, toTillSession());
 };
 
 /**
@@ -65,12 +65,12 @@ const setCashierSession = (newCashierSession: CashierSession | null): void => {
  * screen.
  */
 export const logOut = (): void => {
-  sessionRenewal.forgetCredentials();
+  cashierSessionRenewal.forgetCredentials();
   // The rest of the cache belongs to this cashier, so the next one never sees
   // it. The session query stays: screens are subscribed to that very entry,
   // and a new one would never reach them.
   queryClient.removeQueries({
-    predicate: (query) => query.queryKey[0] !== sessionQueryKey[0],
+    predicate: (query) => query.queryKey[0] !== tillSessionQueryKey[0],
   });
   setCashierSession(null);
 };
@@ -87,7 +87,7 @@ const serverClock = createServerClock();
  * never closes an open QR. The password from this run's login is kept in
  * memory only: after a reopen there is none, and a refused token logs out.
  */
-const sessionRenewal = createSessionRenewal<CashierSession>({
+const cashierSessionRenewal = createSessionRenewal<CashierSession>({
   getSession: () => cashierSession,
   setSession: setCashierSession,
   endSession: logOut,
@@ -104,7 +104,7 @@ export const http = createHttp({
   candidateId: config.candidateId,
   appVersion: config.appVersion,
   clock: serverClock,
-  auth: sessionRenewal.auth,
+  auth: cashierSessionRenewal.auth,
 });
 
 /** Logs in. On success every screen sees signedIn with the cashier. */
@@ -119,16 +119,16 @@ export const useLogin = () =>
       if (!newCashierSession) throw new NotACashierError();
 
       // Before any screen can send a request, so every one can be renewed.
-      sessionRenewal.keepCredentials(credentials);
+      cashierSessionRenewal.keepCredentials(credentials);
       setCashierSession(newCashierSession);
       return newCashierSession.cashier;
     },
   });
 
 /** Who is signed in. Re-renders whenever that changes. */
-export const useSession = (): TillSession =>
+export const useTillSession = (): TillSession =>
   useQuery({
-    queryKey: sessionQueryKey,
+    queryKey: tillSessionQueryKey,
     // Never fetched over the network: login and logOut set it with setCashierSession.
     queryFn: toTillSession,
     initialData: toTillSession,

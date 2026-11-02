@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { Navigate, Outlet } from "react-router";
-import { useSession } from "../../data/session";
+import { useTillSession } from "../../data/session";
 import { paths } from "../paths";
 
 /**
@@ -8,12 +8,12 @@ import { paths } from "../paths";
  * Login, whether the saved login ran out or the session ended mid-shift.
  *
  * A component, not a route loader: a loader runs only on navigation, and Log
- * out or a refused token ends the session without one. useSession re-renders
+ * out or a refused token ends the session without one. useTillSession re-renders
  * this on every change, so the redirect follows.
  */
 const SignedInOnly: FC = () => {
-  const session = useSession();
-  if (session.status !== "signedIn") {
+  const tillSession = useTillSession();
+  if (tillSession.status !== "signedIn") {
     return <Navigate replace to={paths.login} />;
   }
 

@@ -19,42 +19,44 @@ import { NotAPayerError } from "./loginError";
 import { queryClient } from "./queryClient";
 
 /** The session as screens see it: who is signed in, never the token. */
-export type StudentAppSession =
+export type AppSession =
   { status: "signedIn"; payer: Payer } | { status: "signedOut" };
 
-const sessionQueryKey = ["session"] as const;
+const appSessionQueryKey = ["appSession"] as const;
 
 /** The student app's saved login, so a reopen doesn't mean logging in again. */
-const sessionStore = createSessionStore<PayerSession>({
+const payerSessionStore = createSessionStore<PayerSession>({
   storage: localKeyValueStorage,
-  savedSessionKey: "zahln.student.session.v1",
+  savedSessionKey: "zahln.app.session.v1",
   sessionSchema: PayerSessionSchema,
 });
 
 // Who is logged in, with their token: the one record of the login. Read from
 // storage once, before the first render, so a reopen goes straight in without
 // a flash of the login screen, until the token runs out.
-let payerSession: PayerSession | null = sessionStore.load();
+let payerSession: PayerSession | null = payerSessionStore.load();
 
 /**
  * The part of `payerSession` screens see. The token stays behind: the query
  * cache is open to every screen, and only http needs it.
  */
-const toStudentAppSession = (): StudentAppSession =>
+const toAppSession = (): AppSession =>
   payerSession
     ? { status: "signedIn", payer: payerSession.payer }
     : { status: "signedOut" };
 
 /**
  * Replaces the login, in memory and in storage alike, and re-renders every
- * screen that uses useSession. The one place either changes, so they can't
+ * screen that uses useAppSession. The one place either changes, so they can't
  * disagree.
  */
 const setPayerSession = (newPayerSession: PayerSession | null): void => {
   payerSession = newPayerSession;
-  if (newPayerSession) sessionStore.save(newPayerSession);
-  else sessionStore.clear();
-  queryClient.setQueryData(sessionQueryKey, toStudentAppSession());
+
+  if (newPayerSession) payerSessionStore.save(newPayerSession);
+  else payerSessionStore.clear();
+
+  queryClient.setQueryData(appSessionQueryKey, toAppSession());
 };
 
 /**
@@ -63,12 +65,12 @@ const setPayerSession = (newPayerSession: PayerSession | null): void => {
  * screen.
  */
 export const logOut = (): void => {
-  sessionRenewal.forgetCredentials();
+  payerSessionRenewal.forgetCredentials();
   // The rest of the cache belongs to this payer, so the next one never sees
   // it. The session query stays: screens are subscribed to that very entry,
   // and a new one would never reach them.
   queryClient.removeQueries({
-    predicate: (query) => query.queryKey[0] !== sessionQueryKey[0],
+    predicate: (query) => query.queryKey[0] !== appSessionQueryKey[0],
   });
   setPayerSession(null);
 };
@@ -85,7 +87,7 @@ export const serverClock = createServerClock();
  * password from this run's login is kept in memory only: after a reopen
  * there is none, and a refused token logs out.
  */
-const sessionRenewal = createSessionRenewal<PayerSession>({
+const payerSessionRenewal = createSessionRenewal<PayerSession>({
   getSession: () => payerSession,
   setSession: setPayerSession,
   endSession: logOut,
@@ -101,7 +103,7 @@ export const http = createHttp({
   candidateId: config.candidateId,
   appVersion: config.appVersion,
   clock: serverClock,
-  auth: sessionRenewal.auth,
+  auth: payerSessionRenewal.auth,
 });
 
 /** Logs in. On success every screen sees signedIn with the payer. */
@@ -116,19 +118,19 @@ export const useLogin = () =>
       if (!newPayerSession) throw new NotAPayerError();
 
       // Before any screen can send a request, so every one can be renewed.
-      sessionRenewal.keepCredentials(credentials);
+      payerSessionRenewal.keepCredentials(credentials);
       setPayerSession(newPayerSession);
       return newPayerSession.payer;
     },
   });
 
 /** Who is signed in. Re-renders whenever that changes. */
-export const useSession = (): StudentAppSession =>
+export const useAppSession = (): AppSession =>
   useQuery({
-    queryKey: sessionQueryKey,
+    queryKey: appSessionQueryKey,
     // Never fetched over the network: login and logOut set it with setPayerSession.
-    queryFn: toStudentAppSession,
-    initialData: toStudentAppSession,
+    queryFn: toAppSession,
+    initialData: toAppSession,
     // There is nothing to refetch, and dropping it would sign the payer out.
     staleTime: Infinity,
     gcTime: Infinity,

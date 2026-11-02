@@ -108,7 +108,7 @@ describe("createSessionStore", () => {
 
   it("keeps each app's login under its own key", () => {
     const { savedTexts, storage } = createFakeStorage();
-    savedTexts.set("zahln.student.session.v1", JSON.stringify(cashierSession));
+    savedTexts.set("zahln.app.session.v1", JSON.stringify(cashierSession));
 
     expect(createCashierSessionStore(storage).load()).toBeNull();
   });

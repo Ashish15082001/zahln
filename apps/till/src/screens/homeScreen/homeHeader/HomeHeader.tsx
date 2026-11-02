@@ -1,16 +1,16 @@
 import type { FC } from "react";
-import { logOut, useSession } from "../../../data/session";
+import { logOut, useTillSession } from "../../../data/session";
 import HomeHeaderJSX from "./HomeHeaderJSX";
 
 // Only reached signed in: Home renders nothing otherwise. The guard below
 // narrows the type.
 const HomeHeader: FC = () => {
-  const session = useSession();
-  if (session.status !== "signedIn") return null;
+  const tillSession = useTillSession();
+  if (tillSession.status !== "signedIn") return null;
 
   return (
     <HomeHeaderJSX
-      displayName={session.cashier.displayName}
+      displayName={tillSession.cashier.displayName}
       handleLogOut={logOut}
     />
   );
