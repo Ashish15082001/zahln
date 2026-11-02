@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getDailyTotals } from "@zahln/api/dailyTotals";
 import type { DailyTotals } from "@zahln/domain/dailyTotals/frontend";
-import { berlinDayOf, type BerlinDay } from "@zahln/domain/day/berlinDay";
+import type { BerlinDay } from "@zahln/domain/day/berlinDay";
 import { http, serverClock } from "./session";
 
 // Today's totals move while the mensas are open, so they are asked for again
@@ -17,12 +17,6 @@ export interface DailyTotalsReport {
 }
 
 const dailyTotalsQueryKey = (day: BerlinDay) => ["dailyTotals", day] as const;
-
-/**
- * Today in Berlin, by the server's clock. Read on every render, so a screen
- * left open past midnight moves on to the new day at its next refresh.
- */
-export const berlinToday = (): BerlinDay => berlinDayOf(serverClock.now());
 
 /**
  * One day's totals. Each day has its own cache entry, so after picking

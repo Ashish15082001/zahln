@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import DailyTotalsScreen from "../screens/dailyTotalsScreen/DailyTotalsScreen";
 import LoginScreen from "../screens/loginScreen/LoginScreen";
+import PaymentsScreen from "../screens/paymentsScreen/PaymentsScreen";
 import { paths } from "./paths";
 import SignedInOnly from "./signedInOnly/SignedInOnly";
 import SignedOutOnly from "./signedOutOnly/SignedOutOnly";
@@ -14,7 +15,10 @@ export const router = createBrowserRouter([
   },
   {
     element: <SignedInOnly />,
-    children: [{ path: paths.dailyTotals, element: <DailyTotalsScreen /> }],
+    children: [
+      { path: paths.dailyTotals, element: <DailyTotalsScreen /> },
+      { path: paths.payments, element: <PaymentsScreen /> },
+    ],
   },
   // The static host serves index.html for any path, so an unknown one would
   // otherwise show React Router's developer error page.

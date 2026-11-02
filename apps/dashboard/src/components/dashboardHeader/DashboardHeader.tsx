@@ -27,6 +27,13 @@ const DashboardHeader: FC = () => {
       label: t("header.nav.dailyTotals"),
       path: paths.dailyTotals,
     },
+    {
+      // Not the end of the path, so a payment's detail under it counts too.
+      isCurrent:
+        matchPath({ path: paths.payments, end: false }, pathname) !== null,
+      label: t("header.nav.payments"),
+      path: paths.payments,
+    },
   ];
 
   return (

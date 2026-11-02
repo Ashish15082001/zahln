@@ -1,8 +1,8 @@
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import TotalsTitleRowJSX, {
-  type TotalsTitleRowJSXProps,
-} from "./TotalsTitleRowJSX";
+import ScreenTitleRowJSX, {
+  type ScreenTitleRowJSXProps,
+} from "./ScreenTitleRowJSX";
 
 /** Refresh's look while it shows: off during any request, turning on its own. */
 export interface RefreshButtonState {
@@ -10,35 +10,41 @@ export interface RefreshButtonState {
   isRefreshing: boolean;
 }
 
-export interface TotalsTitleRowProps {
-  // Null while there is nothing to refresh: the totals are loading, or their
-  // first load failed and the report offers Try again instead.
+export interface ScreenTitleRowProps {
+  description: string;
+  // Null while there is nothing to refresh: the data is loading, or its first
+  // load failed and the screen offers Try again instead.
   refreshButtonState: RefreshButtonState | null;
+  title: string;
   handleRefresh: () => void;
 }
 
-const TotalsTitleRow: FC<TotalsTitleRowProps> = ({
+const ScreenTitleRow: FC<ScreenTitleRowProps> = ({
+  description,
   refreshButtonState,
+  title,
   handleRefresh,
 }) => {
   const { t } = useTranslation("dashboard");
 
-  let refreshButton: TotalsTitleRowJSXProps["refreshButton"] = null;
+  let refreshButton: ScreenTitleRowJSXProps["refreshButton"] = null;
   if (refreshButtonState !== null) {
     refreshButton = {
       ...refreshButtonState,
       label: refreshButtonState.isRefreshing
-        ? t("dailyTotals.refreshing")
-        : t("dailyTotals.refresh"),
+        ? t("screenTitleRow.refreshing")
+        : t("screenTitleRow.refresh"),
     };
   }
 
   return (
-    <TotalsTitleRowJSX
+    <ScreenTitleRowJSX
+      description={description}
       refreshButton={refreshButton}
+      title={title}
       handleRefresh={handleRefresh}
     />
   );
 };
 
-export default TotalsTitleRow;
+export default ScreenTitleRow;

@@ -5,7 +5,7 @@ import DailyTotalsContent from "./dailyTotalsContent/DailyTotalsContent";
 
 const DailyTotalsScreenJSX: FC = () => (
   <ScreenLayoutJSX
-    columnWidth="5xl"
+    columnWidth="7xl"
     content={<DailyTotalsContent />}
     header={<DashboardHeader />}
   />

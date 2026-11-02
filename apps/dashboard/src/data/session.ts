@@ -7,6 +7,7 @@ import {
   createSessionStore,
   tabKeyValueStorage,
 } from "@zahln/api/sessionStore";
+import { berlinDayOf, type BerlinDay } from "@zahln/domain/day/berlinDay";
 import type { SessionRequest } from "@zahln/domain/user/backend";
 import {
   FinanceSessionSchema,
@@ -85,6 +86,12 @@ export const logOut = (): void => {
  * clock is off renews on time and opens the right day's totals.
  */
 export const serverClock = createServerClock();
+
+/**
+ * Today in Berlin, by the server's clock. Read on every render, so a screen
+ * left open past midnight moves on to the new day at its next refresh.
+ */
+export const berlinToday = (): BerlinDay => berlinDayOf(serverClock.now());
 
 /**
  * Logs in again shortly before the token runs out and when the server

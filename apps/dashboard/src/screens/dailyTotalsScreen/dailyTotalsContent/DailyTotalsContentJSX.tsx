@@ -1,11 +1,12 @@
 import type { BerlinDay } from "@zahln/domain/day/berlinDay";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
+import ScreenTitleRow, {
+  type RefreshButtonState,
+} from "../../../components/screenTitleRow/ScreenTitleRow";
 import DayPicker from "./dayPicker/DayPicker";
 import TotalsReport from "./totalsReport/TotalsReport";
 import type { DailyTotalsState } from "./totalsReport/TotalsReportJSX";
-import TotalsTitleRow, {
-  type RefreshButtonState,
-} from "./totalsTitleRow/TotalsTitleRow";
 
 export interface DailyTotalsContentJSXProps {
   day: BerlinDay;
@@ -26,15 +27,23 @@ const DailyTotalsContentJSX: FC<DailyTotalsContentJSXProps> = ({
   today,
   handleDayChange,
   handleRefresh,
-}) => (
-  <>
-    <TotalsTitleRow
-      refreshButtonState={refreshButtonState}
-      handleRefresh={handleRefresh}
-    />
-    <DayPicker day={day} today={today} handleDayChange={handleDayChange} />
-    <TotalsReport state={state} handleRefresh={handleRefresh} />
-  </>
-);
+}) => {
+  const { t } = useTranslation("dashboard");
+
+  return (
+    <>
+      {/* The description says how the server counts a day, so a refund of an
+          earlier payment showing up today doesn't look like a mistake. */}
+      <ScreenTitleRow
+        description={t("dailyTotals.description")}
+        refreshButtonState={refreshButtonState}
+        title={t("dailyTotals.title")}
+        handleRefresh={handleRefresh}
+      />
+      <DayPicker day={day} today={today} handleDayChange={handleDayChange} />
+      <TotalsReport state={state} handleRefresh={handleRefresh} />
+    </>
+  );
+};
 
 export default DailyTotalsContentJSX;

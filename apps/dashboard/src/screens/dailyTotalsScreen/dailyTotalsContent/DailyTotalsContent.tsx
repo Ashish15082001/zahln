@@ -4,9 +4,10 @@ import { pickLanguage } from "@zahln/i18n/language";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
-import { berlinToday, useDailyTotals } from "../../../data/dailyTotals";
+import type { RefreshButtonState } from "../../../components/screenTitleRow/ScreenTitleRow";
+import { useDailyTotals } from "../../../data/dailyTotals";
+import { berlinToday } from "../../../data/session";
 import DailyTotalsContentJSX from "./DailyTotalsContentJSX";
-import type { RefreshButtonState } from "./totalsTitleRow/TotalsTitleRow";
 import type { DailyTotalsState } from "./totalsReport/TotalsReportJSX";
 
 // The day shown is kept in the URL, so a reload or a shared link opens the
@@ -55,10 +56,12 @@ const DailyTotalsContent: FC = () => {
       : null;
 
   // Replaces the history entry instead of adding one, so Back leaves the
-  // screen rather than stepping through every day looked at.
+  // screen rather than stepping through every day looked at, and keeps the
+  // page where it is.
   const handleDayChange = (newDay: BerlinDay): void => {
     setSearchParams(newDay === today ? {} : { [DAY_SEARCH_PARAM]: newDay }, {
       replace: true,
+      preventScrollReset: true,
     });
   };
 
