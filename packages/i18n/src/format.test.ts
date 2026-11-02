@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   formatCents,
+  formatCount,
   formatDateTime,
   formatDateTimeWithSeconds,
+  formatDay,
 } from "./format";
 
 describe("formatCents", () => {
@@ -47,5 +49,25 @@ describe("formatDateTimeWithSeconds", () => {
     expect(formatDateTimeWithSeconds(confirmed, "en")).toBe(
       "Oct 28, 2026, 12:40:17 PM",
     );
+  });
+});
+
+describe("formatCount", () => {
+  it("groups thousands the way each language does", () => {
+    expect(formatCount(1284, "de")).toBe("1.284");
+    expect(formatCount(1284, "en")).toBe("1,284");
+    expect(formatCount(0, "en")).toBe("0");
+  });
+});
+
+describe("formatDay", () => {
+  it("writes the day with its weekday the way each language does", () => {
+    expect(formatDay("2026-11-02", "de")).toBe("Mo., 2. Nov. 2026");
+    expect(formatDay("2026-11-02", "en")).toBe("Mon, Nov 2, 2026");
+  });
+
+  it("shows the day given, not the day before, in time zones behind UTC", () => {
+    // Read in UTC, so a device in New York still shows 1 January.
+    expect(formatDay("2027-01-01", "en")).toBe("Fri, Jan 1, 2027");
   });
 });

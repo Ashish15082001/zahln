@@ -36,3 +36,24 @@ export const formatDateTimeWithSeconds = (
     timeStyle: "medium",
     timeZone: "Europe/Berlin",
   }).format(ms);
+
+/**
+ * A whole number with the language's grouping: 1284 is "1.284" in German and
+ * "1,284" in English. For counts, such as how many payments a day had.
+ */
+export const formatCount = (count: number, language: AppLanguage): string =>
+  new Intl.NumberFormat(language).format(count);
+
+/**
+ * A calendar day, "2026-11-02", with its weekday in the app language: "Mon,
+ * Nov 2, 2026" or "Mo., 2. Nov. 2026". Read at midnight UTC in UTC, so the
+ * day shown is the day given whatever the device's time zone.
+ */
+export const formatDay = (day: string, language: AppLanguage): string =>
+  new Intl.DateTimeFormat(language, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(Date.parse(`${day}T00:00:00Z`));
