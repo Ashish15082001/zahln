@@ -1,9 +1,9 @@
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
-import OrderContentJSX, {
+import OrderContent, {
   type OrderScreenState,
-} from "./orderContent/OrderContentJSX";
-import OrderHeaderJSX from "./orderHeader/OrderHeaderJSX";
+} from "./orderContent/OrderContent";
+import OrderHeader from "./orderHeader/OrderHeader";
 
 export interface OrderScreenJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
@@ -23,13 +23,13 @@ const OrderScreenJSX: FC<OrderScreenJSXProps> = ({
   <ScreenLayoutJSX
     columnWidth="md"
     content={
-      <OrderContentJSX
+      <OrderContent
         state={state}
         handleRetry={handleRetry}
         handleTimeUp={handleTimeUp}
       />
     }
-    header={<OrderHeaderJSX headingRef={headingRef} handleBack={handleBack} />}
+    header={<OrderHeader headingRef={headingRef} handleBack={handleBack} />}
   />
 );
 

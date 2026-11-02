@@ -4,10 +4,8 @@ import { useTranslation } from "react-i18next";
 import { loginErrorReason } from "../../data/loginError";
 import { useLogin } from "../../data/session";
 import { TEST_USERS } from "../../data/testUsers";
-import type {
-  LoginStatus,
-  TestUserOption,
-} from "./loginContent/LoginContentJSX";
+import type { LoginStatus } from "./loginContent/LoginContent";
+import type { TestUserOption } from "./loginContent/LoginContentJSX";
 import LoginScreenJSX from "./LoginScreenJSX";
 
 const LoginScreen: FC = () => {

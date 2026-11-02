@@ -17,9 +17,9 @@ import {
 import { Skeleton } from "@zahln/ui/components/skeleton";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import PaymentListHeaderJSX, {
+import PaymentListHeader, {
   type RefreshButtonState,
-} from "./paymentListHeader/PaymentListHeaderJSX";
+} from "./paymentListHeader/PaymentListHeader";
 import PaymentRow from "./paymentRow/PaymentRow";
 
 /** Fetching the list again from the top, and how the last try went. */
@@ -66,7 +66,7 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
   if (state.status === "loading") {
     return (
       <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
-        <PaymentListHeaderJSX
+        <PaymentListHeader
           headingId={headingId}
           refreshButtonState={null}
           handleRefresh={handleRefresh}
@@ -86,7 +86,7 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
   if (state.status === "error") {
     return (
       <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
-        <PaymentListHeaderJSX
+        <PaymentListHeader
           headingId={headingId}
           refreshButtonState={null}
           handleRefresh={handleRefresh}
@@ -136,7 +136,7 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
   if (state.status === "empty") {
     return (
       <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
-        <PaymentListHeaderJSX
+        <PaymentListHeader
           headingId={headingId}
           refreshButtonState={refreshButtonState}
           handleRefresh={handleRefresh}
@@ -173,7 +173,7 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
 
   return (
     <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
-      <PaymentListHeaderJSX
+      <PaymentListHeader
         headingId={headingId}
         refreshButtonState={refreshButtonState}
         handleRefresh={handleRefresh}

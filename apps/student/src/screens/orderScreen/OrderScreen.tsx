@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, type FC } from "react";
 import { useNavigate, useParams } from "react-router";
 import { paths, toPaymentPath } from "../../app/paths";
 import { isOrderNotFound, usePayerOrder } from "../../data/order";
-import type { OrderScreenState } from "./orderContent/OrderContentJSX";
+import type { OrderScreenState } from "./orderContent/OrderContent";
 import OrderScreenJSX from "./OrderScreenJSX";
 
 const OrderScreen: FC = () => {

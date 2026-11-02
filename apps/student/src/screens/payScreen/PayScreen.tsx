@@ -13,10 +13,10 @@ import { isOrderNotFound, usePayerOrder } from "../../data/order";
 import { isOrderOutOfDate, toPayFailure, usePayOrder } from "../../data/pay";
 import { usePayment } from "../../data/payments";
 import type { OwnPaymentStatus } from "./components/ownPayment/OwnPayment";
-import type { PayScreenState } from "./payContent/PayContentJSX";
+import type { PayScreenState } from "./payContent/PayContent";
 import type { PayStatus } from "./payFooter/payButtonFooter/PayButtonFooter";
 import type { PayFooterState } from "./payFooter/PayFooterJSX";
-import type { RefreshButtonStatus } from "./payHeader/PayHeaderJSX";
+import type { RefreshButtonStatus } from "./payHeader/PayHeader";
 import PayScreenJSX from "./PayScreenJSX";
 
 // How long the page asks about a pending payment on its own. Most answers

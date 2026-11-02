@@ -1,11 +1,8 @@
 import {
-  Alert02Icon,
-  CheckmarkCircle02Icon,
-  Clock01Icon,
   FileNotFoundIcon,
   WifiDisconnected01Icon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { PayerOrder } from "@zahln/domain/order/frontend";
 import type { Payment } from "@zahln/domain/payment/frontend";
 import { Button } from "@zahln/ui/components/button";
@@ -18,7 +15,6 @@ import {
   EmptyTitle,
 } from "@zahln/ui/components/empty";
 import { Skeleton } from "@zahln/ui/components/skeleton";
-import type { TFunction } from "i18next";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import OrderCountdown from "../../../components/orderCountdown/OrderCountdown";
@@ -27,8 +23,15 @@ import OwnPayment, {
   type OwnPaymentStatus,
 } from "../components/ownPayment/OwnPayment";
 
-/** What the screen shows, from first load to the payer's payment. */
-export type PayScreenState =
+/** Why the order can't be paid, with its icon. */
+export interface ClosedMessage {
+  description: string;
+  icon: IconSvgElement;
+  title: string;
+}
+
+/** The screen's state, with an order that can't be paid put in words. */
+export type PayContentState =
   | { status: "loading" }
   // No such order, e.g. from a mistyped code.
   | { status: "notFound" }
@@ -47,50 +50,16 @@ export type PayScreenState =
       tillName: string | null;
     }
   // Someone else's payment holds it or paid it, or its time ran out.
-  | { status: "closed"; orderStatus: "paying" | "paid" | "expired" };
+  | { status: "closed"; closedMessage: ClosedMessage };
 
 export interface PayContentJSXProps {
   // The heading of the payer's own payment, where focus goes on each answer.
   resultHeadingRef: Ref<HTMLHeadingElement>;
-  state: PayScreenState;
+  state: PayContentState;
   handleGoHome: () => void;
   handleRetry: () => void;
   handleTimeUp: () => void;
 }
-
-/** Why the order can't be paid, with its icon. */
-interface ClosedMessage {
-  description: string;
-  icon: typeof Clock01Icon;
-  title: string;
-}
-
-/** Why the payer can't pay this order: it is someone else's, or too late. */
-const getClosedMessage = (
-  orderStatus: "paying" | "paid" | "expired",
-  t: TFunction<"student">,
-): ClosedMessage => {
-  switch (orderStatus) {
-    case "paying":
-      return {
-        description: t("order.payingDescription"),
-        icon: Clock01Icon,
-        title: t("order.payingTitle"),
-      };
-    case "paid":
-      return {
-        description: t("order.paidDescription"),
-        icon: CheckmarkCircle02Icon,
-        title: t("order.paidTitle"),
-      };
-    case "expired":
-      return {
-        description: t("order.expiredDescription"),
-        icon: Alert02Icon,
-        title: t("order.expiredTitle"),
-      };
-  }
-};
 
 const PayContentJSX: FC<PayContentJSXProps> = ({
   resultHeadingRef,
@@ -182,7 +151,7 @@ const PayContentJSX: FC<PayContentJSXProps> = ({
     );
   }
 
-  const closedMessage = getClosedMessage(state.orderStatus, t);
+  const { closedMessage } = state;
 
   return (
     <Empty>

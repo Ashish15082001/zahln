@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import OwnPaymentFooterJSX from "./ownPaymentFooter/OwnPaymentFooterJSX";
+import OwnPaymentFooter from "./ownPaymentFooter/OwnPaymentFooter";
 import PayButtonFooter, {
   type PayButtonFooterState,
 } from "./payButtonFooter/PayButtonFooter";
@@ -25,7 +25,7 @@ const PayFooterJSX: FC<PayFooterJSXProps> = ({
 }) => {
   if (payFooterState.status === "ownPayment") {
     return (
-      <OwnPaymentFooterJSX
+      <OwnPaymentFooter
         paymentPath={payFooterState.paymentPath}
         handleDone={handleDone}
       />

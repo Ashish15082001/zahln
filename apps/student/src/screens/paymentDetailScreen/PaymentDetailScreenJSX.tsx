@@ -1,11 +1,10 @@
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
-import PaymentDetailContentJSX, {
-  type PaymentDetailState,
-} from "./paymentDetailContent/PaymentDetailContentJSX";
-import PaymentDetailHeaderJSX, {
+import PaymentDetailContent from "./paymentDetailContent/PaymentDetailContent";
+import type { PaymentDetailState } from "./paymentDetailContent/PaymentDetailContentJSX";
+import PaymentDetailHeader, {
   type RefreshButtonStatus,
-} from "./paymentDetailHeader/PaymentDetailHeaderJSX";
+} from "./paymentDetailHeader/PaymentDetailHeader";
 
 export interface PaymentDetailScreenJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
@@ -25,10 +24,10 @@ const PaymentDetailScreenJSX: FC<PaymentDetailScreenJSXProps> = ({
   <ScreenLayoutJSX
     columnWidth="md"
     content={
-      <PaymentDetailContentJSX state={state} handleRefresh={handleRefresh} />
+      <PaymentDetailContent state={state} handleRefresh={handleRefresh} />
     }
     header={
-      <PaymentDetailHeaderJSX
+      <PaymentDetailHeader
         headingRef={headingRef}
         refreshButtonStatus={refreshButtonStatus}
         handleBack={handleBack}

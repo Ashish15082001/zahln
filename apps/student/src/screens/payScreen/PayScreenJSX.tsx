@@ -1,10 +1,9 @@
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
-import PayContentJSX, { type PayScreenState } from "./payContent/PayContentJSX";
-import PayFooterJSX, { type PayFooterState } from "./payFooter/PayFooterJSX";
-import PayHeaderJSX, {
-  type RefreshButtonStatus,
-} from "./payHeader/PayHeaderJSX";
+import PayContent, { type PayScreenState } from "./payContent/PayContent";
+import PayFooter from "./payFooter/PayFooter";
+import type { PayFooterState } from "./payFooter/PayFooterJSX";
+import PayHeader, { type RefreshButtonStatus } from "./payHeader/PayHeader";
 
 export interface PayScreenJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
@@ -36,7 +35,7 @@ const PayScreenJSX: FC<PayScreenJSXProps> = ({
   <ScreenLayoutJSX
     columnWidth="md"
     content={
-      <PayContentJSX
+      <PayContent
         resultHeadingRef={resultHeadingRef}
         state={state}
         handleGoHome={handleGoHome}
@@ -48,7 +47,7 @@ const PayScreenJSX: FC<PayScreenJSXProps> = ({
     // footer bar only when it gets none.
     footer={
       payFooterState === null ? undefined : (
-        <PayFooterJSX
+        <PayFooter
           payFooterState={payFooterState}
           handleDone={handleGoHome}
           handlePay={handlePay}
@@ -56,7 +55,7 @@ const PayScreenJSX: FC<PayScreenJSXProps> = ({
       )
     }
     header={
-      <PayHeaderJSX
+      <PayHeader
         headingRef={headingRef}
         refreshButtonStatus={refreshButtonStatus}
         handleGoHome={handleGoHome}

@@ -1,32 +1,27 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@zahln/ui/components/button";
-import RefreshButtonJSX from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
+import RefreshButtonJSX, {
+  type RefreshButtonJSXProps,
+} from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
 
-/** Whether Refresh shows, and whether it is fetching. */
-export type RefreshButtonStatus = "hidden" | "idle" | "refreshing";
-
 export interface PayHeaderJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
-  refreshButtonStatus: RefreshButtonStatus;
+  // Null while it is hidden.
+  refreshButton: Omit<RefreshButtonJSXProps, "handleRefresh"> | null;
   handleGoHome: () => void;
   handleRefreshPayment: () => void;
 }
 
 const PayHeaderJSX: FC<PayHeaderJSXProps> = ({
   headingRef,
-  refreshButtonStatus,
+  refreshButton,
   handleGoHome,
   handleRefreshPayment,
 }) => {
   const { t } = useTranslation("student");
-
-  const isRefreshing = refreshButtonStatus === "refreshing";
-  const refreshLabel = isRefreshing
-    ? t("pay.ownPayment.refreshing")
-    : t("pay.ownPayment.refresh");
 
   return (
     <>
@@ -37,11 +32,11 @@ const PayHeaderJSX: FC<PayHeaderJSXProps> = ({
         </Button>
         {/* At the right of Back, as on the payment's detail, so the footer
             keeps two buttons side by side. */}
-        {refreshButtonStatus !== "hidden" && (
+        {refreshButton !== null && (
           <RefreshButtonJSX
-            isDisabled={isRefreshing}
-            isRefreshing={isRefreshing}
-            label={refreshLabel}
+            isDisabled={refreshButton.isDisabled}
+            isRefreshing={refreshButton.isRefreshing}
+            label={refreshButton.label}
             handleRefresh={handleRefreshPayment}
           />
         )}

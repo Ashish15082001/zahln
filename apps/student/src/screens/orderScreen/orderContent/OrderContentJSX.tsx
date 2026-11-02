@@ -1,11 +1,8 @@
 import {
-  Alert02Icon,
-  CheckmarkCircle02Icon,
-  Clock01Icon,
   FileNotFoundIcon,
   WifiDisconnected01Icon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { PayerOrder } from "@zahln/domain/order/frontend";
 import { Button } from "@zahln/ui/components/button";
 import {
@@ -17,63 +14,37 @@ import {
   EmptyTitle,
 } from "@zahln/ui/components/empty";
 import { Skeleton } from "@zahln/ui/components/skeleton";
-import type { TFunction } from "i18next";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import OrderCountdown from "../../../components/orderCountdown/OrderCountdown";
 import OrderSummary from "../../../components/orderSummary/OrderSummary";
 
-/** What the screen shows, from first load to the order. */
-export type OrderScreenState =
+/** What an order that can't be paid any more says, with its icon. */
+export interface ClosedOrderMessage {
+  description: string;
+  icon: IconSvgElement;
+  title: string;
+}
+
+/** The screen's state, with an order that can't be paid put in words. */
+export type OrderContentState =
   | { status: "loading" }
-  // No such order, e.g. from a mistyped code.
   | { status: "notFound" }
-  // The first load failed, so there is nothing to show.
   | { status: "error"; isRetrying: boolean }
+  | { status: "open"; order: PayerOrder }
   // paymentPath: the payer's own payment for this order, when there is one.
-  | { status: "ready"; order: PayerOrder; paymentPath: string | null };
+  | {
+      status: "closed";
+      closedOrderMessage: ClosedOrderMessage;
+      paymentPath: string | null;
+    };
 
 export interface OrderContentJSXProps {
-  state: OrderScreenState;
+  state: OrderContentState;
   handleRetry: () => void;
   handleTimeUp: () => void;
 }
-
-/**
- * What an order that can't be paid any more says, with its icon. `isOwn`:
- * the payment is this payer's, so "your payment" is true.
- */
-const getClosedOrderMessage = (
-  orderStatus: Exclude<PayerOrder["status"], "open">,
-  isOwn: boolean,
-  t: TFunction<"student">,
-): { description: string; icon: typeof Clock01Icon; title: string } => {
-  switch (orderStatus) {
-    case "paying":
-      return {
-        description: isOwn
-          ? t("order.payingYoursDescription")
-          : t("order.payingDescription"),
-        icon: Clock01Icon,
-        title: t("order.payingTitle"),
-      };
-    case "paid":
-      return {
-        description: isOwn
-          ? t("order.paidYoursDescription")
-          : t("order.paidDescription"),
-        icon: CheckmarkCircle02Icon,
-        title: t("order.paidTitle"),
-      };
-    case "expired":
-      return {
-        description: t("order.expiredDescription"),
-        icon: Alert02Icon,
-        title: t("order.expiredTitle"),
-      };
-  }
-};
 
 const OrderContentJSX: FC<OrderContentJSXProps> = ({
   state,
@@ -138,7 +109,7 @@ const OrderContentJSX: FC<OrderContentJSXProps> = ({
     );
   }
 
-  if (state.order.status === "open") {
+  if (state.status === "open") {
     return (
       <>
         <OrderCountdown
@@ -150,11 +121,7 @@ const OrderContentJSX: FC<OrderContentJSXProps> = ({
     );
   }
 
-  const closedOrderMessage = getClosedOrderMessage(
-    state.order.status,
-    state.paymentPath !== null,
-    t,
-  );
+  const { closedOrderMessage, paymentPath } = state;
 
   return (
     <Empty>
@@ -168,11 +135,11 @@ const OrderContentJSX: FC<OrderContentJSXProps> = ({
         </EmptyTitle>
         <EmptyDescription>{closedOrderMessage.description}</EmptyDescription>
       </EmptyHeader>
-      {state.paymentPath !== null && (
+      {paymentPath !== null && (
         <EmptyContent>
           {/* A link, not a button: it opens another screen. */}
           <Button asChild variant="outline">
-            <Link to={state.paymentPath}>{t("order.seePayment")}</Link>
+            <Link to={paymentPath}>{t("order.seePayment")}</Link>
           </Button>
         </EmptyContent>
       )}

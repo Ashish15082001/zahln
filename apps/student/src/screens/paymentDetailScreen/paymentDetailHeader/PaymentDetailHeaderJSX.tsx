@@ -1,16 +1,16 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@zahln/ui/components/button";
-import RefreshButtonJSX from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
+import RefreshButtonJSX, {
+  type RefreshButtonJSXProps,
+} from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
 import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
 
-/** Whether Refresh shows, and whether it is fetching. */
-export type RefreshButtonStatus = "hidden" | "idle" | "refreshing";
-
 export interface PaymentDetailHeaderJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
-  refreshButtonStatus: RefreshButtonStatus;
+  // Null while it is hidden.
+  refreshButton: Omit<RefreshButtonJSXProps, "handleRefresh"> | null;
   handleBack: () => void;
   handleRefresh: () => void;
 }
@@ -18,16 +18,11 @@ export interface PaymentDetailHeaderJSXProps {
 // The title under Back and Refresh, as on every screen with Back.
 const PaymentDetailHeaderJSX: FC<PaymentDetailHeaderJSXProps> = ({
   headingRef,
-  refreshButtonStatus,
+  refreshButton,
   handleBack,
   handleRefresh,
 }) => {
   const { t } = useTranslation("student");
-
-  const isRefreshing = refreshButtonStatus === "refreshing";
-  const refreshLabel = isRefreshing
-    ? t("paymentDetail.refreshing")
-    : t("paymentDetail.refresh");
 
   return (
     <>
@@ -36,11 +31,11 @@ const PaymentDetailHeaderJSX: FC<PaymentDetailHeaderJSXProps> = ({
           <HugeiconsIcon aria-hidden icon={ArrowLeft01Icon} />
           {t("paymentDetail.back")}
         </Button>
-        {refreshButtonStatus !== "hidden" && (
+        {refreshButton !== null && (
           <RefreshButtonJSX
-            isDisabled={isRefreshing}
-            isRefreshing={isRefreshing}
-            label={refreshLabel}
+            isDisabled={refreshButton.isDisabled}
+            isRefreshing={refreshButton.isRefreshing}
+            label={refreshButton.label}
             handleRefresh={handleRefresh}
           />
         )}

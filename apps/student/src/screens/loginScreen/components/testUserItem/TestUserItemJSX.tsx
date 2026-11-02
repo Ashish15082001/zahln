@@ -7,12 +7,11 @@ import {
   ItemTitle,
 } from "@zahln/ui/components/item";
 import { useId, type FC } from "react";
-import { useTranslation } from "react-i18next";
 
 export interface TestUserItemJSXProps {
+  buttonLabel: string;
   description: string;
   isDisabled: boolean;
-  isLoggingIn: boolean;
   title: string;
   handleLogIn: () => void;
 }
@@ -23,13 +22,12 @@ export interface TestUserItemJSXProps {
  * is the group's list item itself.
  */
 const TestUserItemJSX: FC<TestUserItemJSXProps> = ({
+  buttonLabel,
   description,
   isDisabled,
-  isLoggingIn,
   title,
   handleLogIn,
 }) => {
-  const { t } = useTranslation("student");
   const id = useId();
   const titleId = `${id}-title`;
   const buttonId = `${id}-button`;
@@ -56,7 +54,7 @@ const TestUserItemJSX: FC<TestUserItemJSXProps> = ({
           type="button"
           onClick={handleLogIn}
         >
-          {isLoggingIn ? t("login.submitting") : t("login.submit")}
+          {buttonLabel}
         </Button>
       </ItemActions>
     </Item>

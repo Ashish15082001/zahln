@@ -10,7 +10,7 @@ import type {
   PaymentDetailState,
   RefreshStatus,
 } from "./paymentDetailContent/PaymentDetailContentJSX";
-import type { RefreshButtonStatus } from "./paymentDetailHeader/PaymentDetailHeaderJSX";
+import type { RefreshButtonStatus } from "./paymentDetailHeader/PaymentDetailHeader";
 import PaymentDetailScreenJSX from "./PaymentDetailScreenJSX";
 
 const PaymentDetailScreen: FC = () => {

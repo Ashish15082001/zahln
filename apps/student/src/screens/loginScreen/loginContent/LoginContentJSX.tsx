@@ -4,9 +4,7 @@ import { ItemGroup } from "@zahln/ui/components/item";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import type { LoginErrorReason } from "../../../data/loginError";
-import TestUserItemJSX from "../components/testUserItem/TestUserItemJSX";
-
-export type LoginStatus = "idle" | "submitting" | "error";
+import TestUserItem from "../components/testUserItem/TestUserItem";
 
 /** One seeded payer's card, ready to show. */
 export interface TestUserOption {
@@ -18,19 +16,18 @@ export interface TestUserOption {
 
 export interface LoginContentJSXProps {
   errorReason: LoginErrorReason | null;
-  status: LoginStatus;
+  isSubmitting: boolean;
   testUserOptions: TestUserOption[];
   handleLogIn: (priceGroup: PriceGroup) => void;
 }
 
 const LoginContentJSX: FC<LoginContentJSXProps> = ({
   errorReason,
-  status,
+  isSubmitting,
   testUserOptions,
   handleLogIn,
 }) => {
   const { t } = useTranslation("student");
-  const isSubmitting = status === "submitting";
 
   return (
     <>
@@ -49,7 +46,7 @@ const LoginContentJSX: FC<LoginContentJSXProps> = ({
       )}
       <ItemGroup>
         {testUserOptions.map((option) => (
-          <TestUserItemJSX
+          <TestUserItem
             key={option.priceGroup}
             description={option.description}
             // Every card's button is off while one logs in, so a second tap

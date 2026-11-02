@@ -1,7 +1,7 @@
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
-import ProfileContentJSX from "./profileContent/ProfileContentJSX";
-import ProfileHeaderJSX from "./profileHeader/ProfileHeaderJSX";
+import ProfileContent from "./profileContent/ProfileContent";
+import ProfileHeader from "./profileHeader/ProfileHeader";
 
 export interface ProfileScreenJSXProps {
   headingRef: Ref<HTMLHeadingElement>;
@@ -14,10 +14,8 @@ const ProfileScreenJSX: FC<ProfileScreenJSXProps> = ({
 }) => (
   <ScreenLayoutJSX
     columnWidth="md"
-    content={<ProfileContentJSX />}
-    header={
-      <ProfileHeaderJSX headingRef={headingRef} handleBack={handleBack} />
-    }
+    content={<ProfileContent />}
+    header={<ProfileHeader headingRef={headingRef} handleBack={handleBack} />}
   />
 );
 

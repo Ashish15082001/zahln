@@ -15,9 +15,8 @@ import {
 } from "@zahln/ui/components/item";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import PreferenceItemJSX, {
-  type PreferenceOption,
-} from "./preferenceItem/PreferenceItemJSX";
+import PreferenceItem from "./preferenceItem/PreferenceItem";
+import type { PreferenceOption } from "./preferenceItem/PreferenceItemJSX";
 
 export interface ProfileOptionsJSXProps {
   languageOptions: PreferenceOption[];
@@ -44,7 +43,7 @@ const ProfileOptionsJSX: FC<ProfileOptionsJSXProps> = ({
     // To the screen's edges, so the thin lines between rows run across it,
     // like on Home. No gap: the lines are the space between rows.
     <ItemGroup className="-mx-6 w-auto gap-0">
-      <PreferenceItemJSX
+      <PreferenceItem
         description={t("profile.theme.description")}
         icon={PaintBrush02Icon}
         options={themeOptions}
@@ -53,7 +52,7 @@ const ProfileOptionsJSX: FC<ProfileOptionsJSXProps> = ({
         handleChangeValue={handleChangeTheme}
       />
       <ItemSeparator className="my-0" />
-      <PreferenceItemJSX
+      <PreferenceItem
         description={t("profile.language.description")}
         icon={LanguageCircleIcon}
         options={languageOptions}

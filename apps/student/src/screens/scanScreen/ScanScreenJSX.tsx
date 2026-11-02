@@ -1,10 +1,9 @@
 import ScreenLayoutJSX from "@zahln/ui/components/screenLayout/ScreenLayoutJSX";
 import type { FC, Ref } from "react";
-import CameraViewContentJSX, {
-  type CameraViewState,
-} from "./scanContent/cameraView/CameraViewContentJSX";
-import NoCameraContentJSX from "./scanContent/noCamera/NoCameraContentJSX";
-import ScanHeaderJSX from "./scanHeader/ScanHeaderJSX";
+import CameraViewContent from "./scanContent/cameraView/CameraViewContent";
+import type { CameraViewState } from "./scanContent/cameraView/CameraViewContentJSX";
+import NoCameraContent from "./scanContent/noCamera/NoCameraContent";
+import ScanHeader from "./scanHeader/ScanHeader";
 
 /** What the scan screen shows, from opening the camera to giving up on it. */
 export type ScanScreenState =
@@ -38,14 +37,14 @@ const ScanScreenJSX: FC<ScanScreenJSXProps> = ({
       <ScreenLayoutJSX
         columnWidth="md"
         content={
-          <NoCameraContentJSX
+          <NoCameraContent
             isCameraBehindPage={isCameraBehindPage}
             isCameraDenied={state.status === "cameraDenied"}
             handleOpenSettings={handleOpenSettings}
             handleTryCameraAgain={handleTryCameraAgain}
           />
         }
-        header={<ScanHeaderJSX handleCancel={handleCancel} />}
+        header={<ScanHeader handleCancel={handleCancel} />}
       />
     );
   }
@@ -56,7 +55,7 @@ const ScanScreenJSX: FC<ScanScreenJSXProps> = ({
     <ScreenLayoutJSX
       columnWidth="md"
       content={
-        <CameraViewContentJSX
+        <CameraViewContent
           cameraViewState={state}
           isCameraBehindPage={isCameraBehindPage}
           videoRef={videoRef}
