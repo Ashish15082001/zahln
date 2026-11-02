@@ -4,6 +4,7 @@ import { ApiError } from "./errors";
 import { createHttp } from "./http";
 import {
   getCashierPayments,
+  getFinancePayment,
   getFinancePayments,
   getPayment,
   getPayments,
@@ -250,6 +251,23 @@ const paymentDetail = {
     },
   ],
 };
+
+describe("getFinancePayment", () => {
+  it("reads any mensa's payment with who paid, its refunds and history", async () => {
+    const { http, server } = setup([() => jsonReply(200, paymentDetail)]);
+
+    const detail = await getFinancePayment(http, "pay_b363fa8001a7cbd1");
+
+    expect(detail.payerId).toBe("usr_student");
+    expect(detail.tillName).toBe("Kasse 1");
+    expect(detail.refundableAmountCents).toBe(280);
+    expect(detail.refunds.map((refund) => refund.id)).toEqual(["ref_1"]);
+    expect(detail.history).toHaveLength(2);
+    expect(describeCalls(server.calls)).toEqual([
+      "GET /payments/pay_b363fa8001a7cbd1",
+    ]);
+  });
+});
 
 describe("getPayment", () => {
   it("reads one payment with the token and no key", async () => {

@@ -3,16 +3,19 @@ import {
   PaymentPageResponseSchema,
   PaymentResponseSchema,
   type CreatePaymentRequest,
+  type PaymentDetailResponse,
   type PaymentListRequest,
   type PaymentPageResponse,
 } from "@zahln/domain/payment/backend";
 import {
   toCashierPaymentPage,
+  toFinancePaymentDetail,
   toFinancePaymentPage,
   toPayment,
   toPaymentDetail,
   toPaymentPage,
   type CashierPaymentPage,
+  type FinancePaymentDetail,
   type FinancePaymentPage,
   type Payment,
   type PaymentDetail,
@@ -85,24 +88,44 @@ export const getFinancePayments = async (
 ): Promise<FinancePaymentPage> =>
   toFinancePaymentPage(await requestPaymentPage(http, request, signal));
 
-/**
- * GET /payments/{paymentId}: one payment with its refunds and history. Another
- * payer's payment is `404 not_found`, the same as one that doesn't exist.
- */
-export const getPayment = async (
+/** GET /payments/{paymentId}: one payment with its refunds and history. */
+const requestPaymentDetail = (
   http: Http,
   paymentId: string,
   signal?: AbortSignal,
-): Promise<PaymentDetail> => {
-  const response = await http.request({
+): Promise<PaymentDetailResponse> =>
+  http.request({
     method: "GET",
+    // Escaped, so an odd character in the id can't reach another path.
     path: `/payments/${encodeURIComponent(paymentId)}`,
     schema: PaymentDetailResponseSchema,
     authenticated: true,
     signal,
   });
-  return toPaymentDetail(response);
-};
+
+/**
+ * GET /payments/{paymentId} as a payer: one of their payments with its
+ * refunds and history. Another payer's payment is `404 not_found`, the same
+ * as one that doesn't exist.
+ */
+export const getPayment = async (
+  http: Http,
+  paymentId: string,
+  signal?: AbortSignal,
+): Promise<PaymentDetail> =>
+  toPaymentDetail(await requestPaymentDetail(http, paymentId, signal));
+
+/**
+ * GET /payments/{paymentId} as finance: any mensa's payment, with who paid,
+ * where, why it needs attention, its refunds and its history. A missing one
+ * is `404 not_found`.
+ */
+export const getFinancePayment = async (
+  http: Http,
+  paymentId: string,
+  signal?: AbortSignal,
+): Promise<FinancePaymentDetail> =>
+  toFinancePaymentDetail(await requestPaymentDetail(http, paymentId, signal));
 
 /**
  * POST /orders/{orderId}/payments: pays the order as the logged-in payer, at
