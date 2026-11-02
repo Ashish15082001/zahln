@@ -238,6 +238,9 @@ Done so far:
 | `7ac4fb9` | Profile shows the payer: the name's first letter as an avatar, the full name and which prices they pay                                                                                                                                                         |
 | `600555d` | Under it, a list: App theme and App language, each with a select that doesn't change the app yet, and Log out. Selects are 48 px tall in both apps                                                                                                             |
 | `ced9bc7` | The login screen has no form: a card each for Student, Staff and Guest, whose Log in logs in as that seeded user. Every Log in turns off while one is on its way                                                                                               |
+| `5e5e0aa` | Each student screen's header, content and footer are components of their own, handed to `ScreenLayoutJSX`, which takes the content as a prop like the other two. Parts only one screen uses sit in its `components/` folder                                    |
+| `0974dac` | Student screens named for what they are: `homeScreen/` with `homeHeader/`, `homeContent/` and `homeFooter/`. Pay's footer picks the Pay button or the result's buttons. No component keeps markup in a variable                                                |
+| `c842e93` | Every student component is a container and its JSX, and a parent always renders the container. Labels and a closed order's message are worked out in the container                                                                                             |
 
 Changes from the plan:
 
