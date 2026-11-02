@@ -1,13 +1,17 @@
 import { cn } from "@zahln/ui/lib/utils";
 import type { FC, ReactElement } from "react";
 
-/** How wide the column is: md for a phone, 5xl for a tablet in landscape. */
-export type ScreenColumnWidth = "md" | "5xl";
+/**
+ * How wide the column is: md for a phone, 5xl for a tablet in landscape, 7xl
+ * for the dashboard's tables on a desktop.
+ */
+export type ScreenColumnWidth = "md" | "5xl" | "7xl";
 
 // Whole class names, not built from the width, so Tailwind finds them.
 const columnWidthClassNames = {
   md: "max-w-md",
   "5xl": "max-w-5xl",
+  "7xl": "max-w-7xl",
 } satisfies Record<ScreenColumnWidth, string>;
 
 export interface ScreenLayoutJSXProps {
