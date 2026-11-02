@@ -165,6 +165,20 @@ export const PaymentEventSchema = z.object({
 
 export interface PaymentEvent extends z.infer<typeof PaymentEventSchema> {}
 
+/**
+ * A payment as the dashboard's detail screen shows it: the finance list's
+ * fields, its refunds and its history.
+ */
+export const FinancePaymentDetailSchema = FinancePaymentSchema.extend({
+  refunds: z.array(RefundSchema),
+  /** Oldest first, as the server sends it. */
+  history: z.array(PaymentEventSchema),
+});
+
+export interface FinancePaymentDetail extends z.infer<
+  typeof FinancePaymentDetailSchema
+> {}
+
 /** A payment as its detail screen shows it: the list's fields and more. */
 export const PaymentDetailSchema = PaymentSchema.extend({
   tillName: z.string(),
@@ -257,6 +271,14 @@ export const toPaymentDetail = (
 ): PaymentDetail => ({
   ...toPayment(response),
   tillName: response.till.name,
+  refunds: response.refunds.map(toRefund),
+  history: response.history.map(toPaymentEvent),
+});
+
+export const toFinancePaymentDetail = (
+  response: PaymentDetailResponse,
+): FinancePaymentDetail => ({
+  ...toFinancePayment(response),
   refunds: response.refunds.map(toRefund),
   history: response.history.map(toPaymentEvent),
 });

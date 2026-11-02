@@ -11,6 +11,7 @@ import {
   toCashierPayment,
   toCashierPaymentPage,
   toFinancePayment,
+  toFinancePaymentDetail,
   toFinancePaymentPage,
   toPayment,
   toPaymentDetail,
@@ -454,6 +455,23 @@ describe("PaymentDetailResponseSchema", () => {
     });
 
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("toFinancePaymentDetail", () => {
+  it("keeps the finance list's fields and adds the refunds and history", () => {
+    const parsed = PaymentDetailResponseSchema.parse(refundedDetailResponse);
+
+    const detail = toFinancePaymentDetail(parsed);
+
+    expect(detail).toEqual({
+      ...toFinancePayment(parsed),
+      refunds: toPaymentDetail(parsed).refunds,
+      history: toPaymentDetail(parsed).history,
+    });
+    expect(detail.tillName).toBe("Kasse 3");
+    expect(detail.refunds).toHaveLength(1);
+    expect(detail.history).toHaveLength(4);
   });
 });
 
