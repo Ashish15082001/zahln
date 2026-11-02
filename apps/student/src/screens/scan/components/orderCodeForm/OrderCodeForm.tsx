@@ -1,7 +1,7 @@
 import { useState, type FC, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { toPayPath } from "../../../app/paths";
-import { readTypedOrderCode } from "../../../data/orderScan";
+import { toPayPath } from "../../../../app/paths";
+import { readTypedOrderCode } from "../../../../data/orderScan";
 import OrderCodeFormJSX from "./OrderCodeFormJSX";
 
 const OrderCodeForm: FC = () => {

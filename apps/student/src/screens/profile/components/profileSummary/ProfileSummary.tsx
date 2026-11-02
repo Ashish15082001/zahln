@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { useSession } from "../../../data/session";
+import { useSession } from "../../../../data/session";
 import ProfileSummaryJSX from "./ProfileSummaryJSX";
 
 // The name's first letter, for the avatar. Composed first, so an accent sent

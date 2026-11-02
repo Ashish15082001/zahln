@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { loginErrorReason } from "../../data/loginError";
 import { useLogin } from "../../data/session";
 import { TEST_USERS } from "../../data/testUsers";
-import LoginJSX, { type LoginStatus, type TestUserOption } from "./LoginJSX";
+import type { LoginStatus, TestUserOption } from "./content/LoginContentJSX";
+import LoginJSX from "./LoginJSX";
 
 const Login: FC = () => {
   const { t } = useTranslation("student");

@@ -3,7 +3,7 @@ import { pickLanguage } from "@zahln/i18n/language";
 import type { TFunction } from "i18next";
 import { useEffect, useRef, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import type { PayFailure } from "../../../data/pay";
+import type { PayFailure } from "../../../../data/pay";
 import PayFooterJSX, { type PayMessage } from "./PayFooterJSX";
 
 /** Where the payer's tap on Pay has got to. */

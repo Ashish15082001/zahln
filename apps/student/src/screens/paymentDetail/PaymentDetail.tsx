@@ -6,10 +6,12 @@ import {
   isPaymentNotFound,
   usePayment,
 } from "../../data/payments";
-import PaymentDetailJSX, {
-  type PaymentDetailState,
-  type RefreshStatus,
-} from "./PaymentDetailJSX";
+import type {
+  PaymentDetailState,
+  RefreshStatus,
+} from "./content/PaymentDetailContentJSX";
+import type { RefreshButtonStatus } from "./header/PaymentDetailHeaderJSX";
+import PaymentDetailJSX from "./PaymentDetailJSX";
 
 const PaymentDetail: FC = () => {
   // The route always has the id; the default only satisfies the type.
@@ -45,6 +47,14 @@ const PaymentDetail: FC = () => {
       : { status: "error", isRetrying: paymentQuery.isFetching };
   }
 
+  // Only a loaded payment can be refreshed; the other states have their own
+  // way forward, or none.
+  let refreshButtonStatus: RefreshButtonStatus = "hidden";
+  if (state.status === "ready") {
+    refreshButtonStatus =
+      state.refresh === "refreshing" ? "refreshing" : "idle";
+  }
+
   // Back to where the payer came from, so this button and Android's agree.
   // Opened straight from a link there is nowhere to go back to, so it opens
   // the list in place of this screen.
@@ -64,6 +74,7 @@ const PaymentDetail: FC = () => {
   return (
     <PaymentDetailJSX
       headingRef={headingRef}
+      refreshButtonStatus={refreshButtonStatus}
       state={state}
       handleBack={handleBack}
       handleRefresh={handleRefresh}

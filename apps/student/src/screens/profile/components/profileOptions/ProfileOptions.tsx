@@ -1,7 +1,7 @@
 import { SUPPORTED_LANGUAGES } from "@zahln/i18n/language";
 import { useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import { logOut } from "../../../data/session";
+import { logOut } from "../../../../data/session";
 import type { PreferenceOption } from "./preferenceItem/PreferenceItemJSX";
 import ProfileOptionsJSX from "./ProfileOptionsJSX";
 

@@ -2,7 +2,7 @@ import type { Clock01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Payment } from "@zahln/domain/payment/frontend";
 import type { FC, Ref } from "react";
-import PaymentSummary from "../../../components/paymentSummary/PaymentSummary";
+import PaymentSummary from "../../../../components/paymentSummary/PaymentSummary";
 
 export interface OwnPaymentJSXProps {
   description: string;

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, type FC } from "react";
 import { useNavigate, useParams } from "react-router";
 import { paths, toPaymentPath } from "../../app/paths";
 import { isOrderNotFound, usePayerOrder } from "../../data/order";
-import OrderJSX, { type OrderScreenState } from "./OrderJSX";
+import type { OrderScreenState } from "./content/OrderContentJSX";
+import OrderJSX from "./OrderJSX";
 
 const Order: FC = () => {
   // The route always has the id; the default only satisfies the type.

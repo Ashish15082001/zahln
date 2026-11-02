@@ -2,7 +2,7 @@ import type { RefundStatus } from "@zahln/domain/payment/frontend";
 import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import { useId, type FC } from "react";
 import { useTranslation } from "react-i18next";
-import StatusBadge from "../../../components/statusBadge/StatusBadge";
+import StatusBadge from "../../../../components/statusBadge/StatusBadge";
 
 /** One refund, written out in the app language. */
 export interface RefundLine {

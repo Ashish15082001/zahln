@@ -1,5 +1,5 @@
 import { cn } from "@zahln/ui/lib/utils";
-import type { FC, ReactElement, ReactNode } from "react";
+import type { FC, ReactElement } from "react";
 
 /** How wide the column is: md for a phone, 5xl for a tablet in landscape. */
 export type ScreenColumnWidth = "md" | "5xl";
@@ -11,8 +11,8 @@ const columnWidthClassNames = {
 } satisfies Record<ScreenColumnWidth, string>;
 
 export interface ScreenLayoutJSXProps {
-  children: ReactNode;
   columnWidth: ScreenColumnWidth;
+  content: ReactElement;
   contentClassName?: string;
   footer?: ReactElement;
   header?: ReactElement;
@@ -21,6 +21,8 @@ export interface ScreenLayoutJSXProps {
 /**
  * A screen: a header that stays at the top, the content, and a footer that
  * stays at the bottom. Leave out header or footer for a screen without one.
+ * Content comes as a prop like the other two, not as children, so a screen
+ * passes its three sections the same way: each its own component.
  *
  * The page is at least as tall as the screen, so the footer sits at the
  * bottom under short content too. The window scrolls, not the content on its
@@ -42,8 +44,8 @@ export interface ScreenLayoutJSXProps {
  * footer landmarks.
  */
 const ScreenLayoutJSX: FC<ScreenLayoutJSXProps> = ({
-  children,
   columnWidth,
+  content,
   contentClassName,
   footer,
   header,
@@ -73,7 +75,7 @@ const ScreenLayoutJSX: FC<ScreenLayoutJSXProps> = ({
           <div className={barColumnClassName}>{header}</div>
         </header>
       )}
-      <main className={mainClassName}>{children}</main>
+      <main className={mainClassName}>{content}</main>
       {footer !== undefined && (
         <footer className="sticky bottom-0 z-10 border-t bg-background pb-[env(safe-area-inset-bottom)]">
           <div className={barColumnClassName}>{footer}</div>

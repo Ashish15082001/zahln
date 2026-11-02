@@ -12,9 +12,11 @@ import { paths, toPaymentPath } from "../../app/paths";
 import { isOrderNotFound, usePayerOrder } from "../../data/order";
 import { isOrderOutOfDate, toPayFailure, usePayOrder } from "../../data/pay";
 import { usePayment } from "../../data/payments";
-import type { OwnPaymentStatus } from "./ownPayment/OwnPayment";
-import PayJSX, { type PayScreenState } from "./PayJSX";
-import type { PayFooterState, PayStatus } from "./payFooter/PayFooter";
+import type { OwnPaymentStatus } from "./components/ownPayment/OwnPayment";
+import type { PayScreenState } from "./content/PayContentJSX";
+import type { PayFooterState, PayStatus } from "./footer/payFooter/PayFooter";
+import type { RefreshButtonStatus } from "./header/PayHeaderJSX";
+import PayJSX from "./PayJSX";
 
 // How long the page asks about a pending payment on its own. Most answers
 // come within seconds; one that doesn't can take minutes, and the payer
@@ -136,6 +138,12 @@ const Pay: FC = () => {
   const shownResult =
     state.status === "ownPayment" ? state.paymentStatus : null;
 
+  // Refresh only once the page has stopped asking on its own.
+  let refreshButtonStatus: RefreshButtonStatus = "hidden";
+  if (state.status === "ownPayment" && state.paymentStatus === "longPending") {
+    refreshButtonStatus = state.isRefreshing ? "refreshing" : "idle";
+  }
+
   // Focus goes to the result each time it changes, so TalkBack reads
   // "Being checked", then "Paid", as each comes in. Pay's footer is gone by
   // then, and focus with it.
@@ -229,6 +237,7 @@ const Pay: FC = () => {
     <PayJSX
       headingRef={headingRef}
       payFooter={payFooter}
+      refreshButtonStatus={refreshButtonStatus}
       resultHeadingRef={resultHeadingRef}
       state={state}
       handleGoHome={handleGoHome}

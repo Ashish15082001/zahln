@@ -69,14 +69,21 @@ const ContentJSX: FC<ContentJSXProps> = ({
     <Tabs value={selectedTab} onValueChange={handleSelectTab}>
       {/* 5xl, not 4xl: the payments table needs about 930 px, and a tablet in
           landscape has the room. */}
-      <ScreenLayoutJSX columnWidth="5xl" footer={footer} header={header}>
-        <TabsContent className={panelClassName} forceMount value="mensa">
-          <MensaTab createOrderSlot={createOrderSlot} />
-        </TabsContent>
-        <TabsContent className={panelClassName} forceMount value="payments">
-          <PaymentsTab isShown={isPaymentsTabShown} />
-        </TabsContent>
-      </ScreenLayoutJSX>
+      <ScreenLayoutJSX
+        columnWidth="5xl"
+        content={
+          <>
+            <TabsContent className={panelClassName} forceMount value="mensa">
+              <MensaTab createOrderSlot={createOrderSlot} />
+            </TabsContent>
+            <TabsContent className={panelClassName} forceMount value="payments">
+              <PaymentsTab isShown={isPaymentsTabShown} />
+            </TabsContent>
+          </>
+        }
+        footer={footer}
+        header={header}
+      />
     </Tabs>
   );
 };
