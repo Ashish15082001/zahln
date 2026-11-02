@@ -81,9 +81,10 @@ export const logOut = (): void => {
 
 /**
  * The server's time, from the Date header of every response. The token's
- * expiry is server time, so a laptop whose clock is off renews on time.
+ * expiry is server time, and so is which day is today, so a laptop whose
+ * clock is off renews on time and opens the right day's totals.
  */
-const serverClock = createServerClock();
+export const serverClock = createServerClock();
 
 /**
  * Logs in again shortly before the token runs out and when the server

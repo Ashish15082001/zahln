@@ -415,6 +415,45 @@ const de: Resources = {
     },
     dailyTotals: {
       title: "Tagessummen",
+      description:
+        "Tage nach Berliner Zeit. Zahlungen zählen am Tag, an dem sie gemacht wurden, Erstattungen am Tag, an dem sie abgeschlossen wurden.",
+      refresh: "Aktualisieren",
+      refreshing: "Wird aktualisiert…",
+      updated: "Stand",
+      refreshFailed:
+        "Aktualisieren fehlgeschlagen. Das sind die Summen von vorher.",
+      loading: "Summen werden geladen…",
+      errorTitle: "Die Summen konnten nicht geladen werden",
+      errorDescription:
+        "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      retry: "Erneut versuchen",
+      retrying: "Wird erneut versucht…",
+      dayPicker: {
+        label: "Tag",
+        previous: "Vorheriger Tag",
+        next: "Nächster Tag",
+      },
+      tiles: {
+        gross: "Brutto",
+        grossNote: "Bestätigte Zahlungen",
+        refunded: "Erstattet",
+        refundedNote: "An diesem Tag abgeschlossene Erstattungen",
+        net: "Netto",
+        netNote: "Brutto minus Erstattungen",
+        payments: "Zahlungen",
+        paymentsNote: "An diesem Tag bestätigt",
+        pending: "In Prüfung",
+        pendingNote: "{{count}} in Prüfung, nicht im Brutto",
+      },
+      table: {
+        title: "Nach Mensa und Kasse",
+        name: "Mensa und Kasse",
+        payments: "Zahlungen",
+        gross: "Brutto",
+        refunded: "Erstattet",
+        net: "Netto",
+        pending: "In Prüfung",
+      },
     },
   },
 };
