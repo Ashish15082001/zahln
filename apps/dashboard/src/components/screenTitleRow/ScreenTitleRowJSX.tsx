@@ -1,10 +1,11 @@
 import RefreshButtonJSX, {
   type RefreshButtonJSXProps,
 } from "@zahln/ui/components/refreshButton/RefreshButtonJSX";
-import type { FC } from "react";
+import type { FC, Ref } from "react";
 
 export interface ScreenTitleRowJSXProps {
   description: string;
+  headingRef?: Ref<HTMLHeadingElement>;
   // Null while there is nothing to refresh.
   refreshButton: Omit<RefreshButtonJSXProps, "handleRefresh"> | null;
   title: string;
@@ -18,13 +19,22 @@ export interface ScreenTitleRowJSXProps {
  */
 const ScreenTitleRowJSX: FC<ScreenTitleRowJSXProps> = ({
   description,
+  headingRef,
   refreshButton,
   title,
   handleRefresh,
 }) => (
   <div className="flex items-start justify-between gap-4">
     <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-semibold">{title}</h1>
+      {/* tabIndex -1 so a screen can move focus here on open; it isn't in
+          the Tab order. No outline: it is a heading, not a control. */}
+      <h1
+        ref={headingRef}
+        className="text-2xl font-semibold outline-none"
+        tabIndex={-1}
+      >
+        {title}
+      </h1>
       <p className="text-sm text-muted-foreground">{description}</p>
     </div>
     {refreshButton !== null && (

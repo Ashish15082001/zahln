@@ -1,9 +1,11 @@
 import {
   useInfiniteQuery,
+  useQuery,
   type InfiniteData,
   type QueryKey,
 } from "@tanstack/react-query";
-import { getFinancePayments } from "@zahln/api/payments";
+import { hasProblemCode } from "@zahln/api/errors";
+import { getFinancePayment, getFinancePayments } from "@zahln/api/payments";
 import {
   addDays,
   berlinDayStartIso,
@@ -14,6 +16,7 @@ import {
   newerPayment,
   toPaymentList,
   type FinancePayment,
+  type FinancePaymentDetail,
   type FinancePaymentPage,
   type PaymentStatus,
 } from "@zahln/domain/payment/frontend";
@@ -52,11 +55,16 @@ const toPaymentListRequest = (filters: PaymentFilters): PaymentListRequest => ({
 
 type FinancePaymentPages = InfiniteData<FinancePaymentPage, string | null>;
 
+// Every list's key starts with this, so one call can reach them all.
+const PAYMENT_LISTS_KEY = "payments";
+
 // The filters are part of the key, so each set of filters has its own list
 // and changing them never shows the last filters' payments under the new
 // ones.
 const paymentsQueryKey = (filters: PaymentFilters) =>
-  ["payments", filters] as const;
+  [PAYMENT_LISTS_KEY, filters] as const;
+
+const paymentQueryKey = (paymentId: string) => ["payment", paymentId] as const;
 
 /**
  * The payments this list already shows, by id. Read before a page replaces
@@ -110,3 +118,90 @@ export const useFinancePayments = (filters: PaymentFilters) =>
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     select: selectPaymentList,
   });
+
+/**
+ * The newest copy of a payment any list has shown, or null when none has it.
+ * The detail screen shows it while the refunds and history are on their way.
+ */
+export const findListedPayment = (paymentId: string): FinancePayment | null => {
+  let newestListed: FinancePayment | null = null;
+  for (const [, pages] of queryClient.getQueriesData<FinancePaymentPages>({
+    queryKey: [PAYMENT_LISTS_KEY],
+  })) {
+    for (const page of pages?.pages ?? []) {
+      for (const listedPayment of page.payments) {
+        if (listedPayment.id !== paymentId) continue;
+        newestListed = newerPayment(newestListed ?? undefined, listedPayment);
+      }
+    }
+  }
+  return newestListed;
+};
+
+/**
+ * Puts a newer copy of a payment into every list that has it, so Back from
+ * its detail never shows an older status than the one just seen. Lists
+ * without it are left as they are.
+ */
+const saveToLists = (receivedPayment: FinancePayment): void => {
+  queryClient.setQueriesData<FinancePaymentPages>(
+    { queryKey: [PAYMENT_LISTS_KEY] },
+    // Returning undefined leaves a list that isn't loaded as it is.
+    (cachedPages) =>
+      cachedPages && {
+        ...cachedPages,
+        pages: cachedPages.pages.map((page) => ({
+          ...page,
+          payments: page.payments.map((listedPayment) =>
+            listedPayment.id === receivedPayment.id
+              ? newerPayment(listedPayment, receivedPayment)
+              : listedPayment,
+          ),
+        })),
+      },
+  );
+};
+
+/** The server answered with an older copy than one already shown. */
+class OlderThanShownError extends Error {
+  constructor() {
+    super("The payment came back older than a copy already shown");
+    this.name = "OlderThanShownError";
+  }
+}
+
+/**
+ * One payment with its refunds and history. Fetched when the screen opens,
+ * with Refresh and when the tab comes back to the front; no polling, since a
+ * payment can stay pending for days. It never shows a lower version than a
+ * list or an earlier read already showed.
+ */
+export const useFinancePayment = (paymentId: string) =>
+  useQuery({
+    queryKey: paymentQueryKey(paymentId),
+    queryFn: async ({ queryKey, signal }) => {
+      const receivedDetail = await getFinancePayment(http, paymentId, signal);
+      const shownDetail = newerPayment(
+        queryClient.getQueryData<FinancePaymentDetail>(queryKey),
+        receivedDetail,
+      );
+      // A list may already have shown a later state, e.g. `confirmed`. Its
+      // row has no refunds or history to keep, so the read is dropped and
+      // asked again rather than shown.
+      const listedPayment = findListedPayment(paymentId);
+      if (listedPayment && listedPayment.version > shownDetail.version) {
+        throw new OlderThanShownError();
+      }
+      saveToLists(shownDetail);
+      return shownDetail;
+    },
+    // The one retry outside the API client: a read that came back out of date
+    // is safe to repeat, and the server catches up within seconds.
+    retry: (failureCount, error) =>
+      error instanceof OlderThanShownError && failureCount < 3,
+    retryDelay: 1_000,
+  });
+
+/** True when the server has no payment with this id. */
+export const isPaymentNotFound = (error: unknown): boolean =>
+  hasProblemCode(error, "not_found");

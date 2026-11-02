@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import DailyTotalsScreen from "../screens/dailyTotalsScreen/DailyTotalsScreen";
 import LoginScreen from "../screens/loginScreen/LoginScreen";
+import PaymentDetailScreen from "../screens/paymentDetailScreen/PaymentDetailScreen";
 import PaymentsScreen from "../screens/paymentsScreen/PaymentsScreen";
 import { paths } from "./paths";
 import SignedInOnly from "./signedInOnly/SignedInOnly";
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     children: [
       { path: paths.dailyTotals, element: <DailyTotalsScreen /> },
       { path: paths.payments, element: <PaymentsScreen /> },
+      { path: paths.payment, element: <PaymentDetailScreen /> },
     ],
   },
   // The static host serves index.html for any path, so an unknown one would

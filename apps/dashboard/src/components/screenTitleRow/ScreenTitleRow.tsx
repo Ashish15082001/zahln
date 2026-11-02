@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import type { FC, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import ScreenTitleRowJSX, {
   type ScreenTitleRowJSXProps,
@@ -12,6 +12,8 @@ export interface RefreshButtonState {
 
 export interface ScreenTitleRowProps {
   description: string;
+  // For a screen that moves focus to its heading when it opens.
+  headingRef?: Ref<HTMLHeadingElement>;
   // Null while there is nothing to refresh: the data is loading, or its first
   // load failed and the screen offers Try again instead.
   refreshButtonState: RefreshButtonState | null;
@@ -21,6 +23,7 @@ export interface ScreenTitleRowProps {
 
 const ScreenTitleRow: FC<ScreenTitleRowProps> = ({
   description,
+  headingRef,
   refreshButtonState,
   title,
   handleRefresh,
@@ -40,6 +43,7 @@ const ScreenTitleRow: FC<ScreenTitleRowProps> = ({
   return (
     <ScreenTitleRowJSX
       description={description}
+      headingRef={headingRef}
       refreshButton={refreshButton}
       title={title}
       handleRefresh={handleRefresh}

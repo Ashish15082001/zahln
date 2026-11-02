@@ -510,6 +510,81 @@ const de: Resources = {
       loadingMore: "Wird geladen…",
       loadMoreFailed: "Weitere Zahlungen konnten nicht geladen werden.",
     },
+    refundStatus: {
+      pending: "In Bearbeitung",
+      completed: "Abgeschlossen",
+      failed: "Fehlgeschlagen",
+    },
+    priceGroup: {
+      student: "Studierende",
+      staff: "Bedienstete",
+      guest: "Gäste",
+    },
+    paymentDetail: {
+      title: "Zahlung",
+      back: "Zurück",
+      refreshFailed:
+        "Aktualisieren fehlgeschlagen. Das ist die Zahlung von vorher.",
+      loading: "Zahlung wird geladen…",
+      loadingMore: "Erstattungen und Verlauf werden geladen…",
+      notFoundTitle: "Zahlung nicht gefunden",
+      notFoundDescription:
+        "Keine Zahlung hat diese ID. Prüfen Sie sie und suchen Sie erneut.",
+      errorTitle: "Die Zahlung konnte nicht geladen werden",
+      errorDescription:
+        "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      retry: "Erneut versuchen",
+      retrying: "Wird erneut versucht…",
+      attention: {
+        title: "Braucht Aufmerksamkeit",
+        reasons: {
+          pending_too_long: "Wird schon sehr lange geprüft",
+          refund_pending_too_long: "Eine Erstattung dauert zu lange",
+          refund_failed: "Eine Erstattung ist fehlgeschlagen",
+          other:
+            "Markiert aus einem Grund, den dieses Dashboard noch nicht kennt",
+        },
+      },
+      facts: {
+        title: "Details",
+        status: "Status",
+        amount: "Betrag",
+        refunded: "Erstattet",
+        refundPending: "Erstattung unterwegs",
+        refundable: "Noch erstattbar",
+        priceGroup: "Preisgruppe",
+        created: "Erstellt",
+        place: "Mensa und Kasse",
+        payer: "Zahler",
+        orderId: "Bestell-ID",
+        paymentId: "Zahlungs-ID",
+      },
+      items: {
+        title: "Positionen",
+        dish: "Gericht",
+        quantity: "Menge",
+        unitPrice: "Einzelpreis",
+        lineTotal: "Summe",
+        total: "Gesamt",
+      },
+      refunds: {
+        title: "Erstattungen",
+        empty: "Keine Erstattungen.",
+        reason: "Grund: {{reason}}",
+      },
+      history: {
+        title: "Verlauf",
+        events: {
+          payment_created: "Zahlung gestartet",
+          payment_confirmed: "Zahlung bestätigt",
+          payment_declined: "Zahlung abgelehnt",
+          refund_requested: "Erstattung angefordert",
+          refund_completed: "Erstattung abgeschlossen",
+          refund_failed: "Erstattung fehlgeschlagen",
+          other: "Andere Änderung",
+        },
+      },
+    },
   },
 };
 

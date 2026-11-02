@@ -1,14 +1,22 @@
 import type { FC } from "react";
-import PaymentIdCellJSX, {
-  type PaymentIdCellJSXProps,
-} from "./PaymentIdCellJSX";
+import { toPaymentPath } from "../../../../app/paths";
+import PaymentIdCellJSX from "./PaymentIdCellJSX";
 
-export type PaymentIdCellProps = PaymentIdCellJSXProps;
+export interface PaymentIdCellProps {
+  orderId: string;
+  paymentId: string;
+}
 
-// Nothing to work out: it shows what it is handed, so the props pass
-// straight through to the markup.
-const PaymentIdCell: FC<PaymentIdCellProps> = (props) => (
-  <PaymentIdCellJSX {...props} />
-);
+const PaymentIdCell: FC<PaymentIdCellProps> = ({ orderId, paymentId }) => {
+  const paymentPath = toPaymentPath(paymentId);
+
+  return (
+    <PaymentIdCellJSX
+      orderId={orderId}
+      paymentId={paymentId}
+      paymentPath={paymentPath}
+    />
+  );
+};
 
 export default PaymentIdCell;

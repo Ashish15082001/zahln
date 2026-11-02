@@ -30,7 +30,7 @@ export const getPaymentColumns = (t: TFunction<"dashboard">) =>
     }),
     helper.accessor("status", {
       header: t("payments.table.status"),
-      cell: (info) => <StatusBadge status={info.getValue()} />,
+      cell: (info) => <StatusBadge kind="payment" status={info.getValue()} />,
     }),
     helper.accessor("amountCents", {
       header: () => <NumberHeader label={t("payments.table.amount")} />,
