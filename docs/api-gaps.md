@@ -34,8 +34,8 @@ document links here. New gaps are added as the work finds them.
 ## 3. No log out
 
 - **Problem:** there is no call that ends a session, so a token keeps working
-  for up to 5 minutes after the cashier logs out.
-- **For now:** the app forgets the token. The server still accepts it until it
+  for up to 5 minutes after a cashier or a payer logs out.
+- **For now:** both apps forget the token. The server still accepts it until it
   expires.
 - **I would add:** `DELETE /sessions/current`, which ends the token on the
   server.

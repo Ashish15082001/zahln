@@ -233,6 +233,11 @@ Done so far:
 | `b1f81f9` | Refresh as one shared icon button in both apps, turning while it works and named for TalkBack                                                                                                                                                                  |
 | `f36c91b` | Every date and time in both apps as a calendar icon and the value, from one shared component                                                                                                                                                                   |
 | `aba823c` | The Pay footer after paying: See the payment and Done side by side at the same width. Refresh moves to the header                                                                                                                                              |
+| `35bc189` | shadcn's `Avatar` and `Select`                                                                                                                                                                                                                                 |
+| `3cf7cd8` | The Settings page becomes Profile: a person icon on Home opens `/profile`                                                                                                                                                                                      |
+| `7ac4fb9` | Profile shows the payer: the name's first letter as an avatar, the full name and which prices they pay                                                                                                                                                         |
+| `600555d` | Under it, a list: App theme and App language, each with a select that doesn't change the app yet, and Log out. Selects are 48 px tall in both apps                                                                                                             |
+| `ced9bc7` | The login screen has no form: a card each for Student, Staff and Guest, whose Log in logs in as that seeded user. Every Log in turns off while one is on its way                                                                                               |
 
 Changes from the plan:
 
@@ -283,16 +288,27 @@ Changes from the plan:
   with a key that is still saved, don't ask again: the payer confirmed that
   payment already. Weak face unlock counts. The reasons are in
   [student-plan.md](student-plan.md#confirming-its-the-payer).
+- **Log out is on a Profile page,** not on Home. Home's top right is a
+  person icon that opens Profile: the payer's name and prices, App theme and
+  App language, and Log out.
+- **Picking the user is the login.** The plan said pick student, staff or
+  guest, then log in. The login screen has no form instead: a card for each
+  seeded user, and its Log in button logs in with that user's username and
+  the seeded password. The server has no other payers, and the password is
+  in the API's docs. Another user is Log out on Profile, then another card
+  ([student-plan.md](student-plan.md#logging-in)).
 
 Not yet:
 
 - Renewing the token after a reopen, which needs a refresh token or the
   password in the Android Keystore.
 - `GET /config`: a forced update and payments switched off.
-- Picking student, staff or guest before login. The server already sends the
-  account's role.
-- Log out on the Profile page. Profile is empty for now, so the app has
-  no way to log out yet.
+- A pay key for each payer. Log out keeps a saved key, and it holds the order
+  and the amount but not the payer, so the next payer at the same order and
+  amount would send it without the fingerprint, face or PIN check
+  ([student-plan.md](student-plan.md#still-to-build)).
+- Applying the theme and the language picked on Profile. The selects show
+  the choice, but the app keeps the phone's language and the light colours.
 
 The plan for the whole step:
 
