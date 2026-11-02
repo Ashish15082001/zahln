@@ -57,3 +57,19 @@ export const formatDay = (day: string, language: AppLanguage): string =>
     year: "numeric",
     timeZone: "UTC",
   }).format(Date.parse(`${day}T00:00:00Z`));
+
+/**
+ * Cents as a plain number of euros in the app language, with no currency
+ * sign and no thousands separator: 123456 is "1234,56" in German and
+ * "1234.56" in English. For a spreadsheet, which reads it as a number only
+ * when it is written the way its language writes numbers.
+ */
+export const formatCentsAsNumber = (
+  cents: number,
+  language: AppLanguage,
+): string =>
+  new Intl.NumberFormat(language, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  }).format(cents / 100);

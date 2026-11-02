@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatCents,
+  formatCentsAsNumber,
   formatCount,
   formatDateTime,
   formatDateTimeWithSeconds,
@@ -69,5 +70,18 @@ describe("formatDay", () => {
   it("shows the day given, not the day before, in time zones behind UTC", () => {
     // Read in UTC, so a device in New York still shows 1 January.
     expect(formatDay("2027-01-01", "en")).toBe("Fri, Jan 1, 2027");
+  });
+});
+
+describe("formatCentsAsNumber", () => {
+  it("writes a plain number the way each language does", () => {
+    expect(formatCentsAsNumber(320, "de")).toBe("3,20");
+    expect(formatCentsAsNumber(320, "en")).toBe("3.20");
+  });
+
+  it("leaves out the thousands separator and keeps two decimals", () => {
+    expect(formatCentsAsNumber(123456, "de")).toBe("1234,56");
+    expect(formatCentsAsNumber(123456, "en")).toBe("1234.56");
+    expect(formatCentsAsNumber(0, "en")).toBe("0.00");
   });
 });
