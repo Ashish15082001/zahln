@@ -4,6 +4,7 @@ import { ApiError } from "./errors";
 import { createHttp } from "./http";
 import {
   getCashierPayments,
+  getFinancePayments,
   getPayment,
   getPayments,
   payOrder,
@@ -68,6 +69,58 @@ const setup = (replies: (() => Reply)[]) => {
   });
   return { http, server };
 };
+
+describe("getFinancePayments", () => {
+  it("sends every filter that is set, and leaves the rest out", async () => {
+    const { http, server } = setup([
+      () =>
+        jsonReply(200, {
+          items: [
+            {
+              ...payment,
+              needsAttention: true,
+              attentionReasons: ["pending_too_long"],
+            },
+          ],
+          nextCursor: null,
+        }),
+    ]);
+
+    const page = await getFinancePayments(http, {
+      limit: 50,
+      mensaId: "mensa_nord",
+      status: "pending",
+      from: "2026-10-20T00:00:00+02:00",
+      to: "2026-10-21T00:00:00+02:00",
+      q: "pay_b36",
+    });
+
+    expect(page.payments[0]?.payerId).toBe("usr_student");
+    expect(page.payments[0]?.attentionReasons).toEqual(["pending_too_long"]);
+    const [call] = server.calls;
+    const url = new URL(call?.path ?? "", "https://api.test");
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      limit: "50",
+      mensaId: "mensa_nord",
+      status: "pending",
+      from: "2026-10-20T00:00:00+02:00",
+      to: "2026-10-21T00:00:00+02:00",
+      q: "pay_b36",
+    });
+  });
+
+  it("asks for payments that need attention", async () => {
+    const { http, server } = setup([
+      () => jsonReply(200, { items: [], nextCursor: null }),
+    ]);
+
+    await getFinancePayments(http, { limit: 50, needsAttention: true });
+
+    expect(describeCalls(server.calls)).toEqual([
+      "GET /payments?limit=50&needsAttention=true",
+    ]);
+  });
+});
 
 describe("getPayments", () => {
   it("asks for the first page with the token and no key", async () => {

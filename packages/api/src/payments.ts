@@ -8,10 +8,12 @@ import {
 } from "@zahln/domain/payment/backend";
 import {
   toCashierPaymentPage,
+  toFinancePaymentPage,
   toPayment,
   toPaymentDetail,
   toPaymentPage,
   type CashierPaymentPage,
+  type FinancePaymentPage,
   type Payment,
   type PaymentDetail,
   type PaymentPage,
@@ -31,8 +33,19 @@ const requestPaymentPage = (
     method: "GET",
     path: "/payments",
     // Listed one by one: an interface has no index signature, so it can't be
-    // passed as the query map as a whole.
-    query: { limit: request.limit, cursor: request.cursor },
+    // passed as the query map as a whole. A filter left out stays out of the
+    // URL.
+    query: {
+      limit: request.limit,
+      cursor: request.cursor,
+      mensaId: request.mensaId,
+      tillId: request.tillId,
+      status: request.status,
+      from: request.from,
+      to: request.to,
+      needsAttention: request.needsAttention,
+      q: request.q,
+    },
     schema: PaymentPageResponseSchema,
     authenticated: true,
     signal,
@@ -59,6 +72,18 @@ export const getCashierPayments = async (
   signal?: AbortSignal,
 ): Promise<CashierPaymentPage> =>
   toCashierPaymentPage(await requestPaymentPage(http, request, signal));
+
+/**
+ * GET /payments as finance: one page of every mensa's payments, newest first,
+ * narrowed by the request's filters. Leave `cursor` out for the first page,
+ * and send the same filters with every later one.
+ */
+export const getFinancePayments = async (
+  http: Http,
+  request: PaymentListRequest,
+  signal?: AbortSignal,
+): Promise<FinancePaymentPage> =>
+  toFinancePaymentPage(await requestPaymentPage(http, request, signal));
 
 /**
  * GET /payments/{paymentId}: one payment with its refunds and history. Another
