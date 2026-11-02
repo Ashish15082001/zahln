@@ -19,7 +19,7 @@ frontend assignment, in one TypeScript monorepo.
 apps/
   student/     Student app: React + Capacitor (Android)
   till/        Till app: React + Capacitor (Android tablet)
-  dashboard/   Studierendenwerk dashboard: React, static web build (scaffold only)
+  dashboard/   Studierendenwerk dashboard: React, static web build
 packages/
   domain/      zod shapes, the server's and the apps', and version checks. No React, no DOM.
   api/         HTTP client: deadlines, retries, idempotency, response parsing, token renewal
@@ -27,11 +27,12 @@ packages/
   ui/          Accessible components shared by all three surfaces
   native/      Capacitor wrappers for the QR scanners and the fingerprint, face or PIN check, used by the student app
 docs/
-  plan.md          Build plan, step by step, with status and commits
-  till-plan.md     The till: what it does, how, and what is still to build
-  student-plan.md  The student app: what it does, how, and what is still to build
-  api-gaps.md      What the API is missing, and what I would change
-  design.md        Design document
+  plan.md            Build plan, step by step, with status and commits
+  till-plan.md       The till: what it does, how, and what is still to build
+  student-plan.md    The student app: what it does, how, and what is still to build
+  dashboard-plan.md  The dashboard: what it does, how, and what is still to build
+  api-gaps.md        What the API is missing, and what I would change
+  design.md          Design document
 ```
 
 Packages export their TypeScript source and are compiled by each app's Vite
@@ -97,9 +98,10 @@ loads your laptop's dev server.
 
 ## What I built
 
-So far the till and the student app, each described in its own document:
-[docs/till-plan.md](docs/till-plan.md) and
-[docs/student-plan.md](docs/student-plan.md). The dashboard isn't started.
+The till, the student app and the dashboard, each described in its own
+document: [docs/till-plan.md](docs/till-plan.md),
+[docs/student-plan.md](docs/student-plan.md) and
+[docs/dashboard-plan.md](docs/dashboard-plan.md).
 
 ## What I left out, and why
 

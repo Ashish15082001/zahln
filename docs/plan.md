@@ -13,11 +13,11 @@ bigger choices goes in [design.md](design.md).
 | 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                                    |
 | 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
-| 4    | Dashboard                                               | Outline only                                                                                              |
+| 4    | Dashboard                                               | Done                                                                                                      |
 | 5    | Ship                                                    | Planned                                                                                                   |
 
-What each app does, and how, is in [till-plan.md](till-plan.md) and
-[student-plan.md](student-plan.md).
+What each app does, and how, is in [till-plan.md](till-plan.md),
+[student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
 
 ## Rules for every step
 
@@ -40,8 +40,10 @@ What each app does, and how, is in [till-plan.md](till-plan.md) and
   React house rules. In the two Android apps every screen is built on
   `ScreenLayoutJSX`: a header that stays at the top, a footer that stays at
   the bottom, and a page no taller than the screen. A long press there
-  doesn't select text, except in fields. Two buttons in a footer sit side
-  by side at the same width, the main one on the right. Refresh is an icon
+  doesn't select text, except in fields. The dashboard's screens are built
+  on it too, in a wider column, and their text stays selectable, so ids can
+  be copied. Two buttons in a footer sit side by side at the same width, the
+  main one on the right. Refresh is an icon
   button, and every date and time has a calendar icon.
 - **Languages and access.** Every screen is in English and German. The pay
   flow works with TalkBack.
@@ -347,23 +349,74 @@ What the app does with each answer to "pay":
 | 503 `payments_disabled`                                                  | Shows "payments paused"                                                                                                        |
 | App killed mid-payment                                                   | On restart, picks up the saved key and checks the payment's status                                                             |
 
-## Step 4: Dashboard (outline)
+## Step 4: Dashboard
 
-Taken from the brief and the API. It gets a detailed plan, approved before the
-step starts.
+Detailed in [dashboard-plan.md](dashboard-plan.md). Built in six parts, each
+approved before it started: login and shell, daily totals, payment search,
+payment detail, needs attention, and CSV export.
 
-| Feature                                          | API                                                                                            |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| Login as `finance`                               | `POST /sessions`                                                                               |
-| Daily totals per mensa and per till, for one day | `GET /reports/daily-totals?date=`. Days are Europe/Berlin; pending payments are reported apart |
-| Payments that need attention, with the reasons   | `GET /payments?needsAttention=true`                                                            |
-| Search, with the full history of each payment    | `GET /payments` with filters and cursor paging, then `GET /payments/{id}`                      |
-| CSV export for finance                           | Pages through `GET /payments` with the current filters and builds the file in the browser      |
+| Commit    | What it does                                                                                                                                                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `75d894e` | The finance user in `domain`: anyone else is refused, since a payer's or a cashier's token would list only some of the payments                                                                                                  |
+| `f3bff78` | `tabKeyValueStorage` in `packages/api`, the tab's `sessionStorage`, for a login that outlives a reload but not the tab                                                                                                           |
+| `ef3e5f7` | Login as a card for the seeded finance user, a login kept for the tab and renewed like the apps', guards, and a header with the sections, the user's name and Log out on every screen                                            |
+| `f8a0e76` | Berlin days and the daily totals report in `domain`: a day is a `YYYY-MM-DD` string on Berlin's clock, stepped in UTC, and the report's sums are checked as whole cents                                                          |
+| `024307d` | `getDailyTotals` in `packages/api`. An answer for another day than the one asked for is refused                                                                                                                                  |
+| `759015e` | `formatCount` and `formatDay` in `packages/i18n`                                                                                                                                                                                 |
+| `67aad34` | shadcn's `Popover` and `Calendar`, with react-day-picker and date-fns. The CLI's `button.tsx` was kept as it was                                                                                                                 |
+| `6abad5f` | The daily totals: a day picker kept in the URL, five tiles with pending apart from gross, and each mensa with its tills in a table. Today refreshes every 30 seconds                                                             |
+| `8892bc6` | The payment search's filters in `domain`, the finance payment with its attention reasons, and `berlinDayStartIso` for the moment a Berlin day starts                                                                             |
+| `bf38fc0` | `getMensas` moves from the till to `packages/api`                                                                                                                                                                                |
+| `fe4e1c4` | `getFinancePayments`, and every filter that is set sent with `GET /payments`                                                                                                                                                     |
+| `820d22a` | A `7xl` column in `ScreenLayoutJSX`, for the dashboard's tables                                                                                                                                                                  |
+| `6a5eb96` | The payment search: a table 50 at a time with Load more, searched by the start of an id and filtered by mensa, till, status and a range of days, all kept in the URL. The title row with Refresh is shared with the daily totals |
+| `ecddcb9` | The finance payment detail in `domain`, with refunds and history                                                                                                                                                                 |
+| `c0dcdbd` | `getFinancePayment`, sharing one request with the payer's `getPayment`                                                                                                                                                           |
+| `6a748dc` | The payment detail, opened from a payment's id: why it needs attention, the facts, the items, refunds and history. Never older than a list's copy, and a newer read is saved into every list                                     |
+| `5c78c90` | Needs attention: the flagged payments with a badge for each reason, and "Nothing needs attention" when there are none. The list and its states become a component the search shares                                              |
+| `34da38c` | A CSV writer in `domain` that keeps a cell from running as a formula, and `berlinDateTimeOf`                                                                                                                                     |
+| `bccaf44` | `formatCentsAsNumber`, euros as a plain number in the app language                                                                                                                                                               |
+| `1317060` | The CSV export: every page the filters match or no file, each payment once, in the agreed columns, written for a spreadsheet in the app language. The dashboard runs its own tests                                               |
 
-Open for the detailed plan:
+Decisions taken before the step:
 
-- Which day the totals open on.
-- The CSV columns, and escaping cells that a spreadsheet would run as formulas.
+- **Login:** one card for the seeded finance user, like the apps' test user
+  cards, rather than a form.
+- **Payment detail:** a page of its own, so it has a link and Back works.
+- **Needs attention:** a screen of its own, with the search's table.
+- **Today's totals:** Refresh, and every 30 seconds while today is shown.
+- **CSV columns:** payment ID, order ID, created (Berlin), status, amount,
+  refunded, pending refund, price group, mensa, till, payer ID and reasons.
+- **The login:** in the tab's `sessionStorage`, so a reload keeps it and
+  closing the tab ends it.
+- **The totals open on today**, in Berlin by the server's clock.
+
+Changes from the plan:
+
+- **No sidebar.** The plan had shadcn's Sidebar. Each screen is built on
+  `ScreenLayoutJSX` as in the apps, with a shared header holding the
+  sections; a sidebar around it would have added a second header and nested
+  `<main>`.
+- **Previous day and next day** beside the calendar, so finance can step
+  through a week without opening it.
+- **The table's pending column shows the amount;** the count is on the
+  pending tile.
+- **The calendar doesn't move focus to the picked day.** Lint forbids
+  `autoFocus` and the code has no lint exceptions. Opening it still moves
+  focus into the calendar.
+- **`getMensas` is shared.** It moved from the till to `packages/api`, and the
+  till imports it from there.
+- **The CSV follows the app language:** semicolons and decimal commas in
+  German, commas and decimal points in English, so each opens in Excel
+  without an import step.
+
+Not yet:
+
+- Deploying it, in step 5.
+- A count of all the payments that match: the server sends none
+  ([API gap 10](api-gaps.md#10-no-total-and-no-snapshot-when-paging-payments)).
+- Renewing the token after a reload, which needs a refresh token
+  ([API gap 2](api-gaps.md#2-no-refresh-token)).
 
 ## Step 5: Ship
 

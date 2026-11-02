@@ -53,6 +53,15 @@ Decisions made so far, to expand:
 - **Till orientation.** The till is locked to landscape, but Android 16 ignores
   that lock on tablets for apps targeting API 36, so its layout must also work
   in portrait.
+- **The dashboard keeps its login for the tab only.** `sessionStorage`, not
+  `localStorage`: a reload keeps the login, and closing the tab on a shared
+  office computer leaves no token behind. The password stays in memory, as in
+  the apps, so a reloaded tab logs out when its token runs out.
+- **The dashboard's CSV follows the app language.** Semicolons and decimal
+  commas in German, commas and decimal points in English, so a file opens in
+  Excel in that language without an import step. The cost: the same payments
+  give different files in the two languages. A fixed format for other tools
+  would be an option on the export.
 
 ## What the API is missing, and what I would change
 

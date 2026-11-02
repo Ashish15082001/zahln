@@ -94,3 +94,28 @@ document links here. New gaps are added as the work finds them.
 - **I would add:** a short code per open order, e.g. 6 characters without
   look-alike letters, unique among the open orders, and `GET /orders?code=` to
   look one up.
+
+## 9. Daily totals have no version
+
+- **Problem:** orders and payments carry a `version`, so an out-of-date read
+  can be dropped. `GET /reports/daily-totals` has none, so an earlier state of
+  today's totals looks the same as a fresh one.
+- **For now:** the dashboard reads today's totals again every 30 seconds,
+  says when they arrived, and says so when a refresh fails. A past day changes
+  only when one of its pending payments is settled.
+- **I would add:** an `asOf` moment on the report, when its sums were worked
+  out, so the dashboard keeps the newer of two answers.
+
+## 10. No total and no snapshot when paging payments
+
+- **Problem:** a page of `GET /payments` says whether there is another, not
+  how many payments match. And each page is read as the list is at that
+  moment, so an export that takes many pages can hold a payment as it was
+  when its page was read, while another has moved on.
+- **For now:** the payment search shows how many payments it has loaded. The
+  CSV export pages through every match, 200 at a time, lists each payment
+  once at its newest version, and saves no file if a page fails
+  ([dashboard-plan.md](dashboard-plan.md#the-csv-file)).
+- **I would add:** a `total` on the first page, and
+  `GET /payments/export?format=csv` with the list's filters, read from one
+  snapshot and streamed, so a month of every mensa is one request.
