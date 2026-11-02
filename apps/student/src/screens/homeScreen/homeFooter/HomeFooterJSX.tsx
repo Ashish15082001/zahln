@@ -13,35 +13,25 @@ import { Button } from "@zahln/ui/components/button";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 
-/** Where a scan is, from tapping the button to an answer worth showing. */
-export type ScanStatus =
-  | "idle"
-  | "scanning"
-  // Google's scanner is being installed, which takes a few seconds the first
-  // time.
-  | "installing"
-  | "notAnOrder";
-
 export interface HomeFooterJSXProps {
-  scanStatus: ScanStatus;
+  buttonLabel: string;
+  isNotAnOrderShown: boolean;
+  isScanning: boolean;
+  // Read out by TalkBack; empty while there is nothing to say.
+  scanStatusMessage: string;
   handleCloseMessage: () => void;
   handleScan: () => void;
 }
 
 const HomeFooterJSX: FC<HomeFooterJSXProps> = ({
-  scanStatus,
+  buttonLabel,
+  isNotAnOrderShown,
+  isScanning,
+  scanStatusMessage,
   handleCloseMessage,
   handleScan,
 }) => {
   const { t } = useTranslation("student");
-  // Disabled while a scan is on its way, so a second tap can't open a second
-  // scanner over the first.
-  const isScanning = scanStatus === "scanning" || scanStatus === "installing";
-  const buttonLabel =
-    scanStatus === "installing"
-      ? t("home.scan.installing")
-      : t("home.scan.button");
-  const isNotAnOrder = scanStatus === "notAnOrder";
 
   return (
     // Home puts this in the screen's footer, so Scan QR is one tap away
@@ -59,11 +49,11 @@ const HomeFooterJSX: FC<HomeFooterJSXProps> = ({
       {/* The label change alone isn't read out, so TalkBack hears why the
           scanner hasn't opened yet. */}
       <span className="sr-only" role="status">
-        {scanStatus === "installing" ? t("home.scan.installing") : ""}
+        {scanStatusMessage}
       </span>
       {/* No onOpenChange: the message closes through its own buttons, so a
           stray tap outside can't hide why the scan didn't work. */}
-      <AlertDialog open={isNotAnOrder}>
+      <AlertDialog open={isNotAnOrderShown}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>

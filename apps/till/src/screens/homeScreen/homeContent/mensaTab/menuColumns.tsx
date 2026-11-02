@@ -1,124 +1,63 @@
-import { MinusSignIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { createColumnHelper, type Table } from "@tanstack/react-table";
-import { formatCents } from "@zahln/i18n/format";
+import { createColumnHelper } from "@tanstack/react-table";
 import type { AppLanguage } from "@zahln/i18n/language";
-import { Button } from "@zahln/ui/components/button";
-import { Checkbox } from "@zahln/ui/components/checkbox";
 import type { TFunction } from "i18next";
 import type { DataTableFeatures } from "../../../../components/dataTable/DataTable";
-import { MAX_QUANTITY, MIN_QUANTITY, type MenuRow } from "./cart";
+import MoneyCell from "../../../../components/moneyCell/MoneyCell";
+import NumberHeader from "../../../../components/numberHeader/NumberHeader";
+import type { MenuRow } from "./cart";
+import DishCheckbox from "./menuCells/dishCheckbox/DishCheckbox";
+import QuantityCell from "./menuCells/quantityCell/QuantityCell";
+import QuantityHeader from "./menuCells/quantityHeader/QuantityHeader";
+import SelectAllCheckbox from "./menuCells/selectAllCheckbox/SelectAllCheckbox";
 
 const helper = createColumnHelper<DataTableFeatures, MenuRow>();
 
 type PriceGroup = keyof MenuRow["prices"];
 
-/** The select-all box: ticked, a dash when only some dishes are, or empty. */
-const selectAllState = (
-  table: Table<DataTableFeatures, MenuRow>,
-): boolean | "indeterminate" => {
-  if (table.getIsAllRowsSelected()) return true;
-  return table.getIsSomeRowsSelected() ? "indeterminate" : false;
-};
+// Each cell is a component of its own; a column only says which one goes
+// where, and hands it plain values rather than the table's own objects.
 
-/**
- * Tick boxes for picking the order's dishes. Each one is named after its dish:
- * a screen reader going down the column hears "Select Currywurst", not ten
- * identical "Select row" boxes.
- */
-const selectColumn = (t: TFunction<"till">, language: AppLanguage) =>
-  helper.display({
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        aria-label={t("home.mensa.selectAll")}
-        checked={selectAllState(table)}
-        // Tapping the dash gives true, so it selects every dish.
-        onCheckedChange={(checked) =>
-          table.toggleAllRowsSelected(checked === true)
-        }
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        aria-label={t("home.mensa.selectDish", {
-          dish: row.original.name[language],
-        })}
-        checked={row.getIsSelected()}
-        onCheckedChange={(checked) => row.toggleSelected(checked === true)}
-      />
-    ),
-  });
+/** Tick boxes for picking the order's dishes, each named after its dish. */
+const selectColumn = helper.display({
+  id: "select",
+  header: ({ table }) => (
+    <SelectAllCheckbox
+      areAllSelected={table.getIsAllRowsSelected()}
+      areSomeSelected={table.getIsSomeRowsSelected()}
+      handleSelectAllChange={(isSelected) =>
+        table.toggleAllRowsSelected(isSelected)
+      }
+    />
+  ),
+  cell: ({ row }) => (
+    <DishCheckbox
+      isSelected={row.getIsSelected()}
+      menuRow={row.original}
+      handleSelectedChange={(isSelected) => row.toggleSelected(isSelected)}
+    />
+  ),
+});
 
-/**
- * One price group's column. Right-aligned, with digits of equal width, so the
- * decimal points line up down the column.
- */
-const priceColumn = (
-  group: PriceGroup,
-  header: string,
-  language: AppLanguage,
-) =>
+/** One price group's column. */
+const priceColumn = (group: PriceGroup, header: string) =>
   helper.accessor((item) => item.prices[group], {
     id: group,
-    header: () => <div className="text-right">{header}</div>,
-    cell: (info) => (
-      <div className="text-right tabular-nums">
-        {formatCents(info.getValue(), language)}
-      </div>
-    ),
+    header: () => <NumberHeader label={header} />,
+    cell: (info) => <MoneyCell amountCents={info.getValue()} />,
   });
 
-/**
- * − and + for a ticked dish. The buttons name the dish, like the tick boxes,
- * and step from the cart's current quantity, so two quick taps add two.
- */
+/** − and + for a ticked dish. */
 const quantityColumn = (
-  t: TFunction<"till">,
-  language: AppLanguage,
   handleChangeQuantity: (id: string, by: number) => void,
 ) =>
   helper.accessor("quantity", {
-    // The header holds the column's width, so the table doesn't shift when
-    // the first dish is ticked and its buttons appear.
-    header: () => (
-      <div className="w-36 text-right">{t("home.mensa.quantity")}</div>
+    header: () => <QuantityHeader />,
+    cell: ({ row }) => (
+      <QuantityCell
+        menuRow={row.original}
+        handleChangeQuantity={handleChangeQuantity}
+      />
     ),
-    cell: ({ row }) => {
-      const { id, quantity } = row.original;
-      // Unticked dishes get no buttons, so Tab doesn't stop on dead ones.
-      if (quantity === null) return null;
-
-      const dish = row.original.name[language];
-
-      return (
-        // -my-3 takes back the cell's padding, so a ticked row stays 48 px
-        // tall rather than growing to fit the 48 px buttons.
-        <div className="-my-3 flex items-center justify-end gap-2">
-          <Button
-            aria-label={t("home.mensa.oneFewer", { dish })}
-            disabled={quantity <= MIN_QUANTITY}
-            size="icon"
-            variant="outline"
-            onClick={() => handleChangeQuantity(id, -1)}
-          >
-            <HugeiconsIcon aria-hidden icon={MinusSignIcon} />
-          </Button>
-          {/* An output is a live region, so TalkBack reads the new number
-              after each tap. */}
-          <output className="w-8 text-center tabular-nums">{quantity}</output>
-          <Button
-            aria-label={t("home.mensa.oneMore", { dish })}
-            disabled={quantity >= MAX_QUANTITY}
-            size="icon"
-            variant="outline"
-            onClick={() => handleChangeQuantity(id, 1)}
-          >
-            <HugeiconsIcon aria-hidden icon={PlusSignIcon} />
-          </Button>
-        </div>
-      );
-    },
   });
 
 /**
@@ -132,15 +71,15 @@ export const getMenuColumns = (
   handleChangeQuantity: (id: string, by: number) => void,
 ) =>
   helper.columns([
-    selectColumn(t, language),
+    selectColumn,
     helper.accessor((item) => item.name[language], {
       id: "dish",
       header: t("home.mensa.dish"),
     }),
-    priceColumn("student", t("home.mensa.student"), language),
-    priceColumn("staff", t("home.mensa.staff"), language),
-    priceColumn("guest", t("home.mensa.guest"), language),
-    quantityColumn(t, language, handleChangeQuantity),
+    priceColumn("student", t("home.mensa.student")),
+    priceColumn("staff", t("home.mensa.staff")),
+    priceColumn("guest", t("home.mensa.guest")),
+    quantityColumn(handleChangeQuantity),
   ]);
 
 /** Rows are keyed by the dish's id, not by their position in the menu. */

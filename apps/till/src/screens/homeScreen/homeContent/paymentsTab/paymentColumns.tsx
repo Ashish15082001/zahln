@@ -1,11 +1,16 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { CashierPayment } from "@zahln/domain/payment/frontend";
-import { formatCents, formatDateTime } from "@zahln/i18n/format";
 import type { AppLanguage } from "@zahln/i18n/language";
-import DateTimeJSX from "@zahln/ui/components/dateTime/DateTimeJSX";
 import type { TFunction } from "i18next";
 import type { DataTableFeatures } from "../../../../components/dataTable/DataTable";
+import MoneyCell from "../../../../components/moneyCell/MoneyCell";
+import NumberHeader from "../../../../components/numberHeader/NumberHeader";
 import StatusBadge from "../../../../components/statusBadge/StatusBadge";
+import DateTimeCell from "./paymentCells/dateTimeCell/DateTimeCell";
+import ItemsCell from "./paymentCells/itemsCell/ItemsCell";
+import OrderCodeCell from "./paymentCells/orderCodeCell/OrderCodeCell";
+import PayerCell from "./paymentCells/payerCell/PayerCell";
+import RefundedCell from "./paymentCells/refundedCell/RefundedCell";
 
 const helper = createColumnHelper<DataTableFeatures, CashierPayment>();
 
@@ -25,51 +30,9 @@ const toItemsSummary = (
     .join(", ");
 
 /**
- * Money is right-aligned, with digits of equal width, so the decimal points
- * line up down the column, as in the menu's prices.
- */
-const amountColumn = (t: TFunction<"till">, language: AppLanguage) =>
-  helper.accessor("amountCents", {
-    header: () => <div className="text-right">{t("home.payments.amount")}</div>,
-    cell: (info) => (
-      <div className="text-right tabular-nums">
-        {formatCents(info.getValue(), language)}
-      </div>
-    ),
-  });
-
-/**
- * What went back to the payer, and what is still on its way. Empty for most
- * payments, which have no refund at all.
- */
-const refundedColumn = (t: TFunction<"till">, language: AppLanguage) =>
-  helper.accessor("refundedAmountCents", {
-    header: () => (
-      <div className="text-right">{t("home.payments.refunded")}</div>
-    ),
-    cell: ({ row }) => {
-      const { pendingRefundAmountCents, refundedAmountCents } = row.original;
-
-      return (
-        <div className="flex flex-col items-end tabular-nums">
-          {refundedAmountCents > 0 && (
-            <span>{formatCents(refundedAmountCents, language)}</span>
-          )}
-          {pendingRefundAmountCents > 0 && (
-            <span className="text-muted-foreground">
-              {t("home.payments.refundPending", {
-                amount: formatCents(pendingRefundAmountCents, language),
-              })}
-            </span>
-          )}
-        </div>
-      );
-    },
-  });
-
-/**
  * The till's payments, newest first: when, which order, how much, what was
- * refunded, the status, who paid and what they ate.
+ * refunded, the status, who paid and what they ate. Each cell is a component
+ * of its own; a column only says which one goes where.
  *
  * What the cashier checks comes first. A table wider than the screen scrolls
  * sideways, as in portrait, and the payer and the dishes are what may go out
@@ -82,39 +45,37 @@ export const getPaymentColumns = (
   helper.columns([
     helper.accessor("createdAtMs", {
       header: t("home.payments.time"),
-      cell: (info) => (
-        <DateTimeJSX
-          dateTimeIso={new Date(info.getValue()).toISOString()}
-          value={formatDateTime(info.getValue(), language)}
-        />
-      ),
+      cell: (info) => <DateTimeCell timeMs={info.getValue()} />,
     }),
     helper.accessor("orderId", {
       header: t("home.payments.orderCode"),
-      // Monospace, like the code under the QR, so the two are easy to match.
-      cell: (info) => <span className="font-mono">{info.getValue()}</span>,
+      cell: (info) => <OrderCodeCell orderId={info.getValue()} />,
     }),
-    amountColumn(t, language),
-    refundedColumn(t, language),
+    helper.accessor("amountCents", {
+      header: () => <NumberHeader label={t("home.payments.amount")} />,
+      cell: (info) => <MoneyCell amountCents={info.getValue()} />,
+    }),
+    helper.accessor("refundedAmountCents", {
+      header: () => <NumberHeader label={t("home.payments.refunded")} />,
+      cell: ({ row }) => (
+        <RefundedCell
+          pendingRefundAmountCents={row.original.pendingRefundAmountCents}
+          refundedAmountCents={row.original.refundedAmountCents}
+        />
+      ),
+    }),
     helper.accessor("status", {
       header: t("home.payments.status"),
       cell: (info) => <StatusBadge status={info.getValue()} />,
     }),
-    // Table cells don't wrap, so a long name or a big order would make the
-    // table wider than the screen. These two text columns do, down to a
-    // width that stays readable; money, codes and badges never break.
     helper.accessor("payerName", {
       header: t("home.payments.payer"),
-      cell: (info) => (
-        <div className="min-w-24 whitespace-normal">{info.getValue()}</div>
-      ),
+      cell: (info) => <PayerCell payerName={info.getValue()} />,
     }),
     helper.accessor((payment) => toItemsSummary(payment, t, language), {
       id: "items",
       header: t("home.payments.items"),
-      cell: (info) => (
-        <div className="min-w-40 whitespace-normal">{info.getValue()}</div>
-      ),
+      cell: (info) => <ItemsCell itemsSummary={info.getValue()} />,
     }),
   ]);
 

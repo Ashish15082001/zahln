@@ -45,6 +45,10 @@ export type PaymentListState =
     };
 
 export interface HomeContentJSXProps {
+  isRefreshFailed: boolean;
+  loadMoreLabel: string;
+  // Null while there is nothing to refresh.
+  refreshButtonState: RefreshButtonState | null;
   state: PaymentListState;
   handleLoadMore: () => void;
   handleRefresh: () => void;
@@ -56,6 +60,9 @@ export interface HomeContentJSXProps {
 const SECTION_CLASS_NAME = "flex flex-1 flex-col gap-4";
 
 const HomeContentJSX: FC<HomeContentJSXProps> = ({
+  isRefreshFailed,
+  loadMoreLabel,
+  refreshButtonState,
   state,
   handleLoadMore,
   handleRefresh,
@@ -68,7 +75,7 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
       <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
         <PaymentListHeader
           headingId={headingId}
-          refreshButtonState={null}
+          refreshButtonState={refreshButtonState}
           handleRefresh={handleRefresh}
         />
         {/* The grey blocks say nothing to a screen reader, so the status line
@@ -88,7 +95,7 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
       <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
         <PaymentListHeader
           headingId={headingId}
-          refreshButtonState={null}
+          refreshButtonState={refreshButtonState}
           handleRefresh={handleRefresh}
         />
         <Empty>
@@ -125,14 +132,6 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
     );
   }
 
-  // Empty and ready both show what the server last said, so both can be
-  // refreshed, and both say so when a refresh fails.
-  const refreshButtonState: RefreshButtonState = {
-    isDisabled: state.isFetching,
-    isRefreshing: state.refresh === "refreshing",
-  };
-  const isRefreshFailed = state.refresh === "failed";
-
   if (state.status === "empty") {
     return (
       <section aria-labelledby={headingId} className={SECTION_CLASS_NAME}>
@@ -161,14 +160,6 @@ const HomeContentJSX: FC<HomeContentJSXProps> = ({
         </Empty>
       </section>
     );
-  }
-
-  // After a failed load, the same button tries that page again.
-  let loadMoreLabel = t("home.payments.loadMore");
-  if (state.nextPage === "loading") {
-    loadMoreLabel = t("home.payments.loadingMore");
-  } else if (state.nextPage === "failed") {
-    loadMoreLabel = t("home.payments.retry");
   }
 
   return (
