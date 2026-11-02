@@ -3,6 +3,8 @@ import { SessionRequestSchema, SessionResponseSchema } from "./backend";
 import {
   toCashier,
   toCashierSession,
+  toFinanceSession,
+  toFinanceUser,
   toPayer,
   toPayerSession,
   toSession,
@@ -33,6 +35,20 @@ const studentLogin = {
     displayName: "Test Student",
     role: "student",
     priceGroup: "student",
+    tillId: null,
+    mensaId: null,
+  },
+};
+
+const financeLogin = {
+  accessToken: "token-finance",
+  tokenType: "Bearer",
+  expiresAt: "2026-11-02T13:23:26.653Z",
+  user: {
+    id: "usr_finance",
+    displayName: "Test Finance",
+    role: "finance",
+    priceGroup: null,
     tillId: null,
     mensaId: null,
   },
@@ -233,5 +249,48 @@ describe("toPayerSession", () => {
     const session = toSession(SessionResponseSchema.parse(cashierLogin));
 
     expect(toPayerSession(session)).toBeNull();
+  });
+});
+
+const financeUser: User = {
+  id: "usr_finance",
+  displayName: "Test Finance",
+  role: "finance",
+  priceGroup: null,
+  tillId: null,
+  mensaId: null,
+};
+
+describe("toFinanceUser", () => {
+  it("accepts finance", () => {
+    expect(toFinanceUser(financeUser)).toEqual({
+      id: "usr_finance",
+      displayName: "Test Finance",
+    });
+  });
+
+  it.each(["student", "staff", "guest", "cashier"] as const)(
+    "refuses a %s",
+    (role) => {
+      expect(toFinanceUser({ ...financeUser, role })).toBeNull();
+    },
+  );
+});
+
+describe("toFinanceSession", () => {
+  it("keeps the token, its expiry and the finance user", () => {
+    const session = toSession(SessionResponseSchema.parse(financeLogin));
+
+    expect(toFinanceSession(session)).toEqual({
+      accessToken: "token-finance",
+      expiresAtMs: Date.UTC(2026, 10, 2, 13, 23, 26, 653),
+      financeUser: { id: "usr_finance", displayName: "Test Finance" },
+    });
+  });
+
+  it("is null for a user who isn't finance", () => {
+    const session = toSession(SessionResponseSchema.parse(cashierLogin));
+
+    expect(toFinanceSession(session)).toBeNull();
   });
 });

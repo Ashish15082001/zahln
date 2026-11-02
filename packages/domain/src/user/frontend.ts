@@ -85,6 +85,30 @@ export const PayerSessionSchema = z.object({
 
 export interface PayerSession extends z.infer<typeof PayerSessionSchema> {}
 
+/**
+ * A user the dashboard accepts: the Studierendenwerk's finance team, who see
+ * every mensa's payments and daily totals.
+ */
+export const FinanceUserSchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string(),
+});
+
+export interface FinanceUser extends z.infer<typeof FinanceUserSchema> {}
+
+/**
+ * A logged-in finance user and their token: all the dashboard keeps about a
+ * login. The raw user isn't kept, since FinanceUser already has what the
+ * dashboard needs.
+ */
+export const FinanceSessionSchema = z.object({
+  accessToken: z.string().min(1),
+  expiresAtMs: z.int(),
+  financeUser: FinanceUserSchema,
+});
+
+export interface FinanceSession extends z.infer<typeof FinanceSessionSchema> {}
+
 // ---- from the wire shape
 
 export const toUser = (response: UserResponse): User => ({
@@ -157,5 +181,28 @@ export const toPayerSession = (session: Session): PayerSession | null => {
     accessToken: session.accessToken,
     expiresAtMs: session.expiresAtMs,
     payer,
+  };
+};
+
+/**
+ * The finance user the dashboard works for, or null for anyone else. A
+ * cashier's token would only list their own till's payments, and a payer's
+ * only their own, so the dashboard's numbers would quietly be partial.
+ */
+export const toFinanceUser = (user: User): FinanceUser | null => {
+  if (user.role !== "finance") return null;
+
+  return { id: user.id, displayName: user.displayName };
+};
+
+/** The login as the dashboard keeps it, or null when the user isn't finance. */
+export const toFinanceSession = (session: Session): FinanceSession | null => {
+  const financeUser = toFinanceUser(session.user);
+  if (!financeUser) return null;
+
+  return {
+    accessToken: session.accessToken,
+    expiresAtMs: session.expiresAtMs,
+    financeUser,
   };
 };
