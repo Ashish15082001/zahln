@@ -36,6 +36,9 @@ const PaymentsContent: FC = () => {
 
   const state = toPaymentListState(paymentsQuery);
   const refreshButtonState = toRefreshButtonState(state);
+  // A file of a list that isn't there, failed or is empty would hold no
+  // payments, or not the ones on screen.
+  const isExportDisabled = state.status !== "ready";
 
   // Replaces the history entry instead of adding one, so Back leaves the
   // screen rather than undoing filters one by one, and keeps the page where
@@ -65,6 +68,7 @@ const PaymentsContent: FC = () => {
       description={t("payments.description")}
       filters={filters}
       hasFilters={hasFilters}
+      isExportDisabled={isExportDisabled}
       mensas={mensasQuery.data ?? NO_MENSAS}
       refreshButtonState={refreshButtonState}
       state={state}

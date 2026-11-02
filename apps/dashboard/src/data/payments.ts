@@ -1,5 +1,6 @@
 import {
   useInfiniteQuery,
+  useMutation,
   useQuery,
   type InfiniteData,
   type QueryKey,
@@ -217,3 +218,85 @@ export const useFinancePayment = (paymentId: string) =>
 /** True when the server has no payment with this id. */
 export const isPaymentNotFound = (error: unknown): boolean =>
   hasProblemCode(error, "not_found");
+
+// The most the server gives in one page, so an export needs as few requests
+// as it can.
+const EXPORT_PAGE_SIZE = 200;
+
+// 1,000 pages is 200,000 payments, far past a month of every mensa's. Past
+// that the filters are too wide for one file, or the server is handing out
+// cursors that never end.
+const MAX_EXPORT_PAGES = 1_000;
+
+/** An export with more pages than one file should hold. */
+export class ExportTooLargeError extends Error {
+  constructor() {
+    super("Too many payments to export at once");
+    this.name = "ExportTooLargeError";
+  }
+}
+
+/** The server handed out a cursor it had handed out before. */
+class RepeatedCursorError extends Error {
+  constructor() {
+    super("The server sent a cursor it had already sent");
+    this.name = "RepeatedCursorError";
+  }
+}
+
+/** What an export of the payment search needs. */
+export interface PaymentsExportRequest {
+  filters: PaymentFilters;
+  // Cancels the export, e.g. when finance leaves the screen.
+  signal: AbortSignal;
+  // Told how many payments have arrived after each page.
+  handleProgress: (paymentCount: number) => void;
+}
+
+/**
+ * Every payment that matches the filters, newest first, page after page. All
+ * of them or an error: a page that fails after the client's retries fails
+ * the export, so a file never holds part of the payments and looks whole.
+ * A payment on two pages, pushed down by a new one, is listed once at its
+ * newer version.
+ */
+const fetchAllFinancePayments = async ({
+  filters,
+  signal,
+  handleProgress,
+}: PaymentsExportRequest): Promise<FinancePayment[]> => {
+  const paymentsById = new Map<string, FinancePayment>();
+  const seenCursors = new Set<string>();
+  let cursor: string | null = null;
+  for (let pageCount = 0; pageCount < MAX_EXPORT_PAGES; pageCount += 1) {
+    const page = await getFinancePayments(
+      http,
+      {
+        ...toPaymentListRequest(filters),
+        limit: EXPORT_PAGE_SIZE,
+        cursor: cursor ?? undefined,
+      },
+      signal,
+    );
+    for (const payment of page.payments) {
+      paymentsById.set(
+        payment.id,
+        newerPayment(paymentsById.get(payment.id), payment),
+      );
+    }
+    handleProgress(paymentsById.size);
+    if (page.nextCursor === null) return [...paymentsById.values()];
+    // A cursor seen before would loop through the same pages for ever.
+    if (seenCursors.has(page.nextCursor)) throw new RepeatedCursorError();
+    seenCursors.add(page.nextCursor);
+    cursor = page.nextCursor;
+  }
+  throw new ExportTooLargeError();
+};
+
+/**
+ * Fetches every payment the search matches, for a CSV file. A mutation, not
+ * a query: it runs when finance asks for it, and nothing caches it.
+ */
+export const usePaymentsExport = () =>
+  useMutation({ mutationFn: fetchAllFinancePayments });

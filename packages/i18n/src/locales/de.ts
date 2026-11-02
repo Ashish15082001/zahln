@@ -486,6 +486,30 @@ const de: Resources = {
         applyDays: "Übernehmen",
         clear: "Filter zurücksetzen",
       },
+      export: {
+        button: "CSV exportieren",
+        exportingButton: "Wird exportiert…",
+        progress: "Bisher Zahlungen: {{count}}",
+        saved: "{{fileName}} gespeichert. Enthaltene Zahlungen: {{count}}.",
+        failed:
+          "Der Export ist fehlgeschlagen, es wurde keine Datei gespeichert. Bitte erneut versuchen.",
+        tooLarge:
+          "Zu viele Zahlungen für eine Datei. Grenzen Sie die Filter ein und versuchen Sie es erneut.",
+      },
+      csv: {
+        paymentId: "Zahlungs-ID",
+        orderId: "Bestell-ID",
+        created: "Erstellt (Berliner Zeit)",
+        status: "Status",
+        amount: "Betrag (EUR)",
+        refunded: "Erstattet (EUR)",
+        pendingRefund: "Erstattung unterwegs (EUR)",
+        priceGroup: "Preisgruppe",
+        mensa: "Mensa",
+        till: "Kasse",
+        payerId: "Zahler-ID",
+        reasons: "Braucht Aufmerksamkeit, weil",
+      },
       table: {
         created: "Erstellt",
         status: "Status",

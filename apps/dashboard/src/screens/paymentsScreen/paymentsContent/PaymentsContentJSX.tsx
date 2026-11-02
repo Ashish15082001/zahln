@@ -8,11 +8,13 @@ import ScreenTitleRow, {
 } from "../../../components/screenTitleRow/ScreenTitleRow";
 import type { PaymentFilters } from "../../../data/payments";
 import PaymentFiltersBar from "./paymentFiltersBar/PaymentFiltersBar";
+import PaymentsExport from "./paymentsExport/PaymentsExport";
 
 export interface PaymentsContentJSXProps {
   description: string;
   filters: PaymentFilters;
   hasFilters: boolean;
+  isExportDisabled: boolean;
   mensas: Mensa[];
   // Null while there is nothing to refresh.
   refreshButtonState: RefreshButtonState | null;
@@ -31,6 +33,7 @@ const PaymentsContentJSX: FC<PaymentsContentJSXProps> = ({
   description,
   filters,
   hasFilters,
+  isExportDisabled,
   mensas,
   refreshButtonState,
   state,
@@ -56,6 +59,7 @@ const PaymentsContentJSX: FC<PaymentsContentJSXProps> = ({
       handleClearFilters={handleClearFilters}
       handleFiltersChange={handleFiltersChange}
     />
+    <PaymentsExport filters={filters} isDisabled={isExportDisabled} />
     {/* Clear filters shows in an empty list only when there are filters to
         clear. */}
     <PaymentList
