@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMensas } from "../api/mensas";
+import { getMensas } from "@zahln/api/mensas";
 import { http, useTillSession } from "./session";
 
 /**
