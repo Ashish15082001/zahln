@@ -401,6 +401,7 @@ const en = {
       nav: {
         label: "Sections",
         dailyTotals: "Daily totals",
+        attention: "Needs attention",
         payments: "Payments",
       },
       logOut: "Log out",
@@ -482,20 +483,43 @@ const en = {
         refundPending: "{{amount}} on its way",
         place: "Mensa and till",
         payer: "Payer",
+        reasons: "Reasons",
         payment: "Payment and order",
       },
+    },
+    paymentList: {
       loading: "Loading payments…",
       errorTitle: "The payments couldn't be loaded",
       errorDescription: "Check your connection and try again.",
       retry: "Try again",
       retrying: "Trying again…",
-      emptyTitle: "No payments found",
-      emptyDescription: "No payment matches these filters.",
+      empty: {
+        noMatch: {
+          title: "No payments found",
+          description: "No payment matches these filters.",
+        },
+        allClear: {
+          title: "Nothing needs attention",
+          description:
+            "No payment is stuck, and no refund failed or is taking too long.",
+        },
+      },
       refreshFailed: "Couldn't refresh. These are the payments from before.",
       shownCount: "Shown: {{count}}",
       loadMore: "Load more",
       loadingMore: "Loading more…",
       loadMoreFailed: "More payments couldn't be loaded.",
+    },
+    attentionReason: {
+      pending_too_long: "Pending too long",
+      refund_pending_too_long: "Refund pending too long",
+      refund_failed: "Refund failed",
+      other: "Other reason",
+    },
+    attention: {
+      title: "Needs attention",
+      description:
+        "Payments the server has flagged: still being checked after a long time, or with a refund that failed or is taking too long. Newest first.",
     },
     refundStatus: {
       pending: "Being processed",

@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router";
+import AttentionScreen from "../screens/attentionScreen/AttentionScreen";
 import DailyTotalsScreen from "../screens/dailyTotalsScreen/DailyTotalsScreen";
 import LoginScreen from "../screens/loginScreen/LoginScreen";
 import PaymentDetailScreen from "../screens/paymentDetailScreen/PaymentDetailScreen";
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     element: <SignedInOnly />,
     children: [
       { path: paths.dailyTotals, element: <DailyTotalsScreen /> },
+      { path: paths.attention, element: <AttentionScreen /> },
       { path: paths.payments, element: <PaymentsScreen /> },
       { path: paths.payment, element: <PaymentDetailScreen /> },
     ],

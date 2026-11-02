@@ -55,14 +55,9 @@ const toPaymentListRequest = (filters: PaymentFilters): PaymentListRequest => ({
 
 type FinancePaymentPages = InfiniteData<FinancePaymentPage, string | null>;
 
-// Every list's key starts with this, so one call can reach them all.
+// Every list's key starts with this, the search's and the attention list's
+// alike, so one call can reach them all.
 const PAYMENT_LISTS_KEY = "payments";
-
-// The filters are part of the key, so each set of filters has its own list
-// and changing them never shows the last filters' payments under the new
-// ones.
-const paymentsQueryKey = (filters: PaymentFilters) =>
-  [PAYMENT_LISTS_KEY, filters] as const;
 
 const paymentQueryKey = (paymentId: string) => ["payment", paymentId] as const;
 
@@ -86,22 +81,21 @@ const selectPaymentList = (data: FinancePaymentPages): FinancePayment[] =>
   toPaymentList(data.pages);
 
 /**
- * Every mensa's payments that match the filters, newest first, a page at a
- * time. Fetched when the screen opens, when the filters change, with Refresh
+ * One list of payments, newest first, a page at a time, under its own key so
+ * each list keeps its own pages. Fetched when the screen opens, with Refresh
  * and when the tab comes back to the front. A payment never goes back to a
  * lower version than one this list already shows.
  */
-export const useFinancePayments = (filters: PaymentFilters) =>
+const usePaymentList = (
+  listKey: readonly unknown[],
+  request: PaymentListRequest,
+) =>
   useInfiniteQuery({
-    queryKey: paymentsQueryKey(filters),
+    queryKey: [PAYMENT_LISTS_KEY, ...listKey],
     queryFn: async ({ pageParam, queryKey, signal }) => {
       const receivedPage = await getFinancePayments(
         http,
-        {
-          ...toPaymentListRequest(filters),
-          limit: PAGE_SIZE,
-          cursor: pageParam ?? undefined,
-        },
+        { ...request, limit: PAGE_SIZE, cursor: pageParam ?? undefined },
         signal,
       );
       const cachedById = cachedPaymentsById(queryKey);
@@ -118,6 +112,24 @@ export const useFinancePayments = (filters: PaymentFilters) =>
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     select: selectPaymentList,
   });
+
+/**
+ * Every mensa's payments that match the filters. The filters are part of the
+ * key, so each set has its own list, and changing them never shows the last
+ * filters' payments under the new ones.
+ */
+export const useFinancePayments = (filters: PaymentFilters) =>
+  usePaymentList(["search", filters], toPaymentListRequest(filters));
+
+// The same object every render: it is the request the list sends.
+const ATTENTION_REQUEST: PaymentListRequest = { needsAttention: true };
+
+/**
+ * The payments the server has flagged for finance to look at: pending for
+ * too long, or with a refund that failed or is taking too long.
+ */
+export const useAttentionPayments = () =>
+  usePaymentList(["attention"], ATTENTION_REQUEST);
 
 /**
  * The newest copy of a payment any list has shown, or null when none has it.

@@ -1,13 +1,13 @@
 import type { BerlinDay } from "@zahln/domain/day/berlinDay";
 import type { Mensa } from "@zahln/domain/mensa/frontend";
 import type { FC } from "react";
+import PaymentList from "../../../components/paymentList/PaymentList";
+import type { PaymentListState } from "../../../components/paymentList/PaymentListJSX";
 import ScreenTitleRow, {
   type RefreshButtonState,
 } from "../../../components/screenTitleRow/ScreenTitleRow";
 import type { PaymentFilters } from "../../../data/payments";
 import PaymentFiltersBar from "./paymentFiltersBar/PaymentFiltersBar";
-import PaymentsList from "./paymentsList/PaymentsList";
-import type { PaymentsListState } from "./paymentsList/PaymentsListJSX";
 
 export interface PaymentsContentJSXProps {
   description: string;
@@ -16,7 +16,7 @@ export interface PaymentsContentJSXProps {
   mensas: Mensa[];
   // Null while there is nothing to refresh.
   refreshButtonState: RefreshButtonState | null;
-  state: PaymentsListState;
+  state: PaymentListState;
   title: string;
   today: BerlinDay;
   handleClearFilters: () => void;
@@ -56,10 +56,13 @@ const PaymentsContentJSX: FC<PaymentsContentJSXProps> = ({
       handleClearFilters={handleClearFilters}
       handleFiltersChange={handleFiltersChange}
     />
-    <PaymentsList
-      hasFilters={hasFilters}
+    {/* Clear filters shows in an empty list only when there are filters to
+        clear. */}
+    <PaymentList
+      emptyKind="noMatch"
+      isReasonsShown={false}
       state={state}
-      handleClearFilters={handleClearFilters}
+      handleClearFilters={hasFilters ? handleClearFilters : undefined}
       handleLoadMore={handleLoadMore}
       handleRefresh={handleRefresh}
     />

@@ -2,7 +2,10 @@ import type { Mensa } from "@zahln/domain/mensa/frontend";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
-import type { RefreshButtonState } from "../../../components/screenTitleRow/ScreenTitleRow";
+import {
+  toPaymentListState,
+  toRefreshButtonState,
+} from "../../../components/paymentList/paymentListState";
 import { useMensas } from "../../../data/mensas";
 import {
   useFinancePayments,
@@ -16,11 +19,6 @@ import {
   toPaymentSearchParams,
 } from "./paymentFilterParams";
 import PaymentsContentJSX from "./PaymentsContentJSX";
-import type {
-  NextPageStatus,
-  PaymentsListState,
-  RefreshStatus,
-} from "./paymentsList/PaymentsListJSX";
 
 // One array while the mensas load, not a new [] each render.
 const NO_MENSAS: Mensa[] = [];
@@ -36,43 +34,8 @@ const PaymentsContent: FC = () => {
   const mensasQuery = useMensas();
   const today = berlinToday();
 
-  // Data before error: a failed refresh doesn't make loaded payments wrong,
-  // so they stay, with a note that they may be out of date.
-  let state: PaymentsListState = { status: "loading" };
-  const payments = paymentsQuery.data;
-  if (payments !== undefined) {
-    let refresh: RefreshStatus = "idle";
-    if (paymentsQuery.isRefetching) refresh = "refreshing";
-    else if (paymentsQuery.isRefetchError) refresh = "failed";
-
-    let nextPage: NextPageStatus = "none";
-    if (paymentsQuery.isFetchingNextPage) nextPage = "loading";
-    else if (paymentsQuery.isFetchNextPageError) nextPage = "failed";
-    else if (paymentsQuery.hasNextPage) nextPage = "available";
-
-    state =
-      payments.length === 0
-        ? { status: "empty", isFetching: paymentsQuery.isFetching, refresh }
-        : {
-            status: "ready",
-            isFetching: paymentsQuery.isFetching,
-            nextPage,
-            payments,
-            refresh,
-          };
-  } else if (paymentsQuery.isError) {
-    state = { status: "error", isRetrying: paymentsQuery.isFetching };
-  }
-
-  // Empty and ready both show what the server last said, so both can be
-  // refreshed.
-  let refreshButtonState: RefreshButtonState | null = null;
-  if (state.status === "empty" || state.status === "ready") {
-    refreshButtonState = {
-      isDisabled: state.isFetching,
-      isRefreshing: state.refresh === "refreshing",
-    };
-  }
+  const state = toPaymentListState(paymentsQuery);
+  const refreshButtonState = toRefreshButtonState(state);
 
   // Replaces the history entry instead of adding one, so Back leaves the
   // screen rather than undoing filters one by one, and keeps the page where

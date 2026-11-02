@@ -6,6 +6,7 @@ export const paths = {
   login: "/login",
   // The first thing finance sees after logging in.
   dailyTotals: "/",
+  attention: "/attention",
   payments: "/payments",
   payment: "/payments/:paymentId",
 } as const;

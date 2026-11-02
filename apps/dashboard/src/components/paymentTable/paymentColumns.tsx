@@ -5,6 +5,7 @@ import type { DataTableFeatures } from "../dataTable/DataTable";
 import MoneyCell from "../moneyCell/MoneyCell";
 import NumberHeader from "../numberHeader/NumberHeader";
 import StatusBadge from "../statusBadge/StatusBadge";
+import AttentionReasonsCell from "./paymentCells/attentionReasonsCell/AttentionReasonsCell";
 import DateTimeCell from "./paymentCells/dateTimeCell/DateTimeCell";
 import PayerCell from "./paymentCells/payerCell/PayerCell";
 import PaymentIdCell from "./paymentCells/paymentIdCell/PaymentIdCell";
@@ -14,15 +15,18 @@ import RefundedCell from "./paymentCells/refundedCell/RefundedCell";
 const helper = createColumnHelper<DataTableFeatures, FinancePayment>();
 
 /**
- * Every mensa's payments: when, the status, how much, what was refunded,
- * where, who paid and the ids. Each cell is a component of its own; a column
+ * Every mensa's payments: when, the status, why it needs attention when
+ * asked for, how much, what was refunded, where, who paid and the ids. Each cell is a component of its own; a column
  * only says which one goes where.
  *
  * What finance checks first comes first. A table wider than the screen
  * scrolls sideways, and the ids are what may go out of view then, never the
  * status or the amounts.
  */
-export const getPaymentColumns = (t: TFunction<"dashboard">) =>
+export const getPaymentColumns = (
+  t: TFunction<"dashboard">,
+  isReasonsShown: boolean,
+) =>
   helper.columns([
     helper.accessor("createdAtMs", {
       header: t("payments.table.created"),
@@ -32,6 +36,17 @@ export const getPaymentColumns = (t: TFunction<"dashboard">) =>
       header: t("payments.table.status"),
       cell: (info) => <StatusBadge kind="payment" status={info.getValue()} />,
     }),
+    // Next to the status, since the two together say what to look at.
+    ...(isReasonsShown
+      ? [
+          helper.accessor("attentionReasons", {
+            header: t("payments.table.reasons"),
+            cell: (info) => (
+              <AttentionReasonsCell attentionReasons={info.getValue()} />
+            ),
+          }),
+        ]
+      : []),
     helper.accessor("amountCents", {
       header: () => <NumberHeader label={t("payments.table.amount")} />,
       cell: (info) => <MoneyCell amountCents={info.getValue()} />,

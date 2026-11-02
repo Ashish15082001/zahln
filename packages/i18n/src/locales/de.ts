@@ -410,6 +410,7 @@ const de: Resources = {
       nav: {
         label: "Bereiche",
         dailyTotals: "Tagessummen",
+        attention: "Braucht Aufmerksamkeit",
         payments: "Zahlungen",
       },
       logOut: "Abmelden",
@@ -493,22 +494,45 @@ const de: Resources = {
         refundPending: "{{amount}} unterwegs",
         place: "Mensa und Kasse",
         payer: "Zahler",
+        reasons: "Gründe",
         payment: "Zahlung und Bestellung",
       },
+    },
+    paymentList: {
       loading: "Zahlungen werden geladen…",
       errorTitle: "Die Zahlungen konnten nicht geladen werden",
       errorDescription:
         "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       retry: "Erneut versuchen",
       retrying: "Wird erneut versucht…",
-      emptyTitle: "Keine Zahlungen gefunden",
-      emptyDescription: "Keine Zahlung passt zu diesen Filtern.",
+      empty: {
+        noMatch: {
+          title: "Keine Zahlungen gefunden",
+          description: "Keine Zahlung passt zu diesen Filtern.",
+        },
+        allClear: {
+          title: "Nichts braucht Aufmerksamkeit",
+          description:
+            "Keine Zahlung hängt, und keine Erstattung ist fehlgeschlagen oder dauert zu lange.",
+        },
+      },
       refreshFailed:
         "Aktualisieren fehlgeschlagen. Das sind die Zahlungen von vorher.",
       shownCount: "Angezeigt: {{count}}",
       loadMore: "Mehr laden",
       loadingMore: "Wird geladen…",
       loadMoreFailed: "Weitere Zahlungen konnten nicht geladen werden.",
+    },
+    attentionReason: {
+      pending_too_long: "Zu lange in Prüfung",
+      refund_pending_too_long: "Erstattung dauert zu lange",
+      refund_failed: "Erstattung fehlgeschlagen",
+      other: "Anderer Grund",
+    },
+    attention: {
+      title: "Braucht Aufmerksamkeit",
+      description:
+        "Vom Server markierte Zahlungen: schon sehr lange in Prüfung, oder mit einer Erstattung, die fehlgeschlagen ist oder zu lange dauert. Die neuesten zuerst.",
     },
     refundStatus: {
       pending: "In Bearbeitung",

@@ -28,6 +28,11 @@ const DashboardHeader: FC = () => {
       path: paths.dailyTotals,
     },
     {
+      isCurrent: matchPath(paths.attention, pathname) !== null,
+      label: t("header.nav.attention"),
+      path: paths.attention,
+    },
+    {
       // Not the end of the path, so a payment's detail under it counts too.
       isCurrent:
         matchPath({ path: paths.payments, end: false }, pathname) !== null,
