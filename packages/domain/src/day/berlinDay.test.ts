@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addDays,
+  berlinDateTimeOf,
   berlinDayOf,
   berlinDayStartIso,
   fromPickerDate,
@@ -19,6 +20,19 @@ describe("berlinDayOf", () => {
   it("is still the same day just before Berlin's midnight", () => {
     expect(berlinDayOf(Date.UTC(2026, 10, 1, 22, 59))).toBe("2026-11-01");
     expect(berlinDayOf(Date.UTC(2026, 6, 1, 21, 59))).toBe("2026-07-01");
+  });
+});
+
+describe("berlinDateTimeOf", () => {
+  it("writes Berlin's date and time on a 24-hour clock", () => {
+    // 11:57:10 UTC is 13:57:10 in Berlin in summer.
+    expect(berlinDateTimeOf(Date.UTC(2026, 9, 20, 11, 57, 10))).toBe(
+      "2026-10-20 13:57:10",
+    );
+    // 23:05 UTC is already the next day in Berlin in winter.
+    expect(berlinDateTimeOf(Date.UTC(2026, 10, 1, 23, 5, 0))).toBe(
+      "2026-11-02 00:05:00",
+    );
   });
 });
 

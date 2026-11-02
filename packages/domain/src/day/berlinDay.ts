@@ -36,6 +36,31 @@ export const berlinDayOf = (ms: number): BerlinDay => {
   return `${partValue("year")}-${partValue("month")}-${partValue("day")}`;
 };
 
+// The same parts with the time, on a 24-hour clock.
+const berlinDateTimePartsFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Europe/Berlin",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+/**
+ * A moment as Berlin's date and time, "2026-10-20 13:57:10": the form
+ * spreadsheets read as a date and time in any language, and that sorts as
+ * text too. No offset, which they wouldn't read; where it is shown, the
+ * header says it is Berlin time.
+ */
+export const berlinDateTimeOf = (ms: number): string => {
+  const parts = berlinDateTimePartsFormat.formatToParts(ms);
+  const partValue = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${partValue("year")}-${partValue("month")}-${partValue("day")} ${partValue("hour")}:${partValue("minute")}:${partValue("second")}`;
+};
+
 /**
  * The day `count` days later, or earlier for a negative count. Worked out in
  * UTC, which has no clock changes, so the night Berlin's clocks go back
