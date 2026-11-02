@@ -242,6 +242,7 @@ Done so far:
 | `0974dac` | Student screens named for what they are: `homeScreen/` with `homeHeader/`, `homeContent/` and `homeFooter/`. Pay's footer picks the Pay button or the result's buttons. No component keeps markup in a variable                                                |
 | `c842e93` | Every student component is a container and its JSX, and a parent always renders the container. Labels and a closed order's message are worked out in the container                                                                                             |
 | `57bd4a5` | The till gets the same shape: `homeScreen/` with `homeHeader/`, `homeContent/` and `homeFooter/` inside the tabs, `loginScreen/` and `welcomeScreen/`, and a container beside every JSX                                                                        |
+| `4982e99` | Every till table cell and header is a component, and the column files only say which goes where. The student home list and Scan QR footer work out their labels in their containers                                                                            |
 
 Changes from the plan:
 
