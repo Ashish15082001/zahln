@@ -380,6 +380,33 @@ const en = {
   },
   dashboard: {
     appName: "Zahln Dashboard",
+    login: {
+      title: "Log in",
+      description: "Log in with the Studierendenwerk's finance account.",
+      submit: "Log in",
+      submitting: "Logging in…",
+      financeUser: {
+        title: "Finance",
+        description: "Sees every mensa's payments and daily totals.",
+      },
+      errors: {
+        wrongPassword: "Wrong username or password.",
+        notFinanceUser: "This account can't use the dashboard.",
+        unreachable: "Can't reach the server. Try again.",
+        badCandidate: "This build has a wrong candidate ID.",
+        unknown: "Something went wrong. Try again.",
+      },
+    },
+    header: {
+      nav: {
+        label: "Sections",
+        dailyTotals: "Daily totals",
+      },
+      logOut: "Log out",
+    },
+    dailyTotals: {
+      title: "Daily totals",
+    },
   },
 };
 

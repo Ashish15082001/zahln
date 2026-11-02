@@ -387,6 +387,35 @@ const de: Resources = {
   },
   dashboard: {
     appName: "Zahln Dashboard",
+    login: {
+      title: "Anmelden",
+      description:
+        "Melden Sie sich mit dem Finanzkonto des Studierendenwerks an.",
+      submit: "Anmelden",
+      submitting: "Anmeldung läuft…",
+      financeUser: {
+        title: "Finanzen",
+        description: "Sieht alle Zahlungen und die Tagessummen jeder Mensa.",
+      },
+      errors: {
+        wrongPassword: "Benutzername oder Passwort ist falsch.",
+        notFinanceUser:
+          "Mit diesem Konto kann das Dashboard nicht benutzt werden.",
+        unreachable: "Der Server ist nicht erreichbar. Bitte erneut versuchen.",
+        badCandidate: "Dieser Build hat eine falsche Candidate-ID.",
+        unknown: "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+      },
+    },
+    header: {
+      nav: {
+        label: "Bereiche",
+        dailyTotals: "Tagessummen",
+      },
+      logOut: "Abmelden",
+    },
+    dailyTotals: {
+      title: "Tagessummen",
+    },
   },
 };
 
