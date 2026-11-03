@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "lint": "eslint .",
+    "assets": "capacitor-assets generate --android --pwa --assetPath ../../assets --pwaManifestPath public/manifest.webmanifest",
     "android:sync": "vite build && cap sync android",
     "android:run": "vite build && cap sync android && cap run android",
     "android:open": "cap open android"
@@ -34,6 +35,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
     "@capacitor/cli": "^8.6.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
