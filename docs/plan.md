@@ -469,7 +469,9 @@ The dashboard is at <https://zahln-dashboard-three.vercel.app>. `apps/dashboard/
 path but a file's to `index.html`, so a reload or a shared link opens that
 screen, and a missing file is a 404. CI deploys the built files with the
 Vercel CLI and a `VERCEL_TOKEN` repository secret. Vercel builds nothing
-itself: its Git integration is off.
+itself: its Git integration is off. The files go up from a folder outside the
+checkout, so no commit comes with them: on Vercel's free plan, a commit to a
+private repo is blocked unless its author is on the Vercel account.
 
 `VITE_CANDIDATE_ID` is a GitHub repository secret, so CI can build.
 

@@ -153,10 +153,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @zahln/dashboard build
-      # vercel.json sends every path but a file's to index.html, so a reload
-      # or a shared link to /payments opens that screen.
-      - run: cp apps/dashboard/vercel.json apps/dashboard/dist/
-      - working-directory: apps/dashboard/dist
+      # The site is deployed from a folder outside the checkout. Inside it, the
+      # CLI attaches the commit, and Vercel's free plan blocks a commit to a
+      # private repo whose author isn't on the Vercel account. The site needs
+      # only its files. vercel.json sends every path but a file's to
+      # index.html, so a reload or a shared link to /payments opens that screen.
+      - run: |
+          cp -r apps/dashboard/dist "$RUNNER_TEMP/dashboard-site"
+          cp apps/dashboard/vercel.json "$RUNNER_TEMP/dashboard-site/"
+      - working-directory: ${{ runner.temp }}/dashboard-site
         run: npx --yes vercel@65.11.0 deploy --prod --yes --token "$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
