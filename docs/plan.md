@@ -7,14 +7,14 @@ bigger choices goes in [design.md](design.md).
 
 ## Status
 
-| Step | Scope                                                   | Status                                                                                                    |
-| ---- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                                                                      |
-| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                                    |
-| 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
-| 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
-| 4    | Dashboard                                               | Done                                                                                                      |
-| 5    | Ship                                                    | Done: v1.0.0 released                                                                                     |
+| Step | Scope                                                   | Status                                                                                                                   |
+| ---- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 0    | Setup: spec copy, UI kit, translations, settings, tests | Done                                                                                                                     |
+| 1    | `domain`, `api` and `storage`: the parts the till needs | Done, except `storage`                                                                                                   |
+| 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                                   |
+| 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check, token renewal and `GET /config` |
+| 4    | Dashboard                                               | Done                                                                                                                     |
+| 5    | Ship                                                    | Done: v1.0.0 released                                                                                                    |
 
 What each app does, and how, is in [till-plan.md](till-plan.md),
 [student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
@@ -245,6 +245,9 @@ Done so far:
 | `c842e93` | Every student component is a container and its JSX, and a parent always renders the container. Labels and a closed order's message are worked out in the container                                                                                             |
 | `57bd4a5` | The till gets the same shape: `homeScreen/` with `homeHeader/`, `homeContent/` and `homeFooter/` inside the tabs, `loginScreen/` and `welcomeScreen/`, and a container beside every JSX                                                                        |
 | `4982e99` | Every till table cell and header is a component, and the column files only say which goes where. The student home list and Scan QR footer work out their labels in their containers                                                                            |
+| `74ff0ac` | `GET /config` in `packages/api`, read with no login, and `isAppVersionSupported` in `domain`: versions compare number by number, and one that can't be read counts as supported                                                                                |
+| `ad81872` | An Update Zahln screen takes the place of every screen, Login included, once the config needs a newer app, with a link to the latest release. A version check above both login guards, and Log out keeps the config                                            |
+| `55e7d48` | The Pay page reads the config: paused payments turn Pay off before the tap and are read again every 30 seconds, a tap reads it before the fingerprint check, at most 3 seconds, and a 426 or a paused answer reads it again. Check again is never stopped      |
 
 Changes from the plan:
 
@@ -304,12 +307,18 @@ Changes from the plan:
   the seeded password. The server has no other payers, and the password is
   in the API's docs. Another user is Log out on Profile, then another card
   ([student-plan.md](student-plan.md#logging-in)).
+- **`GET /config` is read before the fingerprint check,** not only before
+  paying. Paused, or a version too old, the tap stops before the payer is
+  asked, with nothing sent. The read waits at most 3 seconds: a slower or
+  failed one lets Pay go ahead, and the server decides
+  ([student-plan.md](student-plan.md#the-servers-config)).
+- **A version too old is told on every screen,** Login included, not only
+  at Pay, since it may also misread what a newer server sends.
 
 Not yet:
 
 - Renewing the token after a reopen, which needs a refresh token or the
   password in the Android Keystore.
-- `GET /config`: a forced update and payments switched off.
 - A pay key for each payer. Log out keeps a saved key, and it holds the order
   and the amount but not the payer, so the next payer at the same order and
   amount would send it without the fingerprint, face or PIN check
@@ -482,11 +491,11 @@ shows in both languages, and the app doesn't start.
 
 ## Optional items from the brief
 
-| Item                                           | Plan                                          |
-| ---------------------------------------------- | --------------------------------------------- |
-| Minimum app version and switching payments off | Built in step 3, from `GET /config`           |
-| Crash reporting                                | Not decided. At least described in design doc |
-| CI on every push                               | Done                                          |
+| Item                                           | Plan                                                                                                |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Minimum app version and switching payments off | Built in step 3: `GET /config` at start and before Pay, as well as the server's 426 and 503 answers |
+| Crash reporting                                | Not decided. At least described in design doc                                                       |
+| CI on every push                               | Done                                                                                                |
 
 ## Carried forward
 

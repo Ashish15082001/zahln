@@ -12,11 +12,12 @@ low-end ones included.
 | Feature             | What the payer sees                                                                                                                                                                                                                                                      | How it works                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Welcome and login   | **Continue**, then a card for each test user: Student, Staff and Guest, each with the prices they pay and **Log in**. No username or password to type. One message per failure                                                                                           | `POST /sessions` with the card's seeded login, from `data/testUsers.ts`. Only a payer gets in: `student`, `staff` or `guest` ([below](#logging-in))                                                                                                                                                                                                                                                                               |
+| Update required     | When the server needs a newer app, an **Update Zahln** screen takes the place of every screen, Login included, with **Download the update**                                                                                                                              | `GET /config`, with no login, at start and each time the app comes back to the front ([below](#the-servers-config))                                                                                                                                                                                                                                                                                                               |
 | Staying signed in   | A quick reopen skips the login screen. While the app stays open, the session doesn't run out, even in the middle of a payment                                                                                                                                            | The token, its expiry and the payer are saved in `localStorage` (`zahln.app.session.v1`) and restored before the first render. The password is kept in memory only, to log in again before the token ends ([below](#renewing-the-token))                                                                                                                                                                                          |
 | Payment history     | Home lists the payer's payments, newest first, one full-width row each: mensa, amount, date, status and any refund. The dishes are on the payment's detail                                                                                                               | `GET /payments`, 20 at a time with **Load more**. Fetched when Home opens, when the app comes back to the front and with **Refresh**. No polling: a payment can stay pending for days. Each row is shadcn's `Item`, as a link                                                                                                                                                                                                     |
 | Payment detail      | Amount, mensa and till, items and total, the refunds, and the history from start to now                                                                                                                                                                                  | `GET /payments/{id}` at `/payments/:paymentId`. The list's copy shows at once while the rest loads. Focus moves to the heading, and Back returns to the same place in the list                                                                                                                                                                                                                                                    |
 | Scan QR             | A **Scan QR** button that stays at the bottom of Home. A scan opens the Pay page                                                                                                                                                                                         | Google's code scanner first, then two fallbacks ([below](#scanning))                                                                                                                                                                                                                                                                                                                                                              |
-| Pay page            | The mensa, the till, the items and the price for the payer's group, with "Pay within 4:32" and **Pay €2.50**                                                                                                                                                             | `GET /orders/{id}` at `/pay/:orderId`. The countdown runs on the server's clock. At 0, Pay turns off and the page asks every 3 seconds until the server says expired or paid                                                                                                                                                                                                                                                      |
+| Pay page            | The mensa, the till, the items and the price for the payer's group, with "Pay within 4:32" and **Pay €2.50**. While payments are paused, the page says so and Pay is off                                                                                                 | `GET /orders/{id}` at `/pay/:orderId`. The countdown runs on the server's clock. At 0, Pay turns off and the page asks every 3 seconds until the server says expired or paid. The config is read when the page opens, and every 30 seconds while payments are paused                                                                                                                                                              |
 | Confirming it's you | Before anything is sent, Android's own dialog asks for a fingerprint, the face or the phone's PIN, and shows the amount and the mensa                                                                                                                                    | `@capgo/capacitor-native-biometric` behind `identityCheck` in `packages/native`. A phone without a screen lock pays without it ([below](#confirming-its-the-payer))                                                                                                                                                                                                                                                               |
 | Paying              | **Confirming…**, **Paying…**, then "Payment being checked", "Paid" or "Payment declined", or a message with the next step                                                                                                                                                | `POST /orders/{id}/payments` with one idempotency key per order and amount, saved before the first send. The payment is then read every 2 seconds for 30 seconds ([below](#paying))                                                                                                                                                                                                                                               |
 | Order page          | The same order details, read only, with no Pay                                                                                                                                                                                                                           | `/orders/:orderId`. Nothing links to it yet                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -82,6 +83,48 @@ flowchart TD
   refused. The till prints the code under its QR. Spaces are ignored, and the
   QR's whole text can be pasted ([API gap 8](api-gaps.md#8-no-short-order-code)).
 
+## The server's config
+
+`GET /config` needs no login and says two things: the oldest app version the
+server still takes, and whether payments are on. The app reads it when it
+starts, each time it comes back to the front, when the Pay page opens, and
+right before a new payment. No screen waits for it.
+
+| The config says                             | The app                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| This app's version is below `minAppVersion` | An **Update Zahln** screen takes the place of every screen, Login included: "This version can't pay any more", the version it has and the one it needs, and **Download the update**, which opens the latest GitHub release in the phone's browser. Focus moves to its heading. The address stays, so if the minimum comes back down, the payer is where they were |
+| `paymentsEnabled: false`                    | The Pay page says "Payments are paused. Try again in a few minutes" above **Pay**, and Pay is off. The page asks again every 30 seconds, so Pay comes back by itself                                                                                                                                                                                              |
+| Nothing yet, or it can't be read            | Nothing changes. The server still refuses a payment from an old version with 426, and one while payments are paused with 503                                                                                                                                                                                                                                      |
+
+Before a new payment:
+
+- **Read afresh, before the fingerprint, face or PIN check,** so the payer
+  isn't asked to confirm a payment that can't go ahead. Paused or too old,
+  it stops there: no check, no key, nothing sent. **Confirming…** covers the
+  read.
+- **At most 3 seconds.** A slower read, or one that fails, lets Pay go
+  ahead, and the server decides. A slow server must not hold the payer at
+  the button.
+- **Check again isn't stopped.** It only asks about a payment that may
+  already exist, under its key.
+- **A 426 or `payments_disabled` answer reads the config again,** so the
+  update screen or the paused state shows at once.
+
+The decisions behind it:
+
+- **A `minAppVersion` the app can't read counts as supported,** e.g.
+  `1.x`. A typo on the server must not lock every payer out, and the server
+  still refuses old versions. Versions compare number by number, so
+  `1.10.0` is newer than `1.9.0`.
+- **A version too old blocks every screen, not only Pay.** The spec says an
+  older version must ask the user to update, and an old version may also
+  misread what a newer server sends.
+- **The link goes to the GitHub release,** since the app isn't on Google
+  Play. Capacitor hands a link to another site to the phone's browser.
+- **Log out keeps the config.** It isn't the payer's, unlike the rest of the
+  cache.
+- **The student app only.** The till doesn't pay.
+
 ## Paying
 
 Everything about paying happens on the Pay page, and every state there has a
@@ -95,7 +138,10 @@ flowchart TD
   Open["Pay page: GET /orders/{id}"] -- "open" --> Order["Order, countdown, Pay €2.50"]
   Open -- "the payer's own payment" --> Follow
   Open -- "someone else's, paid or expired" --> Closed["The reason, and Done"]
-  Order -- "tap Pay" --> Check{"Fingerprint, face<br/>or the phone's PIN"}
+  Order -- "tap Pay" --> Config{"GET /config: payments on,<br/>this version supported?"}
+  Config -- "yes, or no answer in 3 s" --> Check{"Fingerprint, face<br/>or the phone's PIN"}
+  Config -- "paused: nothing asked or sent" --> Order
+  Config -- "too old" --> Update["Update screen"]
   Check -- "passed, or no screen lock" --> Key["The key for this order and amount,<br/>saved on the device first"]
   Check -- "closed, too many tries or failed:<br/>nothing sent" --> Order
   Key --> Post["POST /orders/{id}/payments"]
@@ -114,19 +160,20 @@ flowchart TD
 
 ### What the Pay page shows
 
-| State                                    | The page                                                                       | Buttons                                    |
-| ---------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------ |
-| Loading                                  | Grey blocks, and "Loading the order…" for TalkBack                             | **Pay**, disabled                          |
-| The order couldn't be loaded             | "The order couldn't be loaded"                                                 | **Try again**                              |
-| No such order                            | "Order not found"                                                              | **Done**                                   |
-| Open                                     | Countdown, amount at the payer's price, mensa and till, items                  | **Pay €2.50**                              |
-| Time up                                  | "Time's up. Checking the order…"                                               | **Pay**, disabled                          |
-| Confirming                               | The order as before, under Android's fingerprint, face or PIN dialog           | **Confirming…**, disabled                  |
-| Paying                                   | The order as before                                                            | **Paying…**, disabled                      |
-| Being checked                            | "Payment being checked" and the payment: amount, place, time, items            | **Done**, **See the payment**              |
-| Still being checked                      | "Still being checked. This can take a few minutes"                             | **Done**, **Refresh**, **See the payment** |
-| Paid                                     | "Paid" and the payment                                                         | **Done**, **See the payment**              |
-| Someone else's payment, paid, or expired | "A payment for this order is being checked", "Already paid" or "Order expired" | **Done**                                   |
+| State                                    | The page                                                                                            | Buttons                                    |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Loading                                  | Grey blocks, and "Loading the order…" for TalkBack                                                  | **Pay**, disabled                          |
+| The order couldn't be loaded             | "The order couldn't be loaded"                                                                      | **Try again**                              |
+| No such order                            | "Order not found"                                                                                   | **Done**                                   |
+| Open                                     | Countdown, amount at the payer's price, mensa and till, items                                       | **Pay €2.50**                              |
+| Payments paused                          | The order as before, and "Payments are paused. Try again in a few minutes"                          | **Pay**, disabled                          |
+| Time up                                  | "Time's up. Checking the order…"                                                                    | **Pay**, disabled                          |
+| Confirming                               | The order as before, while the config is read, then under Android's fingerprint, face or PIN dialog | **Confirming…**, disabled                  |
+| Paying                                   | The order as before                                                                                 | **Paying…**, disabled                      |
+| Being checked                            | "Payment being checked" and the payment: amount, place, time, items                                 | **Done**, **See the payment**              |
+| Still being checked                      | "Still being checked. This can take a few minutes"                                                  | **Done**, **Refresh**, **See the payment** |
+| Paid                                     | "Paid" and the payment                                                                              | **Done**, **See the payment**              |
+| Someone else's payment, paid, or expired | "A payment for this order is being checked", "Already paid" or "Order expired"                      | **Done**                                   |
 
 **Pay** and the buttons under a payment sit in a bar fixed to the bottom of
 the screen, so they are in reach however long the order is.
@@ -180,8 +227,8 @@ The decisions behind it:
 | 502, 504, no answer or 503 `unavailable`, after 3 tries                        | Kept                               | "Payment not confirmed. It may have gone through" and **Check again**                                                                                                                                |
 | 409 `amount_mismatch`                                                          | Spent                              | The order is read again: "The price changed" and **Pay** with the new amount                                                                                                                         |
 | 409 `order_expired`, `order_already_paid`, `order_payment_in_progress`, or 404 | Spent                              | The order is read again and the page shows why it can't be paid, with **Done**                                                                                                                       |
-| 426                                                                            | Spent                              | "Update the app" and **Done**                                                                                                                                                                        |
-| 503 `payments_disabled`                                                        | Kept when `retryable`              | "Payments are paused. Try again in a few minutes" and **Pay**                                                                                                                                        |
+| 426                                                                            | Spent                              | "Update the app" and **Done**. The config is read again, and the update screen takes the page's place                                                                                                |
+| 503 `payments_disabled`                                                        | Kept when `retryable`              | "Payments are paused. Try again in a few minutes", and Pay is off. The config is read again, then every 30 seconds, so Pay comes back by itself                                                      |
 | 401                                                                            | Kept, then as the next answer says | The app logs in again and sends the same request with the same key, unseen by the payer. The page shows the answer to that. Only if the session ends is the key spent ([below](#renewing-the-token)) |
 | Anything else                                                                  | Spent                              | "The payment didn't go through" and **Pay**                                                                                                                                                          |
 
@@ -311,16 +358,19 @@ payment is being checked. Reads share one cache with the payment detail, so
 | The token ends mid-payment                           | The app logs in again and sends the same key, unseen by the payer ([above](#renewing-the-token))                                                                                                                           |
 | The session ends mid-payment                         | Only after a changed password, or a reopen. The payer is sent to log in, and the key is spent. The server refuses a second payment while the first is pending or paid ([why](#why-the-key-is-spent-when-the-session-ends)) |
 | Storage is blocked                                   | The key lives in memory until the app closes                                                                                                                                                                               |
+| Payments pause while the Pay page is open            | Pay turns off at the next read of the config, at most 30 seconds later. A tap that comes first is stopped before the fingerprint check, with nothing sent                                                                  |
+| The server needs a newer app while it is open        | The update screen takes the page's place when the app comes back to the front, at the next tap, or after a 426                                                                                                             |
+| The config can't be read                             | Nothing changes, and Pay goes ahead after at most 3 seconds. The server still refuses with 426 or 503                                                                                                                      |
 
 ## How it is built
 
 | Layer   | Where                                                             | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Screens | `apps/student/src/screens/`                                       | Every part is `Foo.tsx` (data, handlers and what it works out, such as labels) and `FooJSX.tsx` (markup only), even where `Foo.tsx` only passes its props on; a parent always renders `Foo`. A screen is `payScreen/` with `PayScreen.tsx` and `PayScreenJSX.tsx`. Its header, content and footer are components in `payHeader/`, `payContent/` and `payFooter/`, handed to `ScreenLayoutJSX`; the screen itself only passes props on. Its other parts are in `components/`. No component keeps markup in a variable. Parts two screens share are in `apps/student/src/components/` |
-| Data    | `apps/student/src/data/`                                          | The seeded test users, and TanStack Query hooks: `useAppSession`, `useLogin`, `usePayments`, `usePayment`, `usePayerOrder`, `usePayOrder`, and the scan steps. Screens never call the API                                                                                                                                                                                                                                                                                                                                                                                           |
-| Routes  | `apps/student/src/app/`                                           | `/`, `/login`, `/home`, `/payments/:paymentId`, `/pay/:orderId`, `/orders/:orderId`, `/scan` and `/profile`, behind the same signed-in and signed-out guards as the till                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Data    | `apps/student/src/data/`                                          | The seeded test users, and TanStack Query hooks: `useAppSession`, `useAppConfig`, `useLogin`, `usePayments`, `usePayment`, `usePayerOrder`, `usePayOrder`, and the scan steps. Screens never call the API                                                                                                                                                                                                                                                                                                                                                                           |
+| Routes  | `apps/student/src/app/`                                           | `/`, `/login`, `/home`, `/payments/:paymentId`, `/pay/:orderId`, `/orders/:orderId`, `/scan` and `/profile`, behind the same signed-in and signed-out guards as the till. Above both, a version check shows the update screen in their place                                                                                                                                                                                                                                                                                                                                        |
 | Native  | `packages/native`                                                 | Google's code scanner, the camera scanner, and the check that the phone's owner is paying, behind small tested wrappers                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Shared  | `packages/api`, `packages/domain`, `packages/ui`, `packages/i18n` | The client, the token renewal, the pay key store, the shapes, the components and the strings, shared with the till. Whether an order can still be paid is decided in `domain`, tested                                                                                                                                                                                                                                                                                                                                                                                               |
+| Shared  | `packages/api`, `packages/domain`, `packages/ui`, `packages/i18n` | The client, the token renewal, the pay key store, the shapes, the components and the strings, shared with the till. Whether an order can still be paid, and whether this app's version is still supported, are decided in `domain`, tested                                                                                                                                                                                                                                                                                                                                          |
 
 The rules every screen follows:
 
@@ -329,6 +379,9 @@ The rules every screen follows:
 - **Nothing is sent without the payer's yes.** The fingerprint, face or PIN
   check is part of the pay call, before the key is made. Only a phone with no
   screen lock skips it.
+- **The server's config can only stop a payment, never send one.** A config
+  the app can't read, or that doesn't come in time, changes nothing, and the
+  server still refuses what it must.
 - **Late answers never win.** A payment or an order with a lower `version`
   than one shown is dropped, in the list and the detail alike. A detail older
   than the list's copy is read again, up to 3 times, 1 second apart: the one
@@ -345,8 +398,6 @@ The rules every screen follows:
 
 ## Still to build
 
-- **`GET /config`** at start and before paying, so a forced update or paused
-  payments show before the tap instead of in the answer to it.
 - **Renewing after a reopen.** The password is only in memory, so a reopened
   app can't renew its token. It needs a refresh token
   ([API gap 2](api-gaps.md#2-no-refresh-token)), or the password in the
