@@ -40,9 +40,10 @@ What each app does, and how, is in [till-plan.md](till-plan.md),
   React house rules. In the two Android apps every screen is built on
   `ScreenLayoutJSX`: a header that stays at the top, a footer that stays at
   the bottom, and a page no taller than the screen. A long press there
-  doesn't select text, except in fields. The dashboard's screens are built
-  on it too, in a wider column, and their text stays selectable, so ids can
-  be copied. Two buttons in a footer sit side by side at the same width, the
+  doesn't select text, except in fields. The student app's column is as
+  wide as the screen, so a tablet shows no empty strips either side. The
+  dashboard's screens are built on it too, in a wider column, and their text
+  stays selectable, so ids can be copied. Two buttons in a footer sit side by side at the same width, the
   main one on the right. Refresh is an icon
   button, and every date and time has a calendar icon.
 - **Languages and access.** Every screen is in English and German. The pay
@@ -248,6 +249,7 @@ Done so far:
 | `74ff0ac` | `GET /config` in `packages/api`, read with no login, and `isAppVersionSupported` in `domain`: versions compare number by number, and one that can't be read counts as supported                                                                                |
 | `ad81872` | An Update Zahln screen takes the place of every screen, Login included, once the config needs a newer app, with a link to the latest release. A version check above both login guards, and Log out keeps the config                                            |
 | `55e7d48` | The Pay page reads the config: paused payments turn Pay off before the tap and are read again every 30 seconds, a tap reads it before the fingerprint check, at most 3 seconds, and a 426 or a paused answer reads it again. Check again is never stopped      |
+| `b0ec5a7` | A `full` column in `ScreenLayoutJSX`, which every student screen uses instead of `md`, so the app fills a tablet's width                                                                                                                                       |
 
 Changes from the plan:
 
@@ -314,6 +316,10 @@ Changes from the plan:
   ([student-plan.md](student-plan.md#the-servers-config)).
 - **A version too old is told on every screen,** Login included, not only
   at Pay, since it may also misread what a newer server sends.
+- **The student app fills the screen's width.** Its screens were a
+  phone-wide `md` column, 448 px, which left empty strips either side on a
+  tablet. The welcome card, the camera's frame and Scan's "This device
+  can't scan" stay narrow and centred.
 
 Not yet:
 
