@@ -9,8 +9,9 @@ import PayButtonFooterJSX, { type PayMessage } from "./PayButtonFooterJSX";
 /** Where the payer's tap on Pay has got to. */
 export type PayStatus =
   | { status: "idle" }
-  // The phone's own prompt is open. Nothing has been sent yet.
-  | { status: "checkingPayer" }
+  // The config is being read, or the phone's own prompt is open. Nothing has
+  // been sent yet.
+  | { status: "confirming" }
   | { status: "paying" }
   // Their payment came back declined, and the order is open again.
   | { status: "declined" }
@@ -25,6 +26,8 @@ export interface PayButtonFooterState {
   amountCents: number | null;
   // The order is on screen, open, and its time hasn't run out.
   isPayable: boolean;
+  // The server's config says payments are paused.
+  isPaymentsPaused: boolean;
   payStatus: PayStatus;
 }
 
@@ -74,6 +77,7 @@ const getPayMessage = (
 const PayButtonFooter: FC<PayButtonFooterProps> = ({
   amountCents,
   isPayable,
+  isPaymentsPaused,
   payStatus,
   handleDone,
   handlePay,
@@ -84,7 +88,7 @@ const PayButtonFooter: FC<PayButtonFooterProps> = ({
   const language = pickLanguage([i18n.resolvedLanguage ?? ""]);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const isCheckingPayer = payStatus.status === "checkingPayer";
+  const isConfirming = payStatus.status === "confirming";
   const isPaying = payStatus.status === "paying";
   const payFailure =
     payStatus.status === "failed" ? payStatus.payFailure : null;
@@ -99,18 +103,33 @@ const PayButtonFooter: FC<PayButtonFooterProps> = ({
   useEffect(() => {
     const isAnswer =
       shownAnswer !== "idle" &&
-      shownAnswer !== "checkingPayer" &&
+      shownAnswer !== "confirming" &&
       shownAnswer !== "paying";
     if (isAnswer && document.activeElement === document.body) {
       buttonRef.current?.focus();
     }
   }, [shownAnswer]);
   const isRefused = payFailure !== null && FINAL_PAY_FAILURES.has(payFailure);
-  // Disabled while the prompt is open and while paying, so a second tap
-  // can't open a second prompt or start a second request. (A request would
-  // carry the same key, so it couldn't pay twice either way.)
+  // Paused payments show before any tap, unless the last answer says more:
+  // a refusal for good, or a payment that may have gone through, which Check
+  // again only asks about. While a try is on its way, it speaks for itself.
+  const isPausedShown =
+    isPaymentsPaused &&
+    !isRefused &&
+    payFailure !== "unconfirmed" &&
+    !isConfirming &&
+    !isPaying;
+  // Disabled while confirming and while paying, so a second tap can't open a
+  // second prompt or start a second request. (A request would carry the
+  // same key, so it couldn't pay twice either way.) Off while paused, since
+  // the server would only refuse a new payment.
   const isButtonDisabled =
-    !isRefused && (!isPayable || isCheckingPayer || isPaying);
+    !isRefused && (!isPayable || isConfirming || isPaying || isPausedShown);
+
+  // The same words as the server's 503 answer, before any tap.
+  const payMessage = isPausedShown
+    ? getPayMessage({ status: "failed", payFailure: "paymentsPaused" }, t)
+    : getPayMessage(payStatus, t);
 
   let buttonLabel =
     amountCents === null
@@ -118,8 +137,8 @@ const PayButtonFooter: FC<PayButtonFooterProps> = ({
       : t("pay.pay", { amount: formatCents(amountCents, language) });
   if (isRefused) {
     buttonLabel = t("pay.done");
-  } else if (isCheckingPayer) {
-    buttonLabel = t("pay.checkingPayer");
+  } else if (isConfirming) {
+    buttonLabel = t("pay.confirming");
   } else if (isPaying) {
     buttonLabel = t("pay.paying");
   } else if (payFailure === "unconfirmed") {
@@ -132,7 +151,7 @@ const PayButtonFooter: FC<PayButtonFooterProps> = ({
       buttonLabel={buttonLabel}
       buttonRef={buttonRef}
       isButtonDisabled={isButtonDisabled}
-      message={getPayMessage(payStatus, t)}
+      message={payMessage}
       // Nothing while the prompt is open: Android's own dialog is in front,
       // and TalkBack reads that. A status from the page behind would talk
       // over it.

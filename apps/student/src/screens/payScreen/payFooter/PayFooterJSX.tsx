@@ -38,6 +38,7 @@ const PayFooterJSX: FC<PayFooterJSXProps> = ({
     <PayButtonFooter
       amountCents={payButtonFooter.amountCents}
       isPayable={payButtonFooter.isPayable}
+      isPaymentsPaused={payButtonFooter.isPaymentsPaused}
       payStatus={payButtonFooter.payStatus}
       handleDone={handleDone}
       handlePay={handlePay}

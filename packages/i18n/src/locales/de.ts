@@ -143,7 +143,7 @@ const de: Resources = {
       pay: "{{amount}} bezahlen",
       payNoAmount: "Bezahlen",
       paying: "Wird bezahlt…",
-      checkingPayer: "Wird bestätigt…",
+      confirming: "Wird bestätigt…",
       payerCheckTitle: "{{amount}} bezahlen",
       checkAgain: "Erneut prüfen",
       ownPayment: {

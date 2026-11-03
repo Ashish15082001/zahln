@@ -136,7 +136,7 @@ const en = {
       paying: "Paying…",
       // While the phone's own prompt asks for a fingerprint, the face or the
       // PIN. Nothing has been sent yet.
-      checkingPayer: "Confirming…",
+      confirming: "Confirming…",
       // The title of that prompt. Android draws it, so the payer sees the
       // amount in the phone's own dialog.
       payerCheckTitle: "Pay {{amount}}",

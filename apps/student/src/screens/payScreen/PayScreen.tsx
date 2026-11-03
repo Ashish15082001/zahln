@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { paths, toPaymentPath } from "../../app/paths";
+import { useAppConfig } from "../../data/appConfig";
 import { isOrderNotFound, usePayerOrder } from "../../data/order";
 import { isOrderOutOfDate, toPayFailure, usePayOrder } from "../../data/pay";
 import { usePayment } from "../../data/payments";
@@ -29,7 +30,13 @@ const PayScreen: FC = () => {
   const { orderId = "" } = useParams<"orderId">();
   const orderQuery = usePayerOrder(orderId);
   const { refetch } = orderQuery;
-  const { isCheckingPayer, payMutation } = usePayOrder();
+  const { isConfirming, payMutation } = usePayOrder();
+  // Read when the page opens, and every 30 seconds while payments are
+  // paused, so Pay comes back by itself. Unread or unreadable, payments
+  // count as on: the server still refuses one while they are paused.
+  const isPaymentsPaused =
+    useAppConfig({ isPollingWhilePaused: true }).data?.paymentsEnabled ===
+    false;
   const { t, i18n } = useTranslation("student");
   // i18next only resolves to a supported language. pickLanguage narrows the
   // type to AppLanguage, with English if that ever changes.
@@ -154,9 +161,7 @@ const PayScreen: FC = () => {
 
   let payStatus: PayStatus = { status: "idle" };
   if (payMutation.isPending) {
-    payStatus = isCheckingPayer
-      ? { status: "checkingPayer" }
-      : { status: "paying" };
+    payStatus = isConfirming ? { status: "confirming" } : { status: "paying" };
   } else if (payMutation.isError) {
     payStatus = {
       status: "failed",
@@ -174,7 +179,12 @@ const PayScreen: FC = () => {
   if (state.status === "loading" || state.status === "error") {
     payFooterState = {
       status: "payButton",
-      payButtonFooter: { amountCents: null, isPayable: false, payStatus },
+      payButtonFooter: {
+        amountCents: null,
+        isPayable: false,
+        isPaymentsPaused,
+        payStatus,
+      },
     };
   } else if (state.status === "open") {
     payFooterState = {
@@ -184,6 +194,7 @@ const PayScreen: FC = () => {
         // Disabled once the time is up, though the order still reads open
         // until the server says expired: it would only refuse the payment.
         isPayable: timeUpOrderId !== orderId,
+        isPaymentsPaused,
         payStatus,
       },
     };

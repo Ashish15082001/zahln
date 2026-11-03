@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { isApiError, needsSameKey } from "@zahln/api/errors";
+import { hasProblemCode, isApiError, needsSameKey } from "@zahln/api/errors";
 import { createPayIntentStore } from "@zahln/api/payIntentStore";
 import { payOrder } from "@zahln/api/payments";
 import { localKeyValueStorage } from "@zahln/api/sessionStore";
@@ -9,6 +9,12 @@ import {
   type IdentityCheckResult,
 } from "@zahln/native/identityCheck";
 import { useState } from "react";
+import {
+  readAppConfigBeforePay,
+  refreshAppConfig,
+  toConfigPayRefusal,
+  type ConfigPayRefusal,
+} from "./appConfig";
 import { http } from "./session";
 
 /** The payment being made, kept on the device until the server answers it. */
@@ -35,6 +41,34 @@ class PayerNotConfirmedError extends Error {
 }
 
 /**
+ * The server's config stops new payments: the app is too old, or payments
+ * are paused. Nothing was asked of the payer, and nothing was sent.
+ */
+class StoppedByConfigError extends Error {
+  readonly configPayRefusal: ConfigPayRefusal;
+
+  constructor(configPayRefusal: ConfigPayRefusal) {
+    super(`The config stops new payments: ${configPayRefusal}`);
+    this.name = "StoppedByConfigError";
+    this.configPayRefusal = configPayRefusal;
+  }
+}
+
+/**
+ * Throws when a fresh read of the config stops new payments. A read that
+ * doesn't come, or fails, lets the payment go ahead: the server refuses it
+ * anyway if the app is too old or payments are paused.
+ */
+const checkConfigAllowsPaying = async (): Promise<void> => {
+  const appConfig = await readAppConfigBeforePay();
+  const configPayRefusal =
+    appConfig === null ? null : toConfigPayRefusal(appConfig);
+  if (configPayRefusal !== null) {
+    throw new StoppedByConfigError(configPayRefusal);
+  }
+};
+
+/**
  * Asks for a fingerprint, the face or the phone's PIN, and throws unless the
  * payer passes. A phone without a screen lock pays without the check:
  * whoever holds it can already open everything on it, and an emulator
@@ -59,16 +93,16 @@ export interface PayOrderInput {
 }
 
 /**
- * Pays an order at the amount shown, once the payer has confirmed it's them.
- * The check is in here, not on the screen, so no screen can send a payment
- * without it. A retry of the same order and amount, even after the app was
- * closed, sends the same key, so a reply lost on the way never leads to a
- * second payment.
+ * Pays an order at the amount shown, once the config allows new payments and
+ * the payer has confirmed it's them. Both checks are in here, not on the
+ * screen, so no screen can send a payment without them. A retry of the same
+ * order and amount, even after the app was closed, sends the same key, so a
+ * reply lost on the way never leads to a second payment.
  */
 export const usePayOrder = () => {
-  // While the phone's prompt is open, so the footer can say "Confirming…"
-  // rather than "Paying…": nothing has been sent yet.
-  const [isCheckingPayer, setIsCheckingPayer] = useState(false);
+  // While the config is read and the phone's prompt is open, so the footer
+  // can say "Confirming…" rather than "Paying…": nothing has been sent yet.
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const payMutation = useMutation({
     mutationFn: async ({
@@ -78,13 +112,18 @@ export const usePayOrder = () => {
     }: PayOrderInput) => {
       // A saved key means the payer confirmed this payment already and its
       // answer never came: sending it again under that key asks nothing
-      // new, so it doesn't ask again. A key is only made after the check.
+      // new, so neither check stops it. Paused payments don't stop it
+      // either: it only finds out about a payment that may already exist.
+      // A key is only made after both checks.
       if (!payIntentStore.hasKey(orderId, amountCents)) {
-        setIsCheckingPayer(true);
+        setIsConfirming(true);
         try {
+          // Before the prompt: the payer isn't asked for a fingerprint for
+          // a payment that can't go ahead.
+          await checkConfigAllowsPaying();
           await confirmPayer(payerCheckPrompt);
         } finally {
-          setIsCheckingPayer(false);
+          setIsConfirming(false);
         }
       }
 
@@ -102,12 +141,20 @@ export const usePayOrder = () => {
         return payment;
       } catch (error) {
         if (!needsSameKey(error)) payIntentStore.spendKey(idempotencyKey);
+        // The server knows a newer config than the app: read it, so the
+        // update screen or the paused state shows before the next tap.
+        if (
+          hasProblemCode(error, "app_version_unsupported") ||
+          hasProblemCode(error, "payments_disabled")
+        ) {
+          refreshAppConfig();
+        }
         throw error;
       }
     },
   });
 
-  return { isCheckingPayer, payMutation };
+  return { isConfirming, payMutation };
 };
 
 /** Why Pay didn't bring back a payment, as the screen explains it. */
@@ -133,6 +180,10 @@ export type PayFailure =
   | "failed";
 
 export const toPayFailure = (error: unknown): PayFailure => {
+  // The same words as the server's 426 and 503 answers: the payer is told
+  // the same thing whichever caught it.
+  if (error instanceof StoppedByConfigError) return error.configPayRefusal;
+
   if (error instanceof PayerNotConfirmedError) {
     switch (error.payerCheckFailure) {
       case "cancelled":
