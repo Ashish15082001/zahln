@@ -14,7 +14,7 @@ bigger choices goes in [design.md](design.md).
 | 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
 | 4    | Dashboard                                               | Done                                                                                                      |
-| 5    | Ship                                                    | In progress: CI green, dashboard on GitHub Pages                                                          |
+| 5    | Ship                                                    | In progress: CI green, dashboard on GitHub Pages, signed APKs                                             |
 
 What each app does, and how, is in [till-plan.md](till-plan.md),
 [student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
@@ -426,7 +426,7 @@ Built in six parts, each approved before it starts.
 | ---- | ------------------------------------------------------------------------------------------------------------------------- | ------- |
 | 5a   | CI green again                                                                                                            | Done    |
 | 5b   | The dashboard on GitHub Pages                                                                                             | Done    |
-| 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                        | Planned |
+| 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                        | Done    |
 | 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page | Planned |
 | 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                  | Planned |
 | 5f   | The design document, written from what was built                                                                          | Planned |
@@ -444,11 +444,13 @@ Decisions taken before the step:
 
 Done so far:
 
-| Commit    | What it does                                                                                                                                                                                          |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ea31d68` | Formats the student app's and the till's docs. Their table padding had failed CI's format check on every push since `85638a1`, so no later commit had been typechecked, linted, tested or built by CI |
-| `42777ee` | `DASHBOARD_BASE_PATH` sets the dashboard's base path, checked to start and end with a slash, and the router reads every route under it                                                                |
-| `ad09b1e` | A CI job deploys the dashboard to GitHub Pages from `version1.0.0` once every check has passed, with `index.html` copied to `404.html` so a reload or a shared link opens the right screen            |
+| Commit    | What it does                                                                                                                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ea31d68` | Formats the student app's and the till's docs. Their table padding had failed CI's format check on every push since `85638a1`, so no later commit had been typechecked, linted, tested or built by CI      |
+| `42777ee` | `DASHBOARD_BASE_PATH` sets the dashboard's base path, checked to start and end with a slash, and the router reads every route under it                                                                     |
+| `ad09b1e` | A CI job deploys the dashboard to GitHub Pages from `version1.0.0` once every check has passed, with `index.html` copied to `404.html` so a reload or a shared link opens the right screen                 |
+| `00312ad` | The student app's and the till's release builds are signed with the key CI passes in. Without one, e.g. on a laptop, a release build is unsigned, so it can't be installed and mistaken for one handed out |
+| `8b445cf` | CI builds both signed release APKs on every push to `version1.0.0` and on version tags, fails unless they carry the release key's certificate, and attaches both to a GitHub Release for a `v` tag         |
 
 The dashboard is at <https://ashish15082001.github.io/zahln/>. Pages has no
 rewrites, so a link to a screen other than the first is answered with status
@@ -456,6 +458,15 @@ rewrites, so a link to a screen other than the first is answered with status
 allows `main` and `version1.0.0` to deploy.
 
 `VITE_CANDIDATE_ID` is a GitHub repository secret, so CI can build.
+
+The release key is one RSA 4096 key for both apps, alias `zahln`, valid
+until 2054. It is kept outside the repo, and CI gets it from four repository
+secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
+`ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Its certificate's SHA-256 is
+`0f4ef97916defa49cc1896f67fb951700e9fe0b4e34d538be6a344eccab8f0f1`; CI checks
+every release APK against it. A tag such as `v1.0.0` makes the GitHub Release
+with `zahln-student-v1.0.0.apk` and `zahln-till-v1.0.0.apk`. The tag comes
+last, once the rest of step 5 is in.
 
 ## Optional items from the brief
 
