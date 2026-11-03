@@ -8,23 +8,29 @@ import { paths } from "./paths";
 import SignedInOnly from "./signedInOnly/SignedInOnly";
 import SignedOutOnly from "./signedOutOnly/SignedOutOnly";
 
-export const router = createBrowserRouter([
-  // Pathless layout routes: the guards decide who may see their screens, so
-  // no screen checks the session just to redirect.
-  {
-    element: <SignedOutOnly />,
-    children: [{ path: paths.login, element: <LoginScreen /> }],
-  },
-  {
-    element: <SignedInOnly />,
-    children: [
-      { path: paths.dailyTotals, element: <DailyTotalsScreen /> },
-      { path: paths.attention, element: <AttentionScreen /> },
-      { path: paths.payments, element: <PaymentsScreen /> },
-      { path: paths.payment, element: <PaymentDetailScreen /> },
-    ],
-  },
-  // The static host serves index.html for any path, so an unknown one would
-  // otherwise show React Router's developer error page.
-  { path: "*", element: <Navigate replace to={paths.dailyTotals} /> },
-]);
+export const router = createBrowserRouter(
+  [
+    // Pathless layout routes: the guards decide who may see their screens, so
+    // no screen checks the session just to redirect.
+    {
+      element: <SignedOutOnly />,
+      children: [{ path: paths.login, element: <LoginScreen /> }],
+    },
+    {
+      element: <SignedInOnly />,
+      children: [
+        { path: paths.dailyTotals, element: <DailyTotalsScreen /> },
+        { path: paths.attention, element: <AttentionScreen /> },
+        { path: paths.payments, element: <PaymentsScreen /> },
+        { path: paths.payment, element: <PaymentDetailScreen /> },
+      ],
+    },
+    // The static host serves index.html for any path, so an unknown one would
+    // otherwise show React Router's developer error page.
+    { path: "*", element: <Navigate replace to={paths.dailyTotals} /> },
+  ],
+  // The path the site is served under, "/" on a laptop and "/zahln/" on
+  // GitHub Pages (vite.config.ts). Every route and link is read under it, so
+  // paths.ts stays the same wherever the site is.
+  { basename: import.meta.env.BASE_URL },
+);

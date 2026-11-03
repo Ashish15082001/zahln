@@ -8,11 +8,29 @@ import pkg from "./package.json" with { type: "json" };
 // One .env at the repo root serves all three apps.
 const envDir = resolve(import.meta.dirname, "../..");
 
+/**
+ * Where the dashboard is served from. "/" on a laptop; GitHub Pages serves a
+ * project site under its name, so CI builds with DASHBOARD_BASE_PATH=/zahln/.
+ * Not a VITE_ setting: only the base path reaches the page, as BASE_URL.
+ */
+const toBasePath = (configuredBasePath: string | undefined): string => {
+  const basePath = configuredBasePath ?? "/";
+  // Vite and the router both expect it to start and end with a slash; a typo
+  // here would build a site whose files all 404.
+  if (!basePath.startsWith("/") || !basePath.endsWith("/")) {
+    throw new Error(
+      `DASHBOARD_BASE_PATH must start and end with "/", e.g. /zahln/. Got ${basePath}`,
+    );
+  }
+  return basePath;
+};
+
 export default defineConfig(({ mode }) => {
   // Throws here, at build time, rather than on the deployed site.
   parseApiEnv(loadEnv(mode, envDir, "VITE_"));
 
   return {
+    base: toBasePath(process.env.DASHBOARD_BASE_PATH),
     envDir,
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
