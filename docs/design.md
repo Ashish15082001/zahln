@@ -135,7 +135,7 @@ What is built:
 | Saved data from another version | Every key the apps save under has a version in its name, such as `zahln.app.session.v1`, and what is read back is checked by zod. A new shape gets a new key, so an older version's data is never read as the new shape, and a broken save counts as none                                                                                                         |
 | Values a newer server sends     | An unknown history event reads "Other change" and an unknown attention reason "Other reason", instead of failing the screen                                                                                                                                                                                                                                       |
 | Signed releases                 | CI signs both APKs with one release key and fails unless each carries its certificate, so an update always installs over the version before                                                                                                                                                                                                                       |
-| The dashboard                   | A static site on GitHub Pages: the next push is live for everyone, with nothing to update                                                                                                                                                                                                                                                                         |
+| The dashboard                   | A static site on Vercel, deployed by CI once every check passes: the next push is live for everyone, with nothing to update                                                                                                                                                                                                                                       |
 
 What I would add before a real release:
 
@@ -229,7 +229,7 @@ The decisions behind the stack, and where they cost something:
   free on public npm, supports Capacitor 8, is kept up to date, and can also
   keep secrets in the Android Keystore, which the till's re-login will need.
   Capawesome's Biometrics plugin has a nicer API but needs a paid licence and
-  a private npm registry, so a clone of this public repo wouldn't install.
+  a private npm registry, so a clone of the repo wouldn't install without one.
   `@aparajita/capacitor-biometric-auth` can't store secrets. Two of the
   plugin's Android defaults are worked around in `packages/native`: the PIN
   is offered only when `DEVICE_CREDENTIAL` is in `allowedBiometryTypes` (its

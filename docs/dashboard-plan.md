@@ -7,7 +7,7 @@ gap is in [api-gaps.md](api-gaps.md).
 
 The dashboard is for the finance team. It is a static web app for a desktop
 browser, and it also works at phone width. It is live at
-<https://ashish15082001.github.io/zahln/>, deployed by CI from
+<https://zahln-dashboard-three.vercel.app>, deployed by CI from
 `version1.0.0` ([plan.md](plan.md#step-5-ship)).
 
 ## Features

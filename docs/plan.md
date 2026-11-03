@@ -424,7 +424,7 @@ Built in seven parts, each approved before it starts.
 | Part | Scope                                                                                                                                | Status             |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
 | 5a   | CI green again                                                                                                                       | Done               |
-| 5b   | The dashboard on GitHub Pages                                                                                                        | Done               |
+| 5b   | The dashboard deployed by CI, on Vercel                                                                                              | Done               |
 | 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                                   | Done               |
 | 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page            | Done               |
 | 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                             | Done               |
@@ -435,8 +435,9 @@ Built in seven parts, each approved before it starts.
 
 Decisions taken before the step:
 
-- **The dashboard is on GitHub Pages,** deployed from this repo by CI, with no
-  other account.
+- **The dashboard is on Vercel,** deployed by CI from the built files once
+  every check passes. GitHub Pages doesn't serve a private repo on a free
+  plan, and the repo is private.
 - **The candidate ID is in the dashboard's public JavaScript.** A page that
   calls the API from the browser has to carry it, and it reaches sandbox data
   only.
@@ -460,11 +461,13 @@ Done so far:
 | `b92a504` | A favicon and a web manifest with the Zahln icons on all three surfaces, resolving under the dashboard's `/zahln/` path                                                                                                                                                                   |
 | `1593bd3` | Each screen in the student app, the till and the dashboard loads its code the first time it opens: at start, 22% to 30% less JavaScript to parse. A screen whose file fails to load, or that throws, shows "Something went wrong" and Reload, with focus on its heading                   |
 | `e6505af` | Both apps set `allowBackup="false"`, and `dataExtractionRules` leave every folder out of the cloud backup and of a move to a new phone on Android 12 and later, so the saved login stays on the device it was made on. Lint and a debug build pass for both                               |
+| `378f508` | CI deploys the dashboard to Vercel once every check has passed, in place of GitHub Pages: the built files with `vercel.json`, which sends every path but a file's to `index.html`                                                                                                         |
 
-The dashboard is at <https://ashish15082001.github.io/zahln/>. Pages has no
-rewrites, so a link to a screen other than the first is answered with status
-404 and the app, which opens that screen. GitHub's `github-pages` environment
-allows `main` and `version1.0.0` to deploy.
+The dashboard is at <https://zahln-dashboard-three.vercel.app>. `apps/dashboard/vercel.json` sends every
+path but a file's to `index.html`, so a reload or a shared link opens that
+screen, and a missing file is a 404. CI deploys the built files with the
+Vercel CLI and a `VERCEL_TOKEN` repository secret. Vercel builds nothing
+itself: its Git integration is off.
 
 `VITE_CANDIDATE_ID` is a GitHub repository secret, so CI can build.
 

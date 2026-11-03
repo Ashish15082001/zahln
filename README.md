@@ -5,14 +5,15 @@ frontend assignment, in one TypeScript monorepo.
 
 ## Try it
 
-- **Dashboard:** live at <https://ashish15082001.github.io/zahln/>. Log in
+- **Dashboard:** live at <https://zahln-dashboard-three.vercel.app>. Log in
   with the **Finance** card.
 - **Student app and till:** signed APKs, `zahln-student-v1.0.0.apk` for a
   phone and `zahln-till-v1.0.0.apk` for a tablet, are on the
   [v1.0.0 release](https://github.com/Ashish15082001/zahln/releases/tag/v1.0.0).
   They need Android 7 or later and an Android System WebView of Chrome 111 or
   later; an older WebView shows what to update. Android asks to allow
-  installing from the browser or file manager the first time.
+  installing from the browser or file manager the first time. The repo is
+  private, so the release opens for its collaborators.
 
 Test logins, all on the API's seeded data. The password is `test1234`
 everywhere.
@@ -203,7 +204,7 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every push:
 
 - **Checks:** format, typecheck, lint, tests and build, then a debug APK of
   each Android app.
-- **On `version1.0.0`:** the dashboard is deployed to GitHub Pages, and both
+- **On `version1.0.0`:** the dashboard is deployed to Vercel, and both
   apps are built as signed release APKs. A job fails unless an APK carries
   the release key's certificate.
 - **On a `v` tag,** e.g. `v1.0.0`: a GitHub Release with both signed APKs.
