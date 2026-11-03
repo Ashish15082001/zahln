@@ -21,8 +21,8 @@ What each app does, and how, is in [till-plan.md](till-plan.md),
 
 ## Rules for every step
 
-- **Money moves once.** An idempotency key is created and saved before the
-  first send. Every retry reuses it. A new key means a new order, payment or
+- **Money moves once.** An idempotency key is created before the first
+  send. Every retry reuses it. A new key means a new order, payment or
   refund.
 - **No screen shows a result that isn't true.** "Paid", "confirmed" and
   "declined" come only from a server response. When an app loses track, it
@@ -250,6 +250,7 @@ Done so far:
 | `ad81872` | An Update Zahln screen takes the place of every screen, Login included, once the config needs a newer app, with a link to the latest release. A version check above both login guards, and Log out keeps the config                                            |
 | `55e7d48` | The Pay page reads the config: paused payments turn Pay off before the tap and are read again every 30 seconds, a tap reads it before the fingerprint check, at most 3 seconds, and a 426 or a paused answer reads it again. Check again is never stopped      |
 | `b0ec5a7` | A `full` column in `ScreenLayoutJSX`, which every student screen uses instead of `md`, so the app fills a tablet's width                                                                                                                                       |
+| `305004b` | The pay key is kept in memory only, no longer in `localStorage`, and Log out forgets it, so a reopen or the next payer makes a new key and is asked for the fingerprint, face or PIN                                                                           |
 
 Changes from the plan:
 
@@ -289,6 +290,11 @@ Changes from the plan:
   payment is pending or paid, and a kept key would let another payer on the
   same phone skip the fingerprint, face or PIN check. The reasons are in
   [student-plan.md](student-plan.md#why-the-key-is-spent-when-the-session-ends).
+- **The pay key is kept in memory only,** where the plan saved it on the
+  device so a reopened app could resend it. For the same two reasons it
+  bought no safety and let the next person on the phone skip the check, so
+  a reopen makes a new key and Log out forgets it
+  ([student-plan.md](student-plan.md#the-key)).
 - **The payment is read every 2 seconds for 30 seconds,** then the page
   says "Still being checked" and offers Refresh. History on Home shows the
   final result.
@@ -297,7 +303,7 @@ Changes from the plan:
 - **A phone without a screen lock pays without the fingerprint, face or PIN
   check,** where the plan said nothing about it: there is nothing on such a
   phone to protect, and an emulator has no screen lock. Check again, and Pay
-  with a key that is still saved, don't ask again: the payer confirmed that
+  with a key that is still kept, don't ask again: the payer confirmed that
   payment already. Weak face unlock counts. The reasons are in
   [student-plan.md](student-plan.md#confirming-its-the-payer).
 - **Log out is on a Profile page,** not on Home. Home's top right is a
@@ -325,10 +331,6 @@ Not yet:
 
 - Renewing the token after a reopen, which needs a refresh token or the
   password in the Android Keystore.
-- A pay key for each payer. Log out keeps a saved key, and it holds the order
-  and the amount but not the payer, so the next payer at the same order and
-  amount would send it without the fingerprint, face or PIN check
-  ([student-plan.md](student-plan.md#still-to-build)).
 - Applying the theme and the language picked on Profile. The selects show
   the choice, but the app keeps the phone's language and the light colours.
 

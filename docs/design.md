@@ -88,7 +88,7 @@ sequenceDiagram
   end
   Phone->>Server: GET /orders/{id}, from the QR
   Server-->>Phone: open, at the payer's price
-  Note over Phone: fingerprint, face or PIN,<br/>then the key is saved
+  Note over Phone: fingerprint, face or PIN,<br/>then the key is made
   Phone->>Server: POST /orders/{id}/payments, the key and the amount shown
   Server-->>Phone: pending
   loop every 2 seconds, for 30 seconds
@@ -110,7 +110,7 @@ When something goes wrong, each side does this:
 | The payment stays pending for minutes          | After 30 seconds, "Still being checked" and **Refresh**. Never "nothing was paid" while it may still go through                                                                                                     | "Payment being checked…" until the order says paid or expired                                |
 | The countdown reaches 0                        | Pay turns off. Only the server says expired, and a payment sent just before is still decided by it                                                                                                                  | The dialog stays until the server says expired                                               |
 | The device's clock is wrong                    | The countdown and the token's expiry run on the server's clock                                                                                                                                                      | The same                                                                                     |
-| The app is closed mid-payment                  | The key is saved before the send. Scanning again shows the payer's payment, or Pay resends the same key without asking again                                                                                        | The open order isn't kept across a restart ([README](../README.md#what-i-left-out-and-why))  |
+| The app is closed mid-payment                  | The key goes with it. Scanning again shows the payer's payment. Pay asks again and sends a new key, which the server refuses while the first payment is pending or paid                                             | The open order isn't kept across a restart ([README](../README.md#what-i-left-out-and-why))  |
 | The price changed: `409 amount_mismatch`       | The order is read again, and Pay shows the new amount, with a new key                                                                                                                                               |                                                                                              |
 | Payments are paused, or the app is too old     | Before the tap, from `GET /config`: Pay off with "Payments are paused", or an Update Zahln screen in place of every screen. If the server says it first, `503 payments_disabled` or `426`, the config is read again |                                                                                              |
 | Another payer is paying the order, or has paid | "A payment for this order is being checked" or "Already paid", and **Done**                                                                                                                                         | Shows the order's state as the server gives it                                               |
@@ -158,7 +158,7 @@ What each surface keeps, and where:
 | ------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | The token, its expiry and who is logged in  | The apps' `localStorage`, in their own WebView. The dashboard's tab, in `sessionStorage` | So a reopen or a reload skips the login. A token lasts 5 minutes, and one that has run out or doesn't match its schema is dropped |
 | The password                                | Memory only                                                                              | To log in again when the token runs out. Never written to the device, so a reopen forgets it                                      |
-| The pay key: the order, the amount, the key | The student app's `localStorage`                                                         | So a lost reply is resent with the same key. It holds no card or account data, and is spent once a payment comes back             |
+| The pay key: the order, the amount, the key | Memory only                                                                              | So a lost reply is resent with the same key while the app runs. Spent once a payment comes back, and forgotten on Log out         |
 | Payments and orders from the server         | Memory only, in TanStack Query's cache                                                   | Log out clears it, so the next person on the device sees nothing of the last                                                      |
 | The release key                             | GitHub secrets                                                                           | Never in the repo; a copy is kept offline. CI writes it to the job's temp folder for the build                                    |
 | The candidate ID                            | Every build, and readable in the dashboard's public JavaScript                           | A page that calls the API from the browser has to carry it, and it reaches sandbox data only                                      |
@@ -190,8 +190,6 @@ Not done yet:
   Keystore.
 - **Payment screens can be captured.** The Pay page doesn't set
   `FLAG_SECURE`, so screenshots and the recent-apps preview show it.
-- **A pay key for each payer,** so a key saved for one payer is never resent
-  for another ([student-plan.md](student-plan.md#still-to-build)).
 
 On data protection: the apps keep nothing about a person beyond the name and
 ids the server sends. There are no analytics and no tracking, and nothing

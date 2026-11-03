@@ -142,7 +142,7 @@ flowchart TD
   Config -- "yes, or no answer in 3 s" --> Check{"Fingerprint, face<br/>or the phone's PIN"}
   Config -- "paused: nothing asked or sent" --> Order
   Config -- "too old" --> Update["Update screen"]
-  Check -- "passed, or no screen lock" --> Key["The key for this order and amount,<br/>saved on the device first"]
+  Check -- "passed, or no screen lock" --> Key["The key for this order and amount,<br/>kept in memory"]
   Check -- "closed, too many tries or failed:<br/>nothing sent" --> Order
   Key --> Post["POST /orders/{id}/payments"]
   Post -- "201" --> Follow["Read the payment<br/>every 2 s"]
@@ -200,11 +200,11 @@ The decisions behind it:
   such a phone can already open everything on it, so asking would protect
   nothing. An emulator also has no screen lock by default, and blocking Pay
   there would stop anyone trying the app from paying at all.
-- **Only a new payment asks.** **Check again**, and **Pay** after the app
-  was closed with the key still saved, resend a payment the payer has
-  already confirmed, under the same key, so they don't ask again. A key is
-  only made after the check passes. A new key asks: after a decline, a
-  changed price, or for another order.
+- **Only a new payment asks.** **Check again**, and **Pay** on the same
+  order and amount while its key is still kept, resend a payment the payer
+  has already confirmed, under the same key, so they don't ask again. A key
+  is only made after the check passes. A new key asks: after a decline, a
+  changed price, for another order, after a reopen or after Log out.
 - **Every biometric counts, weak face unlock included.** Android rates some
   face unlock as weak (Class 2), and cheaper phones often have nothing
   stronger. The check only confirms the owner and unlocks no stored secret,
@@ -237,10 +237,8 @@ reply that may pass if sent again is tried again.
 
 ### The key
 
-- **One key per order and amount,** made when Pay is first tapped and saved
-  in `localStorage` (`zahln.student.payIntent.v1`) before the request goes.
-  It is kept in memory too, so storage that can't be written still covers the
-  retries while the app runs.
+- **One key per order and amount,** made when Pay is first tapped, before
+  the request goes, and kept in memory only.
 - **Kept while the payment may exist** (a lost reply) or a retry may pass
   (the server says `retryable`). Sending it again returns the payment the
   server already has, never a second one.
@@ -248,6 +246,13 @@ reply that may pass if sent again is tried again.
   clearly refuses. The next Pay is a new intent with a new key: the old one
   would only replay the old answer.
 - **A new amount is a new key.** The server refuses one key with two bodies.
+- **Forgotten on Log out, and gone after a reopen.** The next Pay asks for
+  the fingerprint, face or PIN again and makes a new key.
+- **Not saved on the device.** It was at first, in `localStorage`, so a
+  reopened app could resend it. That bought no safety: the server refuses a
+  new key for an order whose payment is pending or paid, so a reopen can't
+  pay twice ([the same reasons](#why-the-key-is-spent-when-the-session-ends)).
+  And a saved key skipped the payer check for whoever held the phone next.
 
 ### Renewing the token
 
@@ -283,12 +288,12 @@ Decisions, approved on 2026-11-01:
 
 #### When the new login gets no answer
 
-1. The payer taps **Pay**. Key K is saved on the phone.
+1. The payer taps **Pay**. Key K is made and kept in memory.
 2. The payment goes with the old token, and the server answers 401. Nothing
    was paid.
 3. The app logs in again and gets no answer, 3 times.
 4. The page shows "Payment not confirmed. It may have gone through" and
-   **Check again**. K stays saved.
+   **Check again**. K is kept.
 5. Once the network is back, **Check again** sends K with the old token. The
    server refuses it, the app logs in again, and K goes again with the new
    token: "Payment being checked".
@@ -317,12 +322,15 @@ a new key for the same order is refused while a payment is pending or paid.
 | Made a payment, now paid              | `409 order_already_paid`: the page shows Paid                       |
 | Never reached the server, or declined | A new payment, which is right                                       |
 
-**Keeping it would open a gap.** A saved key skips the fingerprint, face or
-PIN check, since Check again doesn't ask twice. The key is saved per phone,
-but the server keeps keys per user. Say payer A's session ends with K kept
-for order X at €7.80, and payer B logs in on the same phone and opens order X
-at the same amount. The app finds K and skips the check, and for B the server
-treats K as a new payment, made without the phone's check.
+**Keeping it would open a gap.** A kept key skips the fingerprint, face or
+PIN check, since Check again doesn't ask twice. The app keeps one key per
+phone, but the server keeps keys per user. Say payer A's session ends with K
+kept for order X at €7.80, and payer B logs in on the same phone and opens
+order X at the same amount. The app finds K and skips the check, and for B
+the server treats K as a new payment, made without the phone's check.
+
+The same two reasons are why Log out forgets the key, and why it isn't saved
+on the device for after a reopen.
 
 ### After a payment
 
@@ -348,8 +356,8 @@ payment is being checked. Reads share one cache with the payment detail, so
 | The payer closes the fingerprint dialog              | Nothing is sent and no key is made. **Pay** is ready again, with focus on it                                                                                                                                               |
 | The countdown reaches 0 while the dialog is open     | The payment is still sent, and the server decides. An expired order is refused: "Order expired. Nothing was paid"                                                                                                          |
 | The reply is lost                                    | "Not confirmed" and **Check again** with the same key. The page never says "nothing was paid" while the payment may exist                                                                                                  |
-| The app is closed mid-payment                        | The key is already saved. Scanning again shows the payer's payment if the order names it, or Pay sends the same key without asking again                                                                                   |
-| The payer leaves the Pay page mid-payment            | The request still finishes and the key stays saved. The payment shows in the history once Home reloads it                                                                                                                  |
+| The app is closed mid-payment                        | The key goes with it. Scanning again shows the payer's payment if the order names it. Pay asks again and sends a new key, which the server refuses while the first payment is pending or paid                              |
+| The payer leaves the Pay page mid-payment            | The request still finishes and the key stays in memory until it answers. The payment shows in the history once Home reloads it                                                                                             |
 | The price changes after the scan                     | 409, the order is read again, and Pay shows the new amount with a new key                                                                                                                                                  |
 | The countdown reaches 0                              | Pay turns off. Only the server's answer says expired or paid                                                                                                                                                               |
 | The order reads expired while the payment is pending | The page shows "Being checked": "nothing was paid" could be untrue while the payment may still go through                                                                                                                  |
@@ -357,7 +365,6 @@ payment is being checked. Reads share one cache with the payment detail, so
 | Someone else is paying or has paid the order         | "A payment for this order is being checked" or "Already paid", and **Done**. The server names a payment only to its payer                                                                                                  |
 | The token ends mid-payment                           | The app logs in again and sends the same key, unseen by the payer ([above](#renewing-the-token))                                                                                                                           |
 | The session ends mid-payment                         | Only after a changed password, or a reopen. The payer is sent to log in, and the key is spent. The server refuses a second payment while the first is pending or paid ([why](#why-the-key-is-spent-when-the-session-ends)) |
-| Storage is blocked                                   | The key lives in memory until the app closes                                                                                                                                                                               |
 | Payments pause while the Pay page is open            | Pay turns off at the next read of the config, at most 30 seconds later. A tap that comes first is stopped before the fingerprint check, with nothing sent                                                                  |
 | The server needs a newer app while it is open        | The update screen takes the page's place when the app comes back to the front, at the next tap, or after a 426                                                                                                             |
 | The config can't be read                             | Nothing changes, and Pay goes ahead after at most 3 seconds. The server still refuses with 426 or 503                                                                                                                      |
@@ -375,7 +382,9 @@ payment is being checked. Reads share one cache with the payment detail, so
 The rules every screen follows:
 
 - **Money moves once.** A payment goes with one key per order and amount,
-  saved before the first send, and every retry reuses it.
+  made before the first send, and every retry reuses it. After a reopen or
+  Log out, the server's guard on the order does that job: a new key is
+  refused while a payment is pending or paid.
 - **Nothing is sent without the payer's yes.** The fingerprint, face or PIN
   check is part of the pay call, before the key is made. Only a phone with no
   screen lock skips it.
@@ -404,9 +413,3 @@ The rules every screen follows:
   Android Keystore.
 - **Applying the theme and the language** picked on Profile, and keeping
   the choice. The dark colours are already in `globals.css`.
-- **A pay key for each payer.** The saved key holds the order and the
-  amount, not the payer, and Log out keeps it. If payer A's reply was lost
-  and payer B logs in on the same phone and opens the same order at the same
-  amount, B's Pay sends A's key without the fingerprint, face or PIN check
-  ([the gap](#why-the-key-is-spent-when-the-session-ends)). The fix: save the
-  payer's id with the key, and reuse the key only for that payer.
