@@ -414,7 +414,6 @@ Decisions:
 
 Not yet:
 
-- Deploying it, in step 5.
 - A count of all the payments that match: the server sends none
   ([API gap 10](api-gaps.md#10-no-total-and-no-snapshot-when-paging-payments)).
 - Renewing the token after a reload, which needs a refresh token
@@ -432,7 +431,8 @@ Built in seven parts, each approved before it starts.
 | 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page            | Done               |
 | 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                             | Done               |
 | 5f   | The design document, written from what was built                                                                                     | Done               |
-| 5g   | The app icon and splash screens, made from the Zahln logo with `@capacitor/assets` ([README](../README.md#icons-and-splash-screens)) | Done, after v1.0.0 |
+| 5g   | The app icon and splash screens, made from the Zahln logo with `@capacitor/assets` ([README](../README.md#icons-and-splash-screens)) | Done, after v1.0   |
+| 5h   | Each screen's code loads the first time it opens, in all three surfaces, with a Reload screen for a screen that can't open           | Done, after v1.0.0 |
 
 Decisions taken before the step:
 
@@ -459,6 +459,7 @@ Done so far:
 | `ecd9cb3` | The icon and splash sources in `assets/`, cut from the Zahln logo, and an `assets` script in each app that runs `@capacitor/assets` on them                                                                                                                                               |
 | `274fadf` | The student app's and the till's launcher icons, normal, round and adaptive, and their splash screens in portrait and landscape                                                                                                                                                           |
 | `b92a504` | A favicon and a web manifest with the Zahln icons on all three surfaces, resolving under the dashboard's `/zahln/` path                                                                                                                                                                   |
+| `1593bd3` | Each screen in the student app, the till and the dashboard loads its code the first time it opens: at start, 22% to 30% less JavaScript to parse. A screen whose file fails to load, or that throws, shows "Something went wrong" and Reload, with focus on its heading                   |
 
 The dashboard is at <https://ashish15082001.github.io/zahln/>. Pages has no
 rewrites, so a link to a screen other than the first is answered with status
