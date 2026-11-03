@@ -1,8 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { hasProblemCode, isApiError, needsSameKey } from "@zahln/api/errors";
-import { createPayIntentStore } from "@zahln/api/payIntentStore";
 import { payOrder } from "@zahln/api/payments";
-import { localKeyValueStorage } from "@zahln/api/sessionStore";
 import {
   identityCheck,
   type ConfirmIdentityOptions,
@@ -15,13 +13,8 @@ import {
   toConfigPayRefusal,
   type ConfigPayRefusal,
 } from "./appConfig";
+import { payIntentStore } from "./payIntent";
 import { http } from "./session";
-
-/** The payment being made, kept on the device until the server answers it. */
-const payIntentStore = createPayIntentStore({
-  storage: localKeyValueStorage,
-  savedIntentKey: "zahln.student.payIntent.v1",
-});
 
 /** How the phone's check that the payer is holding it can end without a yes. */
 type PayerCheckFailure = Exclude<
@@ -96,8 +89,8 @@ export interface PayOrderInput {
  * Pays an order at the amount shown, once the config allows new payments and
  * the payer has confirmed it's them. Both checks are in here, not on the
  * screen, so no screen can send a payment without them. A retry of the same
- * order and amount, even after the app was closed, sends the same key, so a
- * reply lost on the way never leads to a second payment.
+ * order and amount while the app runs sends the same key, so a reply lost on
+ * the way gets back the payment it made.
  */
 export const usePayOrder = () => {
   // While the config is read and the phone's prompt is open, so the footer
@@ -110,7 +103,7 @@ export const usePayOrder = () => {
       amountCents,
       payerCheckPrompt,
     }: PayOrderInput) => {
-      // A saved key means the payer confirmed this payment already and its
+      // A kept key means the payer confirmed this payment already and its
       // answer never came: sending it again under that key asks nothing
       // new, so neither check stops it. Paused payments don't stop it
       // either: it only finds out about a payment that may already exist.

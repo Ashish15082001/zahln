@@ -1,32 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { createPayIntentStore } from "./payIntentStore";
-import type { KeyValueStorage } from "./sessionStore";
-
-const SAVED_INTENT_KEY = "zahln.student.payIntent.v1";
-
-/** localStorage as a Map, with the Map open so tests can look inside. */
-const createFakeStorage = () => {
-  const savedTexts = new Map<string, string>();
-  const storage: KeyValueStorage = {
-    get: (key) => savedTexts.get(key) ?? null,
-    set: (key, value) => savedTexts.set(key, value),
-    remove: (key) => savedTexts.delete(key),
-  };
-  return { savedTexts, storage };
-};
-
-/** Storage the WebView won't open: every call throws. */
-const brokenStorage: KeyValueStorage = {
-  get: () => {
-    throw new Error("storage unavailable");
-  },
-  set: () => {
-    throw new Error("storage unavailable");
-  },
-  remove: () => {
-    throw new Error("storage unavailable");
-  },
-};
 
 /** Keys `payment_1`, `payment_2`… in the order they are made. */
 const countingKeys = () => {
@@ -37,30 +10,11 @@ const countingKeys = () => {
   };
 };
 
-const setup = (storage: KeyValueStorage) =>
-  createPayIntentStore({
-    storage,
-    savedIntentKey: SAVED_INTENT_KEY,
-    newKey: countingKeys(),
-  });
+const setup = () => createPayIntentStore({ newKey: countingKeys() });
 
 describe("createPayIntentStore", () => {
-  it("saves a new key before handing it out", () => {
-    const { savedTexts, storage } = createFakeStorage();
-    const payIntentStore = setup(storage);
-
-    const idempotencyKey = payIntentStore.takeKey("ord_1", 410);
-
-    expect(idempotencyKey).toBe("payment_1");
-    expect(JSON.parse(savedTexts.get(SAVED_INTENT_KEY) ?? "null")).toEqual({
-      orderId: "ord_1",
-      amountCents: 410,
-      idempotencyKey: "payment_1",
-    });
-  });
-
   it("hands out the same key again for the same order and amount", () => {
-    const payIntentStore = setup(createFakeStorage().storage);
+    const payIntentStore = setup();
 
     const firstKey = payIntentStore.takeKey("ord_1", 410);
 
@@ -68,15 +22,15 @@ describe("createPayIntentStore", () => {
   });
 
   it("makes a new key for a changed amount or another order", () => {
-    const payIntentStore = setup(createFakeStorage().storage);
+    const payIntentStore = setup();
 
     expect(payIntentStore.takeKey("ord_1", 410)).toBe("payment_1");
     expect(payIntentStore.takeKey("ord_1", 450)).toBe("payment_2");
     expect(payIntentStore.takeKey("ord_2", 450)).toBe("payment_3");
   });
 
-  it("says whether a key is saved for this order and amount", () => {
-    const payIntentStore = setup(createFakeStorage().storage);
+  it("says whether a key is kept for this order and amount", () => {
+    const payIntentStore = setup();
     expect(payIntentStore.hasKey("ord_1", 410)).toBe(false);
 
     const idempotencyKey = payIntentStore.takeKey("ord_1", 410);
@@ -88,28 +42,25 @@ describe("createPayIntentStore", () => {
     expect(payIntentStore.hasKey("ord_1", 410)).toBe(false);
   });
 
-  it("finds the saved key after the app was closed", () => {
-    const { storage } = createFakeStorage();
-    const idempotencyKey = setup(storage).takeKey("ord_1", 410);
+  it("starts with no key, as after a reopen", () => {
+    setup().takeKey("ord_1", 410);
 
-    const reopenedStore = setup(storage);
+    const reopenedStore = setup();
 
-    expect(reopenedStore.takeKey("ord_1", 410)).toBe(idempotencyKey);
+    expect(reopenedStore.hasKey("ord_1", 410)).toBe(false);
   });
 
-  it("makes a new key once the old one is spent, on the device too", () => {
-    const { savedTexts, storage } = createFakeStorage();
-    const payIntentStore = setup(storage);
+  it("makes a new key once the old one is spent", () => {
+    const payIntentStore = setup();
     const spentKey = payIntentStore.takeKey("ord_1", 410);
 
     payIntentStore.spendKey(spentKey);
 
-    expect(savedTexts.has(SAVED_INTENT_KEY)).toBe(false);
     expect(payIntentStore.takeKey("ord_1", 410)).toBe("payment_2");
   });
 
   it("keeps a newer intent when an older key is spent", () => {
-    const payIntentStore = setup(createFakeStorage().storage);
+    const payIntentStore = setup();
     const olderKey = payIntentStore.takeKey("ord_1", 410);
     const newerKey = payIntentStore.takeKey("ord_2", 320);
 
@@ -118,19 +69,13 @@ describe("createPayIntentStore", () => {
     expect(payIntentStore.takeKey("ord_2", 320)).toBe(newerKey);
   });
 
-  it("ignores a broken save and makes a new key", () => {
-    const { savedTexts, storage } = createFakeStorage();
-    savedTexts.set(SAVED_INTENT_KEY, '{"orderId":"ord_1"');
+  it("forgets the key on log out, so the next payer gets a new one", () => {
+    const payIntentStore = setup();
+    payIntentStore.takeKey("ord_1", 410);
 
-    expect(setup(storage).takeKey("ord_1", 410)).toBe("payment_1");
-  });
+    payIntentStore.forgetIntent();
 
-  it("keeps the key in memory when storage won't open", () => {
-    const payIntentStore = setup(brokenStorage);
-
-    const idempotencyKey = payIntentStore.takeKey("ord_1", 410);
-
-    expect(payIntentStore.takeKey("ord_1", 410)).toBe(idempotencyKey);
-    expect(() => payIntentStore.spendKey(idempotencyKey)).not.toThrow();
+    expect(payIntentStore.hasKey("ord_1", 410)).toBe(false);
+    expect(payIntentStore.takeKey("ord_1", 410)).toBe("payment_2");
   });
 });

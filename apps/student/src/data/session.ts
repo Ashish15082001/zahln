@@ -16,6 +16,7 @@ import {
 } from "@zahln/domain/user/frontend";
 import { config } from "../config";
 import { NotAPayerError } from "./loginError";
+import { payIntentStore } from "./payIntent";
 import { queryClient } from "./queryClient";
 
 /** The session as screens see it: who is signed in, never the token. */
@@ -60,12 +61,16 @@ const setPayerSession = (newPayerSession: PayerSession | null): void => {
 };
 
 /**
- * Forgets the token, the saved login, the password kept for renewal and
- * everything fetched with it. Screens see signedOut and go to the login
- * screen.
+ * Forgets the token, the saved login, the password kept for renewal, the pay
+ * key and everything fetched with it. Screens see signedOut and go to the
+ * login screen.
  */
 export const logOut = (): void => {
   payerSessionRenewal.forgetCredentials();
+  // The key skips the payer check, so the next payer on this phone must not
+  // inherit it. The server refuses their new key while this payment is
+  // pending or paid, so nothing is paid twice.
+  payIntentStore.forgetIntent();
   // The rest of the cache belongs to this payer, so the next one never sees
   // it. The session query stays: screens are subscribed to that very entry,
   // and a new one would never reach them. So does what every payer shares,

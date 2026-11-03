@@ -1,85 +1,60 @@
-import { z } from "zod";
 import { newIdempotencyKey } from "./idempotencyKey";
-import type { KeyValueStorage } from "./sessionStore";
 
 /**
  * The payment the payer is making: which order, at which amount, under which
  * key. The same order at another amount is another intent, since the server
  * refuses one key with two bodies.
  */
-const PayIntentSchema = z.object({
-  orderId: z.string().min(1),
-  amountCents: z.int().min(1),
-  // The spec allows 1 to 255 characters.
-  idempotencyKey: z.string().min(1).max(255),
-});
-
-interface PayIntent extends z.infer<typeof PayIntentSchema> {}
+interface PayIntent {
+  orderId: string;
+  amountCents: number;
+  idempotencyKey: string;
+}
 
 /** What `createPayIntentStore` gives back. */
 export interface PayIntentStore {
   /**
-   * Whether a key is saved for `orderId` at `amountCents`: this payment was
+   * Whether a key is kept for `orderId` at `amountCents`: this payment was
    * sent before, or was about to be, and no answer settled it. `takeKey`
    * then hands out that same key.
    */
   hasKey: (orderId: string, amountCents: number) => boolean;
   /**
-   * The key to pay `orderId` at `amountCents` with. The saved one when it is
+   * The key to pay `orderId` at `amountCents` with. The kept one when it is
    * for this same order and amount, so a retry gets back the payment the
-   * server may already have. Otherwise a new one, saved before it is
-   * returned, so it is on the device before the first send.
+   * server may already have. Otherwise a new one.
    */
   takeKey: (orderId: string, amountCents: number) => string;
   /**
    * Forgets `idempotencyKey`: a payment came back for it, or the server
-   * refused it for good. A newer intent saved in the meantime is kept.
+   * refused it for good. A newer intent made in the meantime is kept.
    */
   spendKey: (idempotencyKey: string) => void;
+  /** Forgets whatever key is kept: the payer logged out. */
+  forgetIntent: () => void;
 }
 
 /** Settings for `createPayIntentStore`. */
 export interface PayIntentStoreConfig {
-  storage: KeyValueStorage;
-  /**
-   * The key the intent is kept under, with a version in it, e.g.
-   * `zahln.student.payIntent.v1`. A later shape gets a new key.
-   */
-  savedIntentKey: string;
   /** Makes a new key. Tests pass one that counts. */
   newKey?: () => string;
 }
 
 /**
- * Keeps one pay intent, in memory and on the device, so a payment whose
- * reply was lost is sent again under the same key, even after the app was
- * closed in between. One is enough: a payer pays one order at a time.
+ * Keeps one pay intent in memory, so a payment whose reply was lost is sent
+ * again under the same key while the app runs. One is enough: a payer pays
+ * one order at a time.
+ *
+ * Not saved on the device: after a reopen, Pay makes a new key, and the
+ * server refuses a new key for an order whose payment is pending or paid. A
+ * saved key would only skip the payer check for whoever holds the phone next.
  */
 export const createPayIntentStore = (
-  config: PayIntentStoreConfig,
+  config: PayIntentStoreConfig = {},
 ): PayIntentStore => {
-  const {
-    storage,
-    savedIntentKey,
-    newKey = () => newIdempotencyKey("payment"),
-  } = config;
+  const { newKey = () => newIdempotencyKey("payment") } = config;
 
-  /** What is saved, checked against the schema. */
-  const readSavedIntent = (): PayIntent | null => {
-    try {
-      const savedText = storage.get(savedIntentKey);
-      if (savedText === null) return null;
-      const parseResult = PayIntentSchema.safeParse(JSON.parse(savedText));
-      return parseResult.success ? parseResult.data : null;
-    } catch {
-      // Storage the WebView won't open, or text that isn't JSON.
-      return null;
-    }
-  };
-
-  // Read from storage once. Memory is what counts after that, so storage
-  // that can't be written still keeps the key while the app runs.
-  let payIntent = readSavedIntent();
+  let payIntent: PayIntent | null = null;
 
   const hasKey = (orderId: string, amountCents: number): boolean =>
     payIntent?.orderId === orderId && payIntent.amountCents === amountCents;
@@ -90,29 +65,17 @@ export const createPayIntentStore = (
       if (payIntent !== null && hasKey(orderId, amountCents)) {
         return payIntent.idempotencyKey;
       }
-      const newPayIntent: PayIntent = {
-        orderId,
-        amountCents,
-        idempotencyKey: newKey(),
-      };
-      payIntent = newPayIntent;
-      try {
-        storage.set(savedIntentKey, JSON.stringify(newPayIntent));
-      } catch {
-        // Full or blocked storage: the key is kept until the app closes.
-      }
-      return newPayIntent.idempotencyKey;
+      payIntent = { orderId, amountCents, idempotencyKey: newKey() };
+      return payIntent.idempotencyKey;
     },
     spendKey: (idempotencyKey) => {
       // Another order's pay may have started since this one was sent; its
       // key is not this one's to forget.
       if (payIntent?.idempotencyKey !== idempotencyKey) return;
       payIntent = null;
-      try {
-        storage.remove(savedIntentKey);
-      } catch {
-        // Storage that can't be written: memory has already let go.
-      }
+    },
+    forgetIntent: () => {
+      payIntent = null;
     },
   };
 };
