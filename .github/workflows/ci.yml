@@ -54,6 +54,79 @@ jobs:
           name: ${{ matrix.app }}-debug-apk
           path: apps/${{ matrix.app }}/android/app/build/outputs/apk/debug/*.apk
 
+  # Signed release APKs, on every push to the branch the work is on and on a
+  # version tag, so a broken release build shows before a tag is made. The
+  # key is a repository secret, which pull requests don't get.
+  android-release:
+    needs: checks
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/version1.0.0' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [student, till]
+    env:
+      # The release key's certificate, as docs/plan.md gives it. The job fails
+      # if an APK is signed with any other key, e.g. after a secret is swapped.
+      RELEASE_CERT_SHA256: 0f4ef97916defa49cc1896f67fb951700e9fe0b4e34d538be6a344eccab8f0f1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @zahln/${{ matrix.app }} android:sync
+      # The key exists only in this job's temp folder, which the runner
+      # deletes with the job.
+      - name: Write the release key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/zahln-release.jks"
+      - name: Build the signed release APK
+        working-directory: apps/${{ matrix.app }}/android
+        env:
+          ZAHLN_KEYSTORE_FILE: ${{ runner.temp }}/zahln-release.jks
+          ZAHLN_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ZAHLN_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ZAHLN_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: chmod +x gradlew && ./gradlew assembleRelease --console=plain
+      - name: Check the signature
+        run: |
+          apk=apps/${{ matrix.app }}/android/app/build/outputs/apk/release/app-release.apk
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$apksigner" verify --print-certs "$apk" | tee signature.txt
+          grep -q "SHA-256 digest: $RELEASE_CERT_SHA256" signature.txt
+          mv "$apk" "zahln-${{ matrix.app }}-${{ github.ref_name }}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-release-apk
+          path: zahln-${{ matrix.app }}-*.apk
+
+  # A GitHub Release for a version tag, e.g. v1.0.0, with both signed APKs.
+  github-release:
+    needs: android-release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*-release-apk"
+          merge-multiple: true
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${{ github.ref_name }}" zahln-*.apk
+          --repo "${{ github.repository }}" --title "${{ github.ref_name }}"
+          --generate-notes --verify-tag
+
   # The dashboard on GitHub Pages, deployed from the branch the work is on
   # once every check has passed. Pull requests and other branches only check.
   dashboard-pages:
