@@ -9,8 +9,9 @@ import pkg from "./package.json" with { type: "json" };
 const envDir = resolve(import.meta.dirname, "../..");
 
 /**
- * Where the dashboard is served from. "/" on a laptop; GitHub Pages serves a
- * project site under its name, so CI builds with DASHBOARD_BASE_PATH=/zahln/.
+ * Where the dashboard is served from: "/", on Vercel and on a laptop. A host
+ * that serves it under a path, such as a GitHub project site at /zahln/,
+ * builds with DASHBOARD_BASE_PATH set to it.
  * Not a VITE_ setting: only the base path reaches the page, as BASE_URL.
  */
 const toBasePath = (configuredBasePath: string | undefined): string => {

@@ -78,8 +78,8 @@ export const router = createBrowserRouter(
       ],
     },
   ],
-  // The path the site is served under, "/" on a laptop and "/zahln/" on
-  // GitHub Pages (vite.config.ts). Every route and link is read under it, so
+  // The path the site is served under, "/" unless DASHBOARD_BASE_PATH says
+  // otherwise (vite.config.ts). Every route and link is read under it, so
   // paths.ts stays the same wherever the site is.
   { basename: import.meta.env.BASE_URL },
 );
