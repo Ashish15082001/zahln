@@ -22,6 +22,49 @@ because Android 16 ignores the orientation lock on tablets.
 | Languages          | English or German, from the device                                                                                                                                      | i18next. Amounts and times through `Intl`, times on Berlin's clock                                                                                                                                                                               |
 | Touch and TalkBack | Buttons and fields at least 48 px tall. Refresh is an icon that turns while it works, and each time has a calendar icon. A long press selects no text, except in fields | Every control has a label naming what it acts on, e.g. "Select Currywurst". Status changes are in live regions, so TalkBack reads "Paid" without a focus move. Refresh is named "Refresh" for TalkBack                                           |
 
+## Logging in
+
+Only a cashier with a till and a mensa gets in. Any other account logs in at
+the server, but the till doesn't keep its token, so nothing needs undoing. A
+saved login whose token hasn't run out skips the login screen.
+
+```mermaid
+flowchart TD
+  Open["The till opens"] --> Saved{"A saved login whose<br/>token hasn't run out?"}
+  Saved -- "yes" --> Home["Home: Mensa and Payments tabs"]
+  Saved -- "no" --> Welcome["Welcome"]
+  Welcome -- "Continue" --> Form["Login: username and password"]
+  Form -- "Log in" --> Post["POST /sessions"]
+  Post -- "a cashier with a till and a mensa" --> Home
+  Post -- "wrong password, not a cashier,<br/>or no answer" --> Message["One message for each failure"]
+  Message --> Form
+  Home -- "Log out" --> Form
+```
+
+## Taking an order
+
+One key per cart. The same cart as an attempt whose reply was lost is the
+same intent, so **Try again** sends its key and the server hands back the
+order instead of making a second. Any other cart, or one the server said no
+to, gets a new key.
+
+```mermaid
+flowchart TD
+  Menu["Mensa tab: tick dishes,<br/>− and + for 1 to 20"] -- "Create order" --> Same{"The same cart as an<br/>attempt whose reply was lost?"}
+  Same -- "yes" --> OldKey["Its key again"]
+  Same -- "no" --> NewKey["A new key"]
+  OldKey --> Post["POST /orders, up to 3 tries"]
+  NewKey --> Post
+  Post -- "201" --> Dialog["The order dialog: the QR,<br/>the order read every 2 s"]
+  Post -- "reply lost" --> Unconfirmed["Couldn't confirm the order:<br/>the key is kept"]
+  Post -- "refused" --> Failed["Order not created:<br/>the key is spent"]
+  Unconfirmed -- "Try again" --> Same
+  Failed -- "Try again" --> Same
+  Unconfirmed -- "Cancel: back to the cart,<br/>the key stays for it" --> Menu
+  Failed -- "Cancel" --> Menu
+  Dialog -- "paid or expired, then I acknowledge:<br/>an empty cart" --> Menu
+```
+
 ## The order dialog
 
 The dialog is the one place an order is followed, so it never closes on its
@@ -69,6 +112,19 @@ app's `createSessionRenewal` from `packages/api`, with the same rules
 ([student-plan.md](student-plan.md#renewing-the-token)): a new login 30
 seconds before the token ends, and on a 401 one login shared by every request
 refused at the time.
+
+```mermaid
+flowchart TD
+  Send["A request with the token:<br/>Create order, an order read, the menu"] -- "an answer" --> Shown["The screen shows it"]
+  Send -- "401: token refused" --> Password{"A password from<br/>this run's login?"}
+  Password -- "no: the till was reopened" --> Login["Login screen"]
+  Password -- "yes" --> Renew["POST /sessions: one login<br/>for every refused request"]
+  Renew -- "a new token" --> Again["The same request again,<br/>with the same key"]
+  Again --> Shown
+  Renew -- "password changed,<br/>or not a cashier any more" --> Login
+  Renew -- "no answer" --> Kept["The session stays: Connection problem,<br/>checking…, or Couldn't confirm the order"]
+  Kept -- "the next read, or Try again" --> Send
+```
 
 | When                                | What happens                                                                                                                                                                    |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
