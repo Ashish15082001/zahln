@@ -14,7 +14,7 @@ bigger choices goes in [design.md](design.md).
 | 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
 | 4    | Dashboard                                               | Done                                                                                                      |
-| 5    | Ship                                                    | In progress: all but the v1.0.0 tag                                                                       |
+| 5    | Ship                                                    | Done: v1.0.0 released                                                                                     |
 
 What each app does, and how, is in [till-plan.md](till-plan.md),
 [student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
@@ -467,8 +467,9 @@ secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
 `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Its certificate's SHA-256 is
 `0f4ef97916defa49cc1896f67fb951700e9fe0b4e34d538be6a344eccab8f0f1`; CI checks
 every release APK against it. A tag such as `v1.0.0` makes the GitHub Release
-with `zahln-student-v1.0.0.apk` and `zahln-till-v1.0.0.apk`. The tag comes
-last, once the rest of step 5 is in.
+with `zahln-student-v1.0.0.apk` and `zahln-till-v1.0.0.apk`. The `v1.0.0`
+tag was pushed last, once the rest of step 5 was in, and made the
+[v1.0.0 release](https://github.com/Ashish15082001/zahln/releases/tag/v1.0.0).
 
 The WebView check runs as a plain script at the end of `<body>`, before the
 app's module script, so it works where the app's bundle can't run at all. It
