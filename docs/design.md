@@ -135,6 +135,7 @@ What is built:
 | Saved data from another version | Every key the apps save under has a version in its name, such as `zahln.app.session.v1`, and what is read back is checked by zod. A new shape gets a new key, so an older version's data is never read as the new shape, and a broken save counts as none                                                                                                         |
 | Values a newer server sends     | An unknown history event reads "Other change" and an unknown attention reason "Other reason", instead of failing the screen                                                                                                                                                                                                                                       |
 | Signed releases                 | CI signs both APKs with one release key and fails unless each carries its certificate, so an update always installs over the version before                                                                                                                                                                                                                       |
+| The version                     | One number in each app's `package.json`: the app sends it as `X-App-Version`, and the APK takes its `versionName` and `versionCode` from it (1.1.0 is 10100), so each release installs over the one before                                                                                                                                                        |
 | The dashboard                   | A static site on Vercel, deployed by CI once every check passes: the next push is live for everyone, with nothing to update                                                                                                                                                                                                                                       |
 
 What I would add before a real release:
@@ -145,8 +146,6 @@ What I would add before a real release:
   version most phones already have.
 - **Crash reporting and a failed-payment rate per app version,** to decide
   when to halt ([below](#crash-reporting)).
-- **A `versionCode` from CI,** such as the run number. It is fixed at 1, so a
-  second release would first need it raised.
 - **A server that keeps answering every version above `minAppVersion`,**
   since some phones update weeks late.
 

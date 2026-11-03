@@ -14,7 +14,7 @@ bigger choices goes in [design.md](design.md).
 | 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                                   |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check, token renewal and `GET /config` |
 | 4    | Dashboard                                               | Done                                                                                                                     |
-| 5    | Ship                                                    | Done: v1.0.0 released                                                                                                    |
+| 5    | Ship                                                    | Done: v1.1.0 released                                                                                                    |
 
 What each app does, and how, is in [till-plan.md](till-plan.md),
 [student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
@@ -432,6 +432,7 @@ Built in seven parts, each approved before it starts.
 | 5g   | The app icon and splash screens, made from the Zahln logo with `@capacitor/assets` ([README](../README.md#icons-and-splash-screens)) | Done, after v1.0   |
 | 5h   | Each screen's code loads the first time it opens, in all three surfaces, with a Reload screen for a screen that can't open           | Done, after v1.0.0 |
 | 5i   | No Android backup, and nothing moved to a new phone, in both apps                                                                    | Done, after v1.0   |
+| 5j   | Version 1.1.0, with the Android version read from `package.json`, and its release                                                    | Done               |
 
 Decisions taken before the step:
 
@@ -443,7 +444,7 @@ Decisions taken before the step:
   only.
 - **The signing key is made for the project,** kept as GitHub secrets, with
   a copy kept safe by me: an app signed with another key can't update it.
-- **Release APKs go to a GitHub Release** on tag `v1.0.0`.
+- **Release APKs go to a GitHub Release** on a version tag, such as `v1.1.0`.
 
 Done so far:
 
@@ -462,6 +463,7 @@ Done so far:
 | `1593bd3` | Each screen in the student app, the till and the dashboard loads its code the first time it opens: at start, 22% to 30% less JavaScript to parse. A screen whose file fails to load, or that throws, shows "Something went wrong" and Reload, with focus on its heading                   |
 | `e6505af` | Both apps set `allowBackup="false"`, and `dataExtractionRules` leave every folder out of the cloud backup and of a move to a new phone on Android 12 and later, so the saved login stays on the device it was made on. Lint and a debug build pass for both                               |
 | `378f508` | CI deploys the dashboard to Vercel once every check has passed, in place of GitHub Pages: the built files with `vercel.json`, which sends every path but a file's to `index.html`                                                                                                         |
+| `cac8275` | Version 1.1.0 in all three surfaces. Gradle reads each APK's `versionName` and `versionCode` from the app's `package.json`, so 1.1.0 is 10100 and installs over 1.0.0                                                                                                                     |
 
 The dashboard is at <https://zahln-dashboard-three.vercel.app>. `apps/dashboard/vercel.json` sends every
 path but a file's to `index.html`, so a reload or a shared link opens that
@@ -476,10 +478,15 @@ until 2054. It is kept outside the repo, and CI gets it from four repository
 secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
 `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Its certificate's SHA-256 is
 `0f4ef97916defa49cc1896f67fb951700e9fe0b4e34d538be6a344eccab8f0f1`; CI checks
-every release APK against it. A tag such as `v1.0.0` makes the GitHub Release
-with `zahln-student-v1.0.0.apk` and `zahln-till-v1.0.0.apk`. The `v1.0.0`
-tag was pushed last, once the rest of step 5 was in, and made the
-[v1.0.0 release](https://github.com/Ashish15082001/zahln/releases/tag/v1.0.0).
+every release APK against it. A tag such as `v1.1.0` makes the GitHub Release
+with `zahln-student-v1.1.0.apk` and `zahln-till-v1.1.0.apk`. The latest is
+the [v1.1.0 release](https://github.com/Ashish15082001/zahln/releases/tag/v1.1.0).
+
+The version is one number in each app's `package.json`. The app sends it as
+`X-App-Version`, and Gradle reads it for the APK: `versionName` is the
+version and `versionCode` is major × 10000 + minor × 100 + patch, so 1.1.0
+is 10100. Raising the version is all a release needs for the APK to install
+over the one before.
 
 The WebView check runs as a plain script at the end of `<body>`, before the
 app's module script, so it works where the app's bundle can't run at all. It
