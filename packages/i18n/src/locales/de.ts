@@ -6,6 +6,12 @@ const de: Resources = {
   common: {
     continue: "Weiter",
     version: "Version {{version}}",
+    routeError: {
+      title: "Etwas ist schiefgelaufen",
+      description:
+        "Dieser Bildschirm ließ sich nicht öffnen. Neu laden, um es erneut zu versuchen.",
+      reload: "Neu laden",
+    },
   },
   student: {
     appName: "Zahln",

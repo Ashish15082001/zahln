@@ -4,6 +4,11 @@ const en = {
   common: {
     continue: "Continue",
     version: "Version {{version}}",
+    routeError: {
+      title: "Something went wrong",
+      description: "This screen couldn't open. Reload to try again.",
+      reload: "Reload",
+    },
   },
   student: {
     appName: "Zahln",
