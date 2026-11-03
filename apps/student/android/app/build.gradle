@@ -15,10 +15,28 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // The release key comes from CI's secrets (ANDROID_KEYSTORE_* in
+    // .github/workflows/ci.yml). Without them, e.g. on a laptop, a release
+    // build is unsigned: it can't be installed, so it can't be mistaken for
+    // one that was handed out.
+    def releaseKeystoreFile = System.getenv("ZAHLN_KEYSTORE_FILE")
+    signingConfigs {
+        release {
+            if (releaseKeystoreFile) {
+                storeFile file(releaseKeystoreFile)
+                storePassword System.getenv("ZAHLN_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ZAHLN_KEY_ALIAS")
+                keyPassword System.getenv("ZAHLN_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseKeystoreFile) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
