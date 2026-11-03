@@ -6,7 +6,9 @@ is still to build. Progress and commits are in
 gap is in [api-gaps.md](api-gaps.md).
 
 The dashboard is for the finance team. It is a static web app for a desktop
-browser, and it also works at phone width.
+browser, and it also works at phone width. It is live at
+<https://ashish15082001.github.io/zahln/>, deployed by CI from
+`version1.0.0` ([plan.md](plan.md#step-5-ship)).
 
 ## Features
 
@@ -107,7 +109,6 @@ Checked against the daily totals: the confirmed payments at Mensa Nord on
 
 ## Still to build
 
-- **Deploying it** to a public URL, in step 5.
 - **How many payments match.** The server sends no total, so the search shows
   how many it has loaded ([API gap 10](api-gaps.md#10-no-total-and-no-snapshot-when-paging-payments)).
 - **Renewing after a reload.** The password is only in memory, so a reloaded

@@ -103,6 +103,9 @@ document: [docs/till-plan.md](docs/till-plan.md),
 [docs/student-plan.md](docs/student-plan.md) and
 [docs/dashboard-plan.md](docs/dashboard-plan.md).
 
+The dashboard is live at <https://ashish15082001.github.io/zahln/>: log in
+with the Finance card.
+
 ## What I left out, and why
 
 Written at the end. Until then, what each app still lacks is under "Still to

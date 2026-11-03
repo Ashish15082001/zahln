@@ -14,7 +14,7 @@ bigger choices goes in [design.md](design.md).
 | 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
 | 4    | Dashboard                                               | Done                                                                                                      |
-| 5    | Ship                                                    | Planned                                                                                                   |
+| 5    | Ship                                                    | In progress: CI green, dashboard on GitHub Pages                                                          |
 
 What each app does, and how, is in [till-plan.md](till-plan.md),
 [student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
@@ -420,13 +420,42 @@ Not yet:
 
 ## Step 5: Ship
 
-- Signed release APKs for the student app and the till, built by CI.
-- The dashboard deployed to a public URL. The host is still to be chosen.
-- `VITE_CANDIDATE_ID` set as a GitHub repository secret, so CI can build.
-- A minimum WebView version for both Android apps, because Tailwind v4 needs
-  Chrome 111 or later. Older WebViews get a readable error page.
-- README: what I built, what I left out and why, AI tools, and test logins.
-- The design document, written from what was built.
+Built in six parts, each approved before it starts.
+
+| Part | Scope                                                                                                                     | Status  |
+| ---- | ------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 5a   | CI green again                                                                                                            | Done    |
+| 5b   | The dashboard on GitHub Pages                                                                                             | Done    |
+| 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                        | Planned |
+| 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page | Planned |
+| 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                  | Planned |
+| 5f   | The design document, written from what was built                                                                          | Planned |
+
+Decisions taken before the step:
+
+- **The dashboard is on GitHub Pages,** deployed from this repo by CI, with no
+  other account.
+- **The candidate ID is in the dashboard's public JavaScript.** A page that
+  calls the API from the browser has to carry it, and it reaches sandbox data
+  only.
+- **The signing key is made for the project,** kept as GitHub secrets, with
+  a copy kept safe by me: an app signed with another key can't update it.
+- **Release APKs go to a GitHub Release** on tag `v1.0.0`.
+
+Done so far:
+
+| Commit    | What it does                                                                                                                                                                                          |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ea31d68` | Formats the student app's and the till's docs. Their table padding had failed CI's format check on every push since `85638a1`, so no later commit had been typechecked, linted, tested or built by CI |
+| `42777ee` | `DASHBOARD_BASE_PATH` sets the dashboard's base path, checked to start and end with a slash, and the router reads every route under it                                                                |
+| `ad09b1e` | A CI job deploys the dashboard to GitHub Pages from `version1.0.0` once every check has passed, with `index.html` copied to `404.html` so a reload or a shared link opens the right screen            |
+
+The dashboard is at <https://ashish15082001.github.io/zahln/>. Pages has no
+rewrites, so a link to a screen other than the first is answered with status
+404 and the app, which opens that screen. GitHub's `github-pages` environment
+allows `main` and `version1.0.0` to deploy.
+
+`VITE_CANDIDATE_ID` is a GitHub repository secret, so CI can build.
 
 ## Optional items from the brief
 
