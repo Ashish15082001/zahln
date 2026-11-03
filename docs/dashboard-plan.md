@@ -26,6 +26,41 @@ browser, and it also works at phone width. It is live at
 | Languages         | English or German, from the browser                                                                                                                                                | i18next. Amounts, counts, days and times through `Intl`, times on Berlin's clock                                                                                                                                                                                                            |
 | Access            | A visible label above every filter, a search landmark, tables with column and row headers, and every status and reason as an icon and a word                                       | The days button is named by its label and its value, "Days, Mon, Oct 19, 2026 – Tue, Oct 20, 2026". Loading, errors and the export's progress are in live regions                                                                                                                           |
 
+## Logging in
+
+Only `finance` gets in. Any other account logs in at the server, but the
+dashboard doesn't keep its token. A login saved in this tab whose token hasn't
+run out skips the login screen.
+
+```mermaid
+flowchart TD
+  Open["The dashboard opens"] --> Saved{"A login saved in this tab<br/>whose token hasn't run out?"}
+  Saved -- "yes" --> Totals["Daily totals"]
+  Saved -- "no" --> Card["Login: the Finance card"]
+  Card -- "Log in" --> Post["POST /sessions with the<br/>seeded finance login"]
+  Post -- "a finance user" --> Totals
+  Post -- "wrong password, not finance,<br/>or no answer" --> Message["One message for each failure"]
+  Message --> Card
+  Totals -- "Log out, on any screen" --> Card
+```
+
+## Finding a payment
+
+Every screen keeps what it shows in the URL, so a reload, Back and a shared
+link open the same view.
+
+```mermaid
+flowchart TD
+  Header["The header, on every screen"] --> Totals["Daily totals: /?date="]
+  Header --> Attention["Needs attention: /attention"]
+  Header --> Search["Payment search: /payments,<br/>the filters in the URL"]
+  Search -- "a payment's id" --> Detail["Payment detail:<br/>/payments/:paymentId"]
+  Attention -- "a payment's id" --> Detail
+  Search -- "Export CSV" --> File["A CSV file (below)"]
+  Detail -- "Back" --> Previous["The list it was opened from,<br/>with its filters and scroll"]
+  Detail -- "Back, when opened<br/>straight from a link" --> Search
+```
+
 ## Days on Berlin time
 
 The server counts days in Europe/Berlin: the daily totals' `date`, and the day
@@ -66,11 +101,37 @@ clocks change.
   ([API gap 9](api-gaps.md#9-daily-totals-have-no-version)). Today's are read
   again every 30 seconds, with the time they arrived on screen.
 
+How the payment detail checks a read against the lists:
+
+```mermaid
+flowchart TD
+  Open["Payment detail opens:<br/>a list's copy fills the facts"] --> Read["GET /payments/{id}"]
+  Read --> Newer["The newer of this read<br/>and the detail shown"]
+  Newer --> Compare{"Older than a<br/>list's copy?"}
+  Compare -- "no" --> Save["Shown, and written<br/>into every list"]
+  Compare -- "yes" --> Tries{"Asked again<br/>3 times already?"}
+  Tries -- "no: wait 1 s" --> Read
+  Tries -- "yes" --> Error["An error"]
+```
+
 ## The CSV file
 
 The columns, agreed before the step: payment ID, order ID, created (Berlin
 time), status, amount, refunded, refund on its way, price group, mensa, till,
 payer ID, and the reasons it needs attention.
+
+```mermaid
+flowchart TD
+  Button["Export CSV"] --> Page["GET /payments with the filters,<br/>200 at a time"]
+  Page -- "fails after the client's retries" --> Failed["The export failed:<br/>no file"]
+  Page -- "a page" --> Merge["Each payment once, at its newest<br/>version. Payments so far: n"]
+  Merge --> Next{"A next cursor?"}
+  Next -- "none" --> File["The file, built in the<br/>browser and saved"]
+  Next -- "one sent before" --> Failed
+  Next -- "a new one" --> Count{"1,000 pages read?"}
+  Count -- "no" --> Page
+  Count -- "yes" --> TooLarge["Too many payments for one file:<br/>narrow the filters. No file"]
+```
 
 - **All or nothing.** Every page the filters match, 200 at a time, the most
   the server gives. A page that still fails after the client's retries fails
@@ -119,4 +180,3 @@ Checked against the daily totals: the confirmed payments at Mensa Nord on
 - **Loading screens on demand.** The build is one JavaScript file of about
   830 kB, which a desktop on the campus network takes in its stride, but each
   screen could load when first opened.
-- **A favicon.** The browser asks for one and gets a 404.
