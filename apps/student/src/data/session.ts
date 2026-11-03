@@ -68,9 +68,12 @@ export const logOut = (): void => {
   payerSessionRenewal.forgetCredentials();
   // The rest of the cache belongs to this payer, so the next one never sees
   // it. The session query stays: screens are subscribed to that very entry,
-  // and a new one would never reach them.
+  // and a new one would never reach them. So does what every payer shares,
+  // such as the server's config, marked so by its query.
   queryClient.removeQueries({
-    predicate: (query) => query.queryKey[0] !== appSessionQueryKey[0],
+    predicate: (query) =>
+      query.queryKey[0] !== appSessionQueryKey[0] &&
+      query.meta?.isSharedByPayers !== true,
   });
   setPayerSession(null);
 };

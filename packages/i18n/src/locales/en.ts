@@ -11,6 +11,16 @@ const en = {
       title: "Welcome to Zahln",
       description: "Pay for your mensa meal with your phone.",
     },
+    // In place of every screen once the server needs a newer app.
+    update: {
+      title: "Update Zahln",
+      description:
+        "This version can't pay any more. Download the new version and install it over this one.",
+      versions:
+        "You have {{appVersion}}. Zahln needs {{minAppVersion}} or later.",
+      appVersion: "You have {{appVersion}}.",
+      download: "Download the update",
+    },
     login: {
       title: "Log in",
       description:

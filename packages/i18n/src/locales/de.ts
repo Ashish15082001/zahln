@@ -13,6 +13,15 @@ const de: Resources = {
       title: "Willkommen bei Zahln",
       description: "Bezahlen Sie Ihr Mensaessen mit dem Handy.",
     },
+    update: {
+      title: "Zahln aktualisieren",
+      description:
+        "Mit dieser Version können Sie nicht mehr bezahlen. Laden Sie die neue Version herunter und installieren Sie sie über diese.",
+      versions:
+        "Sie haben {{appVersion}}. Zahln braucht {{minAppVersion}} oder neuer.",
+      appVersion: "Sie haben {{appVersion}}.",
+      download: "Update herunterladen",
+    },
     login: {
       title: "Anmelden",
       description:
