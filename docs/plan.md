@@ -188,8 +188,6 @@ Not yet:
 - Renewing the token after a reopen, which needs a refresh token or the
   password in the Android Keystore
   ([API gap 2](api-gaps.md#2-no-refresh-token)).
-- Turning off Android backup, so the saved login can't be copied off the
-  device.
 
 ## Step 3: Student app
 
@@ -433,6 +431,7 @@ Built in seven parts, each approved before it starts.
 | 5f   | The design document, written from what was built                                                                                     | Done               |
 | 5g   | The app icon and splash screens, made from the Zahln logo with `@capacitor/assets` ([README](../README.md#icons-and-splash-screens)) | Done, after v1.0   |
 | 5h   | Each screen's code loads the first time it opens, in all three surfaces, with a Reload screen for a screen that can't open           | Done, after v1.0.0 |
+| 5i   | No Android backup, and nothing moved to a new phone, in both apps                                                                    | Done, after v1.0   |
 
 Decisions taken before the step:
 
@@ -460,6 +459,7 @@ Done so far:
 | `274fadf` | The student app's and the till's launcher icons, normal, round and adaptive, and their splash screens in portrait and landscape                                                                                                                                                           |
 | `b92a504` | A favicon and a web manifest with the Zahln icons on all three surfaces, resolving under the dashboard's `/zahln/` path                                                                                                                                                                   |
 | `1593bd3` | Each screen in the student app, the till and the dashboard loads its code the first time it opens: at start, 22% to 30% less JavaScript to parse. A screen whose file fails to load, or that throws, shows "Something went wrong" and Reload, with focus on its heading                   |
+| `e6505af` | Both apps set `allowBackup="false"`, and `dataExtractionRules` leave every folder out of the cloud backup and of a move to a new phone on Android 12 and later, so the saved login stays on the device it was made on. Lint and a debug build pass for both                               |
 
 The dashboard is at <https://ashish15082001.github.io/zahln/>. Pages has no
 rewrites, so a link to a screen other than the first is answered with status

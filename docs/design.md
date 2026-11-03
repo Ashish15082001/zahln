@@ -192,12 +192,13 @@ The checks:
 - **Log out forgets the token, the password and the cache.** The server
   still accepts the token until it runs out, since the API has no log out
   ([API gap 3](api-gaps.md#3-no-log-out)).
+- **Nothing is backed up or moved to a new phone.** Both apps set
+  `allowBackup="false"`, and `dataExtractionRules` exclude every folder from
+  the cloud backup and from a transfer to a new device on Android 12 and
+  later, so the saved login stays on the device it was made on.
 
 Not done yet:
 
-- **Android backup is on.** `allowBackup="true"` lets Auto Backup copy the
-  saved login off the device. The fix is `allowBackup="false"` and
-  `dataExtractionRules` for Android 12 and later.
 - **The saved login is plain `localStorage`.** On a rooted phone it can be
   read. For a token of 5 minutes that is a small window; a refresh token
   ([API gap 2](api-gaps.md#2-no-refresh-token)) would belong in the Android

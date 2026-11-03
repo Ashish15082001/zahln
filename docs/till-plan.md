@@ -172,8 +172,4 @@ The rules every request follows:
   till can't renew its token. It needs a refresh token
   ([API gap 2](api-gaps.md#2-no-refresh-token)), or the password in the
   Android Keystore.
-- **Turning off Android backup.** `allowBackup="true"` lets Auto Backup copy
-  the saved login off the device. The fix is `allowBackup="false"` plus
-  `dataExtractionRules`, which Android 12 and later need for device-to-device
-  transfer.
 - **Search** in the Payments tab, by payment or order id.
