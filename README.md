@@ -110,6 +110,7 @@ docs/
   dashboard-plan.md  The dashboard: what it does, how, and what is still to build
   api-gaps.md        What the API is missing, and what I would change
   design.md          Design document
+assets/              App icon and splash screen sources, shared by all three surfaces
 ```
 
 Packages export their TypeScript source and are compiled by each app's Vite
@@ -173,6 +174,29 @@ $env:CAP_DEV_URL = "http://<laptop-LAN-IP>:5173"; pnpm --filter @zahln/student e
 `CAP_DEV_URL` is written into the native project at sync time. Clear it and run
 `android:sync` again before building anything you hand over, or that build
 loads your laptop's dev server.
+
+### Icons and splash screens
+
+`@capacitor/assets` makes every icon and splash screen from four sources in
+`assets/`, cut from the Zahln logo:
+
+| Source                                       | Holds                                                                                  | Becomes                                              |
+| -------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `icon-only.png`                              | The Z on white, 1024 px. The word isn't on the icon: it can't be read at launcher size | Android's older icons, the favicon and the web icons |
+| `icon-foreground.png`, `icon-background.png` | The Z on a transparent layer, and white                                                | Android's adaptive icon, which the launcher shapes   |
+| `splash.png`                                 | The Z and the word on white, 2732 px                                                   | Android's splash screens, portrait and landscape     |
+
+```sh
+pnpm --filter @zahln/student assets     # Android icons and splash, and the web icons
+pnpm --filter @zahln/till assets        # the same for the till
+pnpm --filter @zahln/dashboard assets   # web icons only
+```
+
+Commit what they write; CI doesn't run them. The tool also rewrites
+`AndroidManifest.xml` in its own formatting with nothing changed, so check
+that file out again afterwards. Its web icons are PNG files named `.webp`, so
+the manifest says `image/png`; browsers read them either way. There is no dark
+splash, as the apps keep light colours.
 
 ## Shipping
 

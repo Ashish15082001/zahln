@@ -429,16 +429,17 @@ Not yet:
 
 ## Step 5: Ship
 
-Built in six parts, each approved before it starts.
+Built in seven parts, each approved before it starts.
 
-| Part | Scope                                                                                                                     | Status |
-| ---- | ------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 5a   | CI green again                                                                                                            | Done   |
-| 5b   | The dashboard on GitHub Pages                                                                                             | Done   |
-| 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                        | Done   |
-| 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page | Done   |
-| 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                  | Done   |
-| 5f   | The design document, written from what was built                                                                          | Done   |
+| Part | Scope                                                                                                                                | Status             |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| 5a   | CI green again                                                                                                                       | Done               |
+| 5b   | The dashboard on GitHub Pages                                                                                                        | Done               |
+| 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                                   | Done               |
+| 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page            | Done               |
+| 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                             | Done               |
+| 5f   | The design document, written from what was built                                                                                     | Done               |
+| 5g   | The app icon and splash screens, made from the Zahln logo with `@capacitor/assets` ([README](../README.md#icons-and-splash-screens)) | Done, after v1.0.0 |
 
 Decisions taken before the step:
 
@@ -462,6 +463,9 @@ Done so far:
 | `8b445cf` | CI builds both signed release APKs on every push to `version1.0.0` and on version tags, fails unless they carry the release key's certificate, and attaches both to a GitHub Release for a `v` tag                                                                                        |
 | `3c87a68` | A check in `packages/native` for a WebView older than Chrome 111, which Tailwind v4's colours need. It shows a page to update the Android System WebView, in German or English, with the version it found. A plain script made from a tested function, put in index.html by a Vite plugin |
 | `b82c393` | The student app and the till run the check before they start, and don't start where it showed its page                                                                                                                                                                                    |
+| `ecd9cb3` | The icon and splash sources in `assets/`, cut from the Zahln logo, and an `assets` script in each app that runs `@capacitor/assets` on them                                                                                                                                               |
+| `274fadf` | The student app's and the till's launcher icons, normal, round and adaptive, and their splash screens in portrait and landscape                                                                                                                                                           |
+| `b92a504` | A favicon and a web manifest with the Zahln icons on all three surfaces, resolving under the dashboard's `/zahln/` path                                                                                                                                                                   |
 
 The dashboard is at <https://ashish15082001.github.io/zahln/>. Pages has no
 rewrites, so a link to a screen other than the first is answered with status
