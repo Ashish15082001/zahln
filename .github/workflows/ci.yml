@@ -53,3 +53,42 @@ jobs:
         with:
           name: ${{ matrix.app }}-debug-apk
           path: apps/${{ matrix.app }}/android/app/build/outputs/apk/debug/*.apk
+
+  # The dashboard on GitHub Pages, deployed from the branch the work is on
+  # once every check has passed. Pull requests and other branches only check.
+  dashboard-pages:
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/version1.0.0'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # One deploy at a time, and one under way is never cut off half-way: a
+    # newer push waits its turn.
+    concurrency:
+      group: dashboard-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # A project site is served under the repo's name, e.g. /zahln/.
+      - run: pnpm --filter @zahln/dashboard build
+        env:
+          DASHBOARD_BASE_PATH: /${{ github.event.repository.name }}/
+      # Pages has no rewrites: a reload or a shared link to /zahln/payments
+      # gets 404.html. As a copy of the app, it opens the right screen.
+      - run: cp apps/dashboard/dist/index.html apps/dashboard/dist/404.html
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: apps/dashboard/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
