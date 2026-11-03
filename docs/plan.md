@@ -14,7 +14,7 @@ bigger choices goes in [design.md](design.md).
 | 2    | Till                                                    | In progress: login, order QR and payments list done, and token renewal                                    |
 | 3    | Student app                                             | In progress: login, history, scan and pay done, with the fingerprint, face or PIN check and token renewal |
 | 4    | Dashboard                                               | Done                                                                                                      |
-| 5    | Ship                                                    | In progress: CI green, dashboard on GitHub Pages, signed APKs, WebView check                              |
+| 5    | Ship                                                    | In progress: all but the design document and the v1.0.0 tag                                               |
 
 What each app does, and how, is in [till-plan.md](till-plan.md),
 [student-plan.md](student-plan.md) and [dashboard-plan.md](dashboard-plan.md).
@@ -428,7 +428,7 @@ Built in six parts, each approved before it starts.
 | 5b   | The dashboard on GitHub Pages                                                                                             | Done    |
 | 5c   | Signed release APKs for the student app and the till, built by CI and attached to a GitHub Release                        | Done    |
 | 5d   | A minimum WebView version for both Android apps: Tailwind v4 needs Chrome 111 or later, so older ones get a readable page | Done    |
-| 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                  | Planned |
+| 5e   | README: what I built, what I left out and why, AI tools, and test logins                                                  | Done    |
 | 5f   | The design document, written from what was built                                                                          | Planned |
 
 Decisions taken before the step:

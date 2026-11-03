@@ -3,6 +3,82 @@
 The student app, the till and the Studierendenwerk dashboard for the Zahln
 frontend assignment, in one TypeScript monorepo.
 
+## Try it
+
+- **Dashboard:** live at <https://ashish15082001.github.io/zahln/>. Log in
+  with the **Finance** card.
+- **Student app and till:** signed APKs, `zahln-student-v1.0.0.apk` for a
+  phone and `zahln-till-v1.0.0.apk` for a tablet, are on the
+  [v1.0.0 release](https://github.com/Ashish15082001/zahln/releases/tag/v1.0.0).
+  They need Android 7 or later and an Android System WebView of Chrome 111 or
+  later; an older WebView shows what to update. Android asks to allow
+  installing from the browser or file manager the first time.
+
+Test logins, all on the API's seeded data. The password is `test1234`
+everywhere.
+
+| Surface     | How to log in                                                                                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Student app | A card each for **Student**, **Staff** and **Guest**, with no typing. The same order costs each a different amount                                                            |
+| Till        | Username and password. `cashier-campus-1`, `-2` and `-3` work at Mensa am Campus, `cashier-nord-1` and `-2` at Mensa Nord, and `cashier-bibliothek-1` at Cafeteria Bibliothek |
+| Dashboard   | The **Finance** card, the seeded `finance` user                                                                                                                               |
+
+One payment from start to end: on the till, tick a dish and **Create order**.
+In the student app, **Scan QR** and point the phone at the till's QR, then
+**Pay**. A phone that can't scan offers to type the code under the QR. The
+till shows **Paid**, and the payment is in the student's history, the till's
+Payments tab and the dashboard's search.
+
+## What I built
+
+- **Till**, for a tablet: a cashier logs in, rings up an order from the
+  mensa's menu, shows its QR and follows it until it is paid or expires, and
+  sees the till's payments.
+- **Student app**, for a phone: a payer scans the till's QR, checks the order
+  at their price, confirms with a fingerprint, the face or the phone's PIN,
+  and pays. Their history shows each payment with its refunds and full
+  history.
+- **Dashboard**, for the web: daily totals per mensa and till on Berlin days,
+  a payment search with filters and each payment's detail, the payments that
+  need attention, and a CSV export.
+
+What holds in all three:
+
+- **Money moves once.** A payment or an order is sent with an idempotency key
+  saved before the first send, and every retry reuses it.
+- **No screen shows a result that isn't true.** "Paid", "confirmed" and
+  "declined" come only from the server. When an app loses track, it says
+  it is checking and asks again.
+- **Late answers never win.** A lower `version` never replaces what is shown,
+  and server time comes from the `Date` header.
+- **A token that runs out is renewed,** by logging in again with the
+  password kept in memory, so a payment never stops halfway at the login
+  screen.
+- **English and German** everywhere, and the pay flow works with TalkBack.
+
+Each surface has its own document: [docs/till-plan.md](docs/till-plan.md),
+[docs/student-plan.md](docs/student-plan.md) and
+[docs/dashboard-plan.md](docs/dashboard-plan.md). The build, step by step,
+with every commit, is in [docs/plan.md](docs/plan.md).
+
+## What I left out, and why
+
+| Left out                                                          | Why                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Refunds on the till                                               | A refund whose answer is lost can only be checked by sending it again with its key, and keys are kept per user: another cashier resending it would refund twice ([API gap 4](docs/api-gaps.md#4-no-way-to-look-up-an-unknown-refund)). Done safely, the refund in progress is kept encrypted for the cashier who started it, which needs a storage package I didn't build. I put the time into the pay flow and the dashboard instead |
+| The till's open order kept across a restart                       | The same storage package                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Renewing the token after the app is reopened or the page reloaded | The API has no refresh token ([API gap 2](docs/api-gaps.md#2-no-refresh-token)), and the password is never written to the device. After a reopen there is none to log in with, so the login lasts until the token runs out, at most 5 minutes. The password in the Android Keystore would close it on the phones                                                                                                                      |
+| `GET /config` before paying                                       | The answers it would warn of are handled when Pay is tapped: an app too old to pay gets "Update the app", and paused payments "Payments are paused". Reading the config first would say so before the tap                                                                                                                                                                                                                             |
+| A pay key for each payer                                          | The saved key names the order and the amount, not the payer, so a second payer on the same phone, at the same order and amount, could resend the first one's key without the fingerprint check ([student-plan.md](docs/student-plan.md#still-to-build)). The fix, keeping the payer's id with the key, is planned but not built                                                                                                       |
+| Theme and language on the student app's Profile                   | The choices show, but the app keeps the phone's language and light colours                                                                                                                                                                                                                                                                                                                                                            |
+| Android backup turned off                                         | `allowBackup` is still on, so Auto Backup could copy the saved login off a device                                                                                                                                                                                                                                                                                                                                                     |
+| A count of the payments a dashboard search matches                | The server sends no total ([API gap 10](docs/api-gaps.md#10-no-total-and-no-snapshot-when-paging-payments)), so the search says how many it has loaded                                                                                                                                                                                                                                                                                |
+| Crash reporting                                                   | Optional in the brief, and not decided                                                                                                                                                                                                                                                                                                                                                                                                |
+
+What the API makes hard, and what I would change, is in
+[docs/api-gaps.md](docs/api-gaps.md). Smaller items are under "Still to
+build" in each surface's document.
+
 ## Stack
 
 - **React 19 + Vite 8** on all three surfaces.
@@ -11,6 +87,7 @@ frontend assignment, in one TypeScript monorepo.
   started. The reasoning is in [docs/design.md](docs/design.md).
 - **pnpm workspaces + Turborepo** for the monorepo.
 - **zod** validates every API response at the boundary.
+- **TanStack Query** for server data and **React Router** for screens.
 - **i18next** for German and English.
 
 ## Layout
@@ -25,7 +102,7 @@ packages/
   api/         HTTP client: deadlines, retries, idempotency, response parsing, token renewal
   i18n/        i18next setup, the de/en strings, and money and date formats
   ui/          Accessible components shared by all three surfaces
-  native/      Capacitor wrappers for the QR scanners and the fingerprint, face or PIN check, used by the student app
+  native/      Capacitor wrappers for the QR scanners and the fingerprint, face or PIN check, and the WebView check both Android apps run first
 docs/
   plan.md            Build plan, step by step, with status and commits
   till-plan.md       The till: what it does, how, and what is still to build
@@ -73,6 +150,7 @@ pnpm install
 pnpm dev          # student :5173, till :5174, dashboard :5175
 pnpm typecheck
 pnpm lint
+pnpm test
 pnpm build
 ```
 
@@ -96,21 +174,20 @@ $env:CAP_DEV_URL = "http://<laptop-LAN-IP>:5173"; pnpm --filter @zahln/student e
 `android:sync` again before building anything you hand over, or that build
 loads your laptop's dev server.
 
-## What I built
+## Shipping
 
-The till, the student app and the dashboard, each described in its own
-document: [docs/till-plan.md](docs/till-plan.md),
-[docs/student-plan.md](docs/student-plan.md) and
-[docs/dashboard-plan.md](docs/dashboard-plan.md).
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every push:
 
-The dashboard is live at <https://ashish15082001.github.io/zahln/>: log in
-with the Finance card.
+- **Checks:** format, typecheck, lint, tests and build, then a debug APK of
+  each Android app.
+- **On `version1.0.0`:** the dashboard is deployed to GitHub Pages, and both
+  apps are built as signed release APKs. A job fails unless an APK carries
+  the release key's certificate.
+- **On a `v` tag,** e.g. `v1.0.0`: a GitHub Release with both signed APKs.
 
-## What I left out, and why
-
-Written at the end. Until then, what each app still lacks is under "Still to
-build" in its document, and what the API makes hard is in
-[docs/api-gaps.md](docs/api-gaps.md).
+The release key lives in four repository secrets, never in the repo. A
+release build without them, e.g. on a laptop, is unsigned. Details are in
+[docs/plan.md](docs/plan.md#step-5-ship).
 
 ## AI tools
 
