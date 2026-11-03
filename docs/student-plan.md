@@ -5,7 +5,8 @@ build. Progress and commits are in [plan.md](plan.md#step-3-student-app).
 Where the API makes something hard, the gap is in [api-gaps.md](api-gaps.md).
 
 The app is for payers: students, staff and guests. It runs on Android phones,
-low-end ones included.
+low-end ones included. There is no iOS build yet
+([README](../README.md#what-i-left-out-and-why)).
 
 ## Features
 
