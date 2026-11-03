@@ -2,23 +2,206 @@
 
 ## Architecture and what is shared
 
-_To be written._
+Three surfaces in one TypeScript monorepo. Each app has two layers, screens
+and data, and everything under the data layer is shared.
+
+```mermaid
+flowchart TD
+  student["apps/student<br/>phone"]
+  till["apps/till<br/>tablet"]
+  dashboard["apps/dashboard<br/>web"]
+  native["packages/native<br/>scanners, identity check, WebView check"]
+  ui["packages/ui<br/>shadcn kit, screen layout, badges"]
+  i18n["packages/i18n<br/>de and en strings, money and date formats"]
+  api["packages/api<br/>client, retries, keys, server clock, renewal"]
+  domain["packages/domain<br/>zod shapes, version checks, Berlin days, CSV"]
+  student --> native
+  till --> native
+  student --> ui
+  till --> ui
+  dashboard --> ui
+  student --> api
+  till --> api
+  dashboard --> api
+  api --> domain
+  student --> i18n
+  till --> i18n
+  dashboard --> i18n
+```
+
+| Layer   | Where                 | What it holds, and the rule it keeps                                                                                                                                                                                                                                           |
+| ------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Screens | `apps/*/src/screens/` | Every part is a container, `Foo.tsx`, which works out what to show, and its markup, `FooJSX.tsx`, which only draws it. No screen calls the API                                                                                                                                 |
+| Data    | `apps/*/src/data/`    | TanStack Query hooks, one per resource, and the login as one session object outside React. State the server doesn't have, such as the till's cart, stays in the screen that owns it. A Redux store was planned for it and was never needed                                     |
+| Client  | `packages/api`        | A 10 second deadline per attempt and up to 3 attempts with backoff, only for a lost reply or an error the server marks `retryable`, always with the same `Idempotency-Key`. Server time from the `Date` header, one typed set of errors, the token renewal and the saved login |
+| Shapes  | `packages/domain`     | A zod schema for every response, checked at the boundary, split into the server's shape (`backend.ts`) and the app's (`frontend.ts`). The pure rules: which copy of a payment is newer, whether an order can be paid, Berlin days, the CSV writer. No React, no DOM, tested    |
+| UI kit  | `packages/ui`         | shadcn components as generated, and the parts every screen shares: the screen layout, the status badge, the date and time, Refresh                                                                                                                                             |
+| Strings | `packages/i18n`       | `en.ts` holds the keys and `de.ts` is typed against it, so a German string that is missing fails the typecheck                                                                                                                                                                 |
+| Native  | `packages/native`     | Capacitor plugins behind small tested wrappers, so no screen touches a plugin, and the WebView check both Android apps run first                                                                                                                                               |
+
+What differs between the apps is who may log in (a payer, a cashier with a
+till, or finance), where the login is kept (the apps' `localStorage`, the
+dashboard's tab), and the screens. The rules that keep money right live once,
+in `api` and `domain`, and are tested without React. Packages export their
+source, and each app's Vite build compiles it, so there is no package build
+step.
 
 ## How a payment moves through its states
 
-_To be written: on the phone and on the till, including when things go wrong._
+The server owns every state. The apps only show what it last said, and a
+copy with a lower `version` never replaces a higher one.
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  state Order {
+    [*] --> open: the till makes it
+    open --> paying: a payer pays
+    paying --> open: the payment is declined
+    paying --> paid: the payment is confirmed
+    open --> expired: 5 minutes, unpaid
+  }
+  state Payment {
+    [*] --> pending
+    pending --> confirmed
+    pending --> declined
+  }
+  state Refund {
+    state "pending" as refundPending
+    [*] --> refundPending
+    refundPending --> completed
+    refundPending --> failed
+  }
+```
+
+One payment, from the till to the phone and back:
+
+```mermaid
+sequenceDiagram
+  participant Till
+  participant Server
+  participant Phone
+  Till->>Server: POST /orders, one key per cart
+  Server-->>Till: the order, open, with its QR
+  loop every 2 seconds, until paid or expired
+    Till->>Server: GET /orders/{id}
+  end
+  Phone->>Server: GET /orders/{id}, from the QR
+  Server-->>Phone: open, at the payer's price
+  Note over Phone: fingerprint, face or PIN,<br/>then the key is saved
+  Phone->>Server: POST /orders/{id}/payments, the key and the amount shown
+  Server-->>Phone: pending
+  loop every 2 seconds, for 30 seconds
+    Phone->>Server: GET /payments/{id}
+  end
+  Server-->>Phone: confirmed
+  Till->>Server: GET /orders/{id}
+  Server-->>Till: paid
+```
+
+When something goes wrong, each side does this:
+
+| What goes wrong                                | The phone                                                                                                                                              | The till                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| The reply to a POST is lost: 502, 504 or none  | "Payment not confirmed. It may have gone through", and **Check again** with the same key. The server hands back the payment it has, never a second one | "Couldn't confirm the order", and **Try again** with the same key while the cart is the same |
+| `503 unavailable`                              | Sent again up to 3 times with the same key, then as above                                                                                              | The same                                                                                     |
+| The token runs out: 401                        | Logs in again with the password kept in memory, and sends the same request with the same key. The payer sees nothing                                   | The same, and the QR dialog stays open                                                       |
+| A read comes back older than one shown         | Dropped. Paid is final                                                                                                                                 | Dropped                                                                                      |
+| The payment stays pending for minutes          | After 30 seconds, "Still being checked" and **Refresh**. Never "nothing was paid" while it may still go through                                        | "Payment being checked…" until the order says paid or expired                                |
+| The countdown reaches 0                        | Pay turns off. Only the server says expired, and a payment sent just before is still decided by it                                                     | The dialog stays until the server says expired                                               |
+| The device's clock is wrong                    | The countdown and the token's expiry run on the server's clock                                                                                         | The same                                                                                     |
+| The app is closed mid-payment                  | The key is saved before the send. Scanning again shows the payer's payment, or Pay resends the same key without asking again                           | The open order isn't kept across a restart ([README](../README.md#what-i-left-out-and-why))  |
+| The price changed: `409 amount_mismatch`       | The order is read again, and Pay shows the new amount, with a new key                                                                                  |                                                                                              |
+| Payments are paused, or the app is too old     | `503 payments_disabled`: "Payments are paused". `426`: "Update the app"                                                                                |                                                                                              |
+| Another payer is paying the order, or has paid | "A payment for this order is being checked" or "Already paid", and **Done**                                                                            | Shows the order's state as the server gives it                                               |
+
+The details, with every answer to Pay, are in
+[student-plan.md](student-plan.md#paying) and
+[till-plan.md](till-plan.md#the-order-dialog). Refunds aren't on the till yet;
+the dashboard shows each refund's state.
 
 ## Shipping releases for an app that cannot be hotfixed
 
-_To be written: minimum app version, switching payments off, staged rollout._
+An APK stays on a phone as it is until its owner updates it. So each version
+has to be safe on its own, and the server has to be able to stop an old one.
+
+What is built:
+
+| Lever                           | How it works                                                                                                                                                                                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A minimum app version           | Every request carries `X-App-Version` from the app's `package.json`. The server refuses a payment from a version below its `minAppVersion` with 426, and the student app says "Update the app"                                                            |
+| Switching payments off          | `503 payments_disabled`: the student app says "Payments are paused. Try again in a few minutes", and keeps the key when the server says it may pass later                                                                                                 |
+| A WebView too old for the app   | A plain script checks before the app starts and shows what to update ([plan.md](plan.md#step-5-ship))                                                                                                                                                     |
+| Saved data from another version | Every key the apps save under has a version in its name, such as `zahln.app.session.v1`, and what is read back is checked by zod. A new shape gets a new key, so an older version's data is never read as the new shape, and a broken save counts as none |
+| Values a newer server sends     | An unknown history event reads "Other change" and an unknown attention reason "Other reason", instead of failing the screen                                                                                                                               |
+| Signed releases                 | CI signs both APKs with one release key and fails unless each carries its certificate, so an update always installs over the version before                                                                                                               |
+| The dashboard                   | A static site on GitHub Pages: the next push is live for everyone, with nothing to update                                                                                                                                                                 |
+
+What I would add before a real release:
+
+- **`GET /config` at start and before Pay,** so a forced update shows when the
+  app opens, and paused payments before the tap rather than in its answer.
+- **A staged rollout on Google Play,** for example to 5%, 20% and 50% of
+  phones over a few days before everyone, halted when crashes or failed
+  payments rise. `minAppVersion` would go up only after that, and never past a
+  version most phones already have.
+- **Crash reporting and a failed-payment rate per app version,** to decide
+  when to halt. It isn't decided which tool.
+- **A `versionCode` from CI,** such as the run number. It is fixed at 1, so a
+  second release would first need it raised.
+- **A server that keeps answering every version above `minAppVersion`,**
+  since some phones update weeks late.
 
 ## Security and data protection on the device
 
-_To be written._
+What each surface keeps, and where:
+
+| What                                        | Kept in                                                                                  | Why it is kept, and what limits it                                                                                                |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| The token, its expiry and who is logged in  | The apps' `localStorage`, in their own WebView. The dashboard's tab, in `sessionStorage` | So a reopen or a reload skips the login. A token lasts 5 minutes, and one that has run out or doesn't match its schema is dropped |
+| The password                                | Memory only                                                                              | To log in again when the token runs out. Never written to the device, so a reopen forgets it                                      |
+| The pay key: the order, the amount, the key | The student app's `localStorage`                                                         | So a lost reply is resent with the same key. It holds no card or account data, and is spent once a payment comes back             |
+| Payments and orders from the server         | Memory only, in TanStack Query's cache                                                   | Log out clears it, so the next person on the device sees nothing of the last                                                      |
+| The release key                             | GitHub secrets                                                                           | Never in the repo; a copy is kept offline. CI writes it to the job's temp folder for the build                                    |
+| The candidate ID                            | Every build, and readable in the dashboard's public JavaScript                           | A page that calls the API from the browser has to carry it, and it reaches sandbox data only                                      |
+
+The checks:
+
+- **The phone's owner confirms every new payment** with a fingerprint, the
+  face or the phone's PIN, in Android's own dialog, which shows the amount
+  and the mensa.
+- **Only the server's answer moves money,** and every answer is checked
+  against its schema before anything shows it.
+- **No server text is shown as HTML.** React escapes it, the WebView check
+  sets text only, and a CSV cell that would run as a spreadsheet formula is
+  written as text.
+- **The apps load only their own files.** Live reload from a laptop
+  (`CAP_DEV_URL`) is for development, and CI never sets it.
+- **Log out forgets the token, the password and the cache.** The server
+  still accepts the token until it runs out, since the API has no log out
+  ([API gap 3](api-gaps.md#3-no-log-out)).
+
+Not done yet:
+
+- **Android backup is on.** `allowBackup="true"` lets Auto Backup copy the
+  saved login off the device. The fix is `allowBackup="false"` and
+  `dataExtractionRules` for Android 12 and later.
+- **The saved login is plain `localStorage`.** On a rooted phone it can be
+  read. For a token of 5 minutes that is a small window; a refresh token
+  ([API gap 2](api-gaps.md#2-no-refresh-token)) would belong in the Android
+  Keystore.
+- **Payment screens can be captured.** The Pay page doesn't set
+  `FLAG_SECURE`, so screenshots and the recent-apps preview show it.
+- **A pay key for each payer,** so a key saved for one payer is never resent
+  for another ([student-plan.md](student-plan.md#still-to-build)).
+
+On data protection: the apps keep nothing about a person beyond the name and
+ids the server sends. There are no analytics and no tracking, and nothing
+leaves the device but the calls to the API.
 
 ## Technology choices, and what I would change about yours
 
-Decisions made so far, to expand:
+The decisions behind the stack, and where they cost something:
 
 - **Capacitor instead of React Native with Expo.** Cleared with Zahln before
   starting. All three surfaces render the same DOM, so UI components are shared
