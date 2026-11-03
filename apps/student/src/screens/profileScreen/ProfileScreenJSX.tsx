@@ -13,7 +13,7 @@ const ProfileScreenJSX: FC<ProfileScreenJSXProps> = ({
   handleBack,
 }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={<ProfileContent />}
     header={<ProfileHeader headingRef={headingRef} handleBack={handleBack} />}
   />

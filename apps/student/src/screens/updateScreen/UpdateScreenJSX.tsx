@@ -14,7 +14,7 @@ const UpdateScreenJSX: FC<UpdateScreenJSXProps> = ({
   minAppVersion,
 }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={
       <UpdateContent
         appUpdateUrl={appUpdateUrl}

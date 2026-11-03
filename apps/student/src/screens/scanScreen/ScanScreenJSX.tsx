@@ -35,7 +35,7 @@ const ScanScreenJSX: FC<ScanScreenJSXProps> = ({
   if (state.status === "cameraDenied" || state.status === "unavailable") {
     return (
       <ScreenLayoutJSX
-        columnWidth="md"
+        columnWidth="full"
         content={
           <NoCameraContent
             isCameraBehindPage={isCameraBehindPage}
@@ -53,7 +53,7 @@ const ScanScreenJSX: FC<ScanScreenJSXProps> = ({
   // and the screen never scrolls.
   return (
     <ScreenLayoutJSX
-      columnWidth="md"
+      columnWidth="full"
       content={
         <CameraViewContent
           cameraViewState={state}

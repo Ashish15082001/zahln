@@ -22,7 +22,7 @@ const PaymentDetailScreenJSX: FC<PaymentDetailScreenJSXProps> = ({
   handleRefresh,
 }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={
       <PaymentDetailContent state={state} handleRefresh={handleRefresh} />
     }

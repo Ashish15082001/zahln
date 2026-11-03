@@ -6,7 +6,7 @@ import HomeHeader from "./homeHeader/HomeHeader";
 
 const HomeScreenJSX: FC = () => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={<HomeContent />}
     footer={<HomeFooter />}
     header={<HomeHeader />}

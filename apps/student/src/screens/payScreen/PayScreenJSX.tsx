@@ -33,7 +33,7 @@ const PayScreenJSX: FC<PayScreenJSXProps> = ({
   handleTimeUp,
 }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={
       <PayContent
         resultHeadingRef={resultHeadingRef}

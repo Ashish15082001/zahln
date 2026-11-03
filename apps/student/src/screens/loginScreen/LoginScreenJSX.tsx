@@ -19,7 +19,7 @@ const LoginScreenJSX: FC<LoginScreenJSXProps> = ({
   handleLogIn,
 }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={
       <LoginContent
         errorReason={errorReason}

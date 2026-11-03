@@ -21,7 +21,7 @@ const OrderScreenJSX: FC<OrderScreenJSXProps> = ({
   handleTimeUp,
 }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={
       <OrderContent
         state={state}

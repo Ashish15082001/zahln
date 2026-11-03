@@ -3,15 +3,18 @@ import type { FC, ReactElement } from "react";
 
 /**
  * How wide the column is: md for a phone, 5xl for a tablet in landscape, 7xl
- * for the dashboard's tables on a desktop.
+ * for the dashboard's tables on a desktop, full for the whole screen's width.
+ * The student app is full: it was md, which left a phone-wide column with
+ * empty strips either side on a tablet.
  */
-export type ScreenColumnWidth = "md" | "5xl" | "7xl";
+export type ScreenColumnWidth = "md" | "5xl" | "7xl" | "full";
 
 // Whole class names, not built from the width, so Tailwind finds them.
 const columnWidthClassNames = {
   md: "max-w-md",
   "5xl": "max-w-5xl",
   "7xl": "max-w-7xl",
+  full: "max-w-none",
 } satisfies Record<ScreenColumnWidth, string>;
 
 export interface ScreenLayoutJSXProps {

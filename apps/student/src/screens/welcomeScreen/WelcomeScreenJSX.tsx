@@ -8,7 +8,7 @@ export interface WelcomeScreenJSXProps {
 
 const WelcomeScreenJSX: FC<WelcomeScreenJSXProps> = ({ appVersion }) => (
   <ScreenLayoutJSX
-    columnWidth="md"
+    columnWidth="full"
     content={<WelcomeContent appVersion={appVersion} />}
     contentClassName="items-center justify-center gap-4"
   />
