@@ -248,11 +248,10 @@ reply that may pass if sent again is tried again.
 - **A new amount is a new key.** The server refuses one key with two bodies.
 - **Forgotten on Log out, and gone after a reopen.** The next Pay asks for
   the fingerprint, face or PIN again and makes a new key.
-- **Not saved on the device.** It was at first, in `localStorage`, so a
-  reopened app could resend it. That bought no safety: the server refuses a
-  new key for an order whose payment is pending or paid, so a reopen can't
-  pay twice ([the same reasons](#why-the-key-is-spent-when-the-session-ends)).
-  And a saved key skipped the payer check for whoever held the phone next.
+- **Not saved on the device.** A reopen can't pay twice without it: the
+  server refuses a new key for an order whose payment is pending or paid
+  ([the same reasons](#why-the-key-is-spent-when-the-session-ends)). A saved
+  key would let whoever holds the phone next skip the payer check.
 
 ### Renewing the token
 
@@ -282,8 +281,7 @@ Decisions, approved on 2026-11-01:
 - **The token is renewed 30 seconds before it ends,** so most requests never
   meet a 401. Renewing on a 401 stays too, since the server can end a token
   early.
-- **Both apps renew.** The plan first had the student app only; the till was
-  added the same day, so a cashier isn't logged out every 5 minutes and a
+- **Both apps renew,** so a cashier isn't logged out every 5 minutes and a
   refused token never closes an open QR.
 
 #### When the new login gets no answer

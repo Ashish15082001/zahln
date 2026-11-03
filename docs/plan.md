@@ -32,8 +32,8 @@ What each app does, and how, is in [till-plan.md](till-plan.md),
   device clock.
 - **Two layers.** UI (screens) and data access (TanStack Query hooks on top of
   `packages/api`). Screens never call the API directly. State the server
-  doesn't have, such as the cart, stays in the screen that owns it. A Redux
-  store was planned for it and hasn't been needed. TanStack Query never takes
+  doesn't have, such as the cart, stays in the screen that owns it. TanStack
+  Query never takes
   an older `version`, and retries on its own only to read a payment's detail
   again. react-router for screens.
 - **UI.** shadcn components stay as generated. Our own components follow the
@@ -61,18 +61,16 @@ What each app does, and how, is in [till-plan.md](till-plan.md),
 | `c695b81` | One `.env` at the repo root, checked when each app builds. Apps at version 1.0.0                                                       |
 | `c0299a4` | Vitest, `pnpm test`, and a CI test step                                                                                                |
 
-Changes from the plan:
+Decisions:
 
-- **English, not German, is the fallback language.**
-- **The apps are at version 1.0.0, not 0.1.0.** The server refuses payments
-  from versions below its `minAppVersion` of 1.0.0 with 426.
-- **Strings live in `en.ts` and `de.ts`, not JSON,** so a missing German
-  string fails the typecheck.
-- **Language detection is a small tested function,** `pickLanguage`, instead
-  of the i18next detector plugin.
+- **English is the fallback language.**
+- **The apps are at version 1.0.0.** The server refuses payments from
+  versions below its `minAppVersion` of 1.0.0 with 426.
+- **Strings live in `en.ts` and `de.ts`,** so a missing German string fails
+  the typecheck.
+- **Language detection is a small tested function,** `pickLanguage`.
 - **`cn` is held at 0.5.0.** 0.5.1 was too new for pnpm's minimum release age,
   and that check stays on.
-- **Vitest in `domain` comes with its first code** in step 1.
 
 ## Step 1: `domain` and `api` packages
 
@@ -94,7 +92,8 @@ app's parts (config, pay, the app version header) in step 3.
   - `paid`, `confirmed` and `declined` are entered only from a server
     response.
   - A final state can't change.
-  - An explicit `unknown` state means "sent, outcome not known yet".
+  - "Sent, outcome not known yet" is an error, `noResponse`, not a state:
+    the screen shows "checking" and resends with the same key.
 - **Tests** replay the server's failures:
   - the server saved the request but the response was lost
   - a duplicate response
@@ -113,17 +112,13 @@ Done:
 Order, payment and refund shapes came with the screens that use them, in steps
 2 and 3.
 
-Changes from the plan:
+Decisions:
 
-- **Renewing came later than this step.** Neither app kept the password at
-  first, so a refused token logged out. Both now log in again with the
-  password kept in memory, built with the student app's pay flow
+- **A refused token is renewed** by `sessionRenewal` in `packages/api`: both
+  apps log in again with the password kept in memory
   ([student-plan.md](student-plan.md#renewing-the-token),
   [API gap 2](api-gaps.md#2-no-refresh-token)).
-- **"Outcome unknown" is a kind of error, not an order state.** A lost
-  response comes back as `noResponse`, and the screen shows "checking" and
-  resends with the same key.
-- **`storage` isn't started.** It comes with the first thing the till must
+- **`storage` isn't built.** It comes with the first thing the till must
   keep across a restart: the open order or a refund in progress.
 
 ## Step 2: Till
@@ -161,13 +156,11 @@ Done so far:
 | `8e53415` | Every till screen on the shared screen layout (`b5af400`): the greeting, Log out and the tabs at the top, and Create order at the bottom of the Mensa tab                                                     |
 | `73367f8` | The till renews its token with `createSessionRenewal`, the password kept in memory: Create order refused with a 401 is sent again with the same key, and an open QR stays open. Log out forgets the password  |
 
-Changes from the plan:
+Decisions:
 
-- **One Home screen with two tabs, Mensa and Payments,** instead of
-  `/charge`, `/charge/:orderId` and `/payments` screens. The order's QR is a
+- **One Home screen with two tabs, Mensa and Payments.** The order's QR is a
   dialog over the Mensa tab.
-- **The cart is the Mensa tab's own state,** not a Redux slice. Log out or a
-  reload clears it.
+- **The cart is the Mensa tab's own state.** Log out or a reload clears it.
 - **Create order stays at the bottom of the screen** on the Mensa tab, so it
   is one tap away under a long menu. The Payments tab has no footer: Load
   more belongs at the end of the list.
@@ -185,8 +178,8 @@ Changes from the plan:
   ([API gap 7](api-gaps.md#7-no-list-of-orders)).
 - **No search by id yet.** Paging only, like the student app's history.
 - **The status comes before the payer and the items.** In portrait the table
-  scrolls sideways, and the status must stay in view. Home is wider than
-  before, so the whole table fits a tablet in landscape.
+  scrolls sideways, and the status must stay in view. Home is wide enough
+  for the whole table to fit a tablet in landscape.
 
 Not yet:
 
@@ -224,7 +217,7 @@ Done so far:
 | `dbc9b28` | After Pay the page reads the payment every 2 seconds for 30 seconds: Being checked, Paid, Still being checked with Refresh, or back to Pay after a decline. Focus moves to each result                                                                         |
 | `a5d1f85` | `identityCheck` in `packages/native`: Android's fingerprint, face or PIN dialog through `@capgo/capacitor-native-biometric`, with every way it can end as a result                                                                                             |
 | `fc8814c` | The pay key store can tell whether a key is already saved for an order and amount                                                                                                                                                                              |
-| `5642562` | Pay asks for a fingerprint, the face or the phone's PIN before anything is sent: Confirming…, then Paying…, or Too many tries and Couldn't confirm it's you. A resend under a saved key doesn't ask again                                                      |
+| `5642562` | Pay asks for a fingerprint, the face or the phone's PIN before anything is sent: Confirming…, then Paying…, or Too many tries and Couldn't confirm it's you. A resend under a kept key doesn't ask again                                                       |
 | `b890666` | `createSessionRenewal` in `packages/api`: logs in again with the password kept in memory 30 seconds before the token ends and after a 401, once for every request waiting on it. A changed password ends the session; no answer keeps it                       |
 | `fba063e` | The student app renews its token, so a payment refused with a 401 is sent again with the same key instead of stopping at the login screen. Log out forgets the password                                                                                        |
 | `338b77e` | A long press no longer selects text, in the student app and the till. Fields stay selectable, and so does the payment detail's Payment ID line, to paste into a message                                                                                        |
@@ -250,9 +243,9 @@ Done so far:
 | `ad81872` | An Update Zahln screen takes the place of every screen, Login included, once the config needs a newer app, with a link to the latest release. A version check above both login guards, and Log out keeps the config                                            |
 | `55e7d48` | The Pay page reads the config: paused payments turn Pay off before the tap and are read again every 30 seconds, a tap reads it before the fingerprint check, at most 3 seconds, and a 426 or a paused answer reads it again. Check again is never stopped      |
 | `b0ec5a7` | A `full` column in `ScreenLayoutJSX`, which every student screen uses instead of `md`, so the app fills a tablet's width                                                                                                                                       |
-| `305004b` | The pay key is kept in memory only, no longer in `localStorage`, and Log out forgets it, so a reopen or the next payer makes a new key and is asked for the fingerprint, face or PIN                                                                           |
+| `305004b` | The pay key is kept in memory only, and Log out forgets it, so a reopen or the next payer makes a new key and is asked for the fingerprint, face or PIN                                                                                                        |
 
-Changes from the plan:
+Decisions:
 
 - **History doesn't poll.** It is fetched when Home opens, when the app comes
   back to the front, and with Refresh. A seeded payment has been pending for
@@ -281,38 +274,32 @@ Changes from the plan:
   after a decline or a changed price: the server may answer a reused key
   with the same refusal.
 - **A refused token logs in again with the password kept in memory only,**
-  as the plan's "logs in again and retries with the same key" says, and the
-  token is also renewed 30 seconds before it ends. The password is never
-  saved, so after a reopen a refused token still logs out
+  and the request goes again with the same key. The token is also renewed
+  30 seconds before it ends. The password is never saved, so after a reopen
+  a refused token still logs out
   ([API gap 2](api-gaps.md#2-no-refresh-token)).
 - **The key is spent when the session ends,** not kept in case an earlier
   try reached the server. The server already refuses a new key while a
   payment is pending or paid, and a kept key would let another payer on the
   same phone skip the fingerprint, face or PIN check. The reasons are in
   [student-plan.md](student-plan.md#why-the-key-is-spent-when-the-session-ends).
-- **The pay key is kept in memory only,** where the plan saved it on the
-  device so a reopened app could resend it. For the same two reasons it
-  bought no safety and let the next person on the phone skip the check, so
-  a reopen makes a new key and Log out forgets it
-  ([student-plan.md](student-plan.md#the-key)).
 - **The payment is read every 2 seconds for 30 seconds,** then the page
   says "Still being checked" and offers Refresh. History on Home shows the
   final result.
 - **Pay turns off when the countdown reaches 0,** Check again included. The
   order is read every 3 seconds until the server says expired or paid.
 - **A phone without a screen lock pays without the fingerprint, face or PIN
-  check,** where the plan said nothing about it: there is nothing on such a
-  phone to protect, and an emulator has no screen lock. Check again, and Pay
+  check:** there is nothing on such a phone to protect, and an emulator has
+  no screen lock. Check again, and Pay
   with a key that is still kept, don't ask again: the payer confirmed that
   payment already. Weak face unlock counts. The reasons are in
   [student-plan.md](student-plan.md#confirming-its-the-payer).
-- **Log out is on a Profile page,** not on Home. Home's top right is a
-  person icon that opens Profile: the payer's name and prices, App theme and
-  App language, and Log out.
-- **Picking the user is the login.** The plan said pick student, staff or
-  guest, then log in. The login screen has no form instead: a card for each
-  seeded user, and its Log in button logs in with that user's username and
-  the seeded password. The server has no other payers, and the password is
+- **Log out is on a Profile page.** Home's top right is a person icon that
+  opens Profile: the payer's name and prices, App theme and App language,
+  and Log out.
+- **Picking the user is the login.** The login screen has no form: a card
+  for each seeded user, and its Log in button logs in with that user's
+  username and the seeded password. The server has no other payers, and the password is
   in the API's docs. Another user is Log out on Profile, then another card
   ([student-plan.md](student-plan.md#logging-in)).
 - **`GET /config` is read before the fingerprint check,** not only before
@@ -322,10 +309,10 @@ Changes from the plan:
   ([student-plan.md](student-plan.md#the-servers-config)).
 - **A version too old is told on every screen,** Login included, not only
   at Pay, since it may also misread what a newer server sends.
-- **The student app fills the screen's width.** Its screens were a
-  phone-wide `md` column, 448 px, which left empty strips either side on a
-  tablet. The welcome card, the camera's frame and Scan's "This device
-  can't scan" stay narrow and centred.
+- **The student app fills the screen's width.** Its screens use a `full`
+  column, so a tablet shows no empty strips either side. The welcome card,
+  the camera's frame and Scan's "This device can't scan" stay narrow and
+  centred.
 
 Not yet:
 
@@ -334,37 +321,39 @@ Not yet:
 - Applying the theme and the language picked on Profile. The selects show
   the choice, but the app keeps the phone's language and the light colours.
 
-The plan for the whole step:
+What the step covers:
 
-- **Start:** pick student, staff or guest, then log in. The app reads
-  `GET /config` at start and again before paying. The config can force an
-  update or pause payments.
+- **Start:** a card for each seeded payer logs in. The app reads
+  `GET /config` at start, when it comes back to the front, and before
+  paying. The config can force an update or pause payments.
 - **Scan:** ML Kit's Google code scanner. It needs no camera permission and is
-  light on a low-end phone. `GET /orders/{id}` then loads the confirm screen:
-  mensa, items and amount.
-- **Pay:** biometrics, or the device PIN when there are none, then
-  `POST /orders/{id}/payments` with the amount shown. The key is saved on the
-  device before the first send.
+  light on a low-end phone. Without Google Play services the app opens its
+  own camera screen, and without a camera the payer types the code.
+  `GET /orders/{id}` then loads the Pay page: mensa, items and amount.
+- **Pay:** the fingerprint, the face or the phone's PIN, then
+  `POST /orders/{id}/payments` with the amount shown. The key is made before
+  the first send and kept in memory only; Log out forgets it
+  ([student-plan.md](student-plan.md#the-key)).
 - **History:** `GET /payments`, paged, including payments still being checked.
   The detail view shows refunds and the full event history.
 - **Screen reader (TalkBack):** the result is announced, focus moves to the
   result heading, and every control has a label.
-- **`native` package:** Capacitor wrappers for the scanner, biometrics, secure
-  storage and network status.
+- **`native` package:** Capacitor wrappers for Google's code scanner, the
+  camera scanner and the check that the phone's owner is paying.
 
 What the app does with each answer to "pay":
 
-| Server answer                                                            | The app                                                                                                                        |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| 201 `confirmed` / `declined`                                             | Shows that result                                                                                                              |
-| 201 `pending`                                                            | Shows "being checked" and polls the payment. After about 30 seconds it says the payment is still pending and points to history |
-| 502 / 504 / no response / 503 `unavailable`                              | Shows "checking…" and retries with the **same** key. It never offers to pay again                                              |
-| 401 `session_expired`                                                    | Logs in again and retries with the same key                                                                                    |
-| 409 `amount_mismatch`                                                    | Reloads the order and shows the new amount. Confirming again uses a new key                                                    |
-| 409 `order_expired` / `order_already_paid` / `order_payment_in_progress` | Explains which one. No retry                                                                                                   |
-| 426                                                                      | Shows that an app update is required                                                                                           |
-| 503 `payments_disabled`                                                  | Shows "payments paused"                                                                                                        |
-| App killed mid-payment                                                   | On restart, picks up the saved key and checks the payment's status                                                             |
+| Server answer                                                            | The app                                                                                                                            |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 201 `confirmed` / `declined`                                             | Shows that result                                                                                                                  |
+| 201 `pending`                                                            | Shows "being checked" and polls the payment. After 30 seconds it says "Still being checked" and offers Refresh                     |
+| 502 / 504 / no response / 503 `unavailable`                              | Retries with the **same** key, 3 tries. Then "Payment not confirmed. It may have gone through" and Check again, with the same key  |
+| 401 `session_expired`                                                    | Logs in again and retries with the same key                                                                                        |
+| 409 `amount_mismatch`                                                    | Reloads the order and shows the new amount. Confirming again uses a new key                                                        |
+| 409 `order_expired` / `order_already_paid` / `order_payment_in_progress` | Explains which one. No retry                                                                                                       |
+| 426                                                                      | Shows that an app update is required                                                                                               |
+| 503 `payments_disabled`                                                  | Shows "payments paused"                                                                                                            |
+| App killed mid-payment                                                   | On restart, Pay makes a new key. The server refuses it while the first payment is pending or paid, and the page shows that payment |
 
 ## Step 4: Dashboard
 
@@ -395,7 +384,7 @@ payment detail, needs attention, and CSV export.
 | `bccaf44` | `formatCentsAsNumber`, euros as a plain number in the app language                                                                                                                                                               |
 | `1317060` | The CSV export: every page the filters match or no file, each payment once, in the agreed columns, written for a spreadsheet in the app language. The dashboard runs its own tests                                               |
 
-Decisions taken before the step:
+Decisions:
 
 - **Login:** one card for the seeded finance user, like the apps' test user
   cards, rather than a form.
@@ -407,13 +396,9 @@ Decisions taken before the step:
 - **The login:** in the tab's `sessionStorage`, so a reload keeps it and
   closing the tab ends it.
 - **The totals open on today**, in Berlin by the server's clock.
-
-Changes from the plan:
-
-- **No sidebar.** The plan had shadcn's Sidebar. Each screen is built on
-  `ScreenLayoutJSX` as in the apps, with a shared header holding the
-  sections; a sidebar around it would have added a second header and nested
-  `<main>`.
+- **No sidebar.** Each screen is built on `ScreenLayoutJSX` as in the apps,
+  with a shared header holding the sections; a sidebar around it would add a
+  second header and nested `<main>`.
 - **Previous day and next day** beside the calendar, so finance can step
   through a week without opening it.
 - **The table's pending column shows the amount;** the count is on the
@@ -421,8 +406,8 @@ Changes from the plan:
 - **The calendar doesn't move focus to the picked day.** Lint forbids
   `autoFocus` and the code has no lint exceptions. Opening it still moves
   focus into the calendar.
-- **`getMensas` is shared.** It moved from the till to `packages/api`, and the
-  till imports it from there.
+- **`getMensas` is shared** in `packages/api`, by the till and the
+  dashboard.
 - **The CSV follows the app language:** semicolons and decimal commas in
   German, commas and decimal points in English, so each opens in Excel
   without an import step.
