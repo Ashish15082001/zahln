@@ -144,11 +144,25 @@ What I would add before a real release:
   payments rise. `minAppVersion` would go up only after that, and never past a
   version most phones already have.
 - **Crash reporting and a failed-payment rate per app version,** to decide
-  when to halt. It isn't decided which tool.
+  when to halt ([below](#crash-reporting)).
 - **A `versionCode` from CI,** such as the run number. It is fixed at 1, so a
   second release would first need it raised.
 - **A server that keeps answering every version above `minAppVersion`,**
   since some phones update weeks late.
+
+### Crash reporting
+
+Optional in the brief, and not built. How I would add it:
+
+| Part                    | How                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The tool                | Sentry, in its EU region. `@sentry/capacitor` with `@sentry/react` in the student app and the till, which reports JavaScript errors and native crashes in one place, and `@sentry/react` in the dashboard                                                                                                             |
+| Where it starts         | `Sentry.init` in each app's `main.tsx`, before the first render. The release is the version from `package.json`, the same one the app sends as `X-App-Version`, so every report and every rollout stage name the same version                                                                                         |
+| Errors the router keeps | A screen that throws, or whose file fails to load, ends on the Reload screen, and React Router doesn't pass the error on. `RouteErrorScreen` reports what `useRouteError` gives it                                                                                                                                    |
+| No personal data        | `sendDefaultPii` off, no user attached and no session replay. `beforeSend` and `beforeBreadcrumb` drop the `Authorization` header, request bodies and query strings. Screens are named by their route, `/pay/:orderId`, never by the address with the id in it. A report says which screen and which version, not who |
+| Readable stacks         | Vite builds with hidden source maps. CI uploads them to Sentry with a `SENTRY_AUTH_TOKEN` secret, and they never go into an APK or onto the site                                                                                                                                                                      |
+| Failed payments         | Besides crashes, one event for each Pay that ends without a result: "Payment not confirmed" after 3 tries, or a refusal, tagged with the version and the server's error code and nothing else. With crash-free sessions per version, that rate is what a staged rollout halts on                                      |
+| Consent                 | The reports carry no personal data. Whether they still need the payer's consent is a question for Zahln's data protection officer; if so, Sentry starts only after a yes                                                                                                                                              |
 
 ## Security and data protection on the device
 

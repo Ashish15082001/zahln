@@ -489,11 +489,11 @@ shows in both languages, and the app doesn't start.
 
 ## Optional items from the brief
 
-| Item                                           | Plan                                                                                                |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Minimum app version and switching payments off | Built in step 3: `GET /config` at start and before Pay, as well as the server's 426 and 503 answers |
-| Crash reporting                                | Not decided. At least described in design doc                                                       |
-| CI on every push                               | Done                                                                                                |
+| Item                                           | Plan                                                                                                          |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Minimum app version and switching payments off | Built in step 3: `GET /config` at start and before Pay, as well as the server's 426 and 503 answers           |
+| Crash reporting                                | Described, not built: Sentry in its EU region, with no personal data ([design.md](design.md#crash-reporting)) |
+| CI on every push                               | Done                                                                                                          |
 
 ## Carried forward
 
