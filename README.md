@@ -12,8 +12,7 @@ frontend assignment, in one TypeScript monorepo.
   [v1.1.0 release](https://github.com/Ashish15082001/zahln/releases/tag/v1.1.0).
   They need Android 7 or later and an Android System WebView of Chrome 111 or
   later; an older WebView shows what to update. Android asks to allow
-  installing from the browser or file manager the first time. The repo is
-  private, so the release opens for its collaborators.
+  installing from the browser or file manager the first time.
 
 Test logins, all on the API's seeded data. The password is `test1234`
 everywhere.

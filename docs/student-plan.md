@@ -121,9 +121,8 @@ The decisions behind it:
   older version must ask the user to update, and an old version may also
   misread what a newer server sends.
 - **The link goes to the GitHub release,** since the app isn't on Google
-  Play. Capacitor hands a link to another site to the phone's browser. The
-  repo is private, so it opens for its collaborators; on Google Play it
-  would be the store page.
+  Play. Capacitor hands a link to another site to the phone's browser. On
+  Google Play it would be the store page.
 - **Log out keeps the config.** It isn't the payer's, unlike the rest of the
   cache.
 - **The student app only.** The till doesn't pay.

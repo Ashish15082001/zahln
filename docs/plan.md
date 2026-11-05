@@ -437,8 +437,7 @@ Built in seven parts, each approved before it starts.
 Decisions taken before the step:
 
 - **The dashboard is on Vercel,** deployed by CI from the built files once
-  every check passes. GitHub Pages doesn't serve a private repo on a free
-  plan, and the repo is private.
+  every check passes.
 - **The candidate ID is in the dashboard's public JavaScript.** A page that
   calls the API from the browser has to carry it, and it reaches sandbox data
   only.
@@ -470,8 +469,10 @@ path but a file's to `index.html`, so a reload or a shared link opens that
 screen, and a missing file is a 404. CI deploys the built files with the
 Vercel CLI and a `VERCEL_TOKEN` repository secret. Vercel builds nothing
 itself: its Git integration is off. The files go up from a folder outside the
-checkout, so no commit comes with them: on Vercel's free plan, a commit to a
-private repo is blocked unless its author is on the Vercel account.
+checkout, so no commit comes with them. The site needs only its files, and
+the deploy works whether the repo is public or private: on Vercel's free
+plan, a commit to a private repo is blocked unless its author is on the
+Vercel account.
 
 `VITE_CANDIDATE_ID` is a GitHub repository secret, so CI can build.
 
